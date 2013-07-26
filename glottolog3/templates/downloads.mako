@@ -1,8 +1,8 @@
 <%inherit file="home_comp.mako"/>
-<%namespace name="g" file="helpers.mako"/>
 
-<%g:meta_page title="Linked Data">
-<div class="well">
+<h3>Linked Data</h3>
+
+<div class="span4 well">
     You can download the following items as gzipped, utf-8 encoded files:
     <dl>
         <dt>Languoids</dt>
@@ -12,7 +12,7 @@
                 ##<dd><a href="/downloadarea/languoids.n3.tgz">languoids.n3.tgz</a></dd>
                 <dt>CSV</dt>
                 <dd>
-                    <a href="${request.static_url('glottolog2:static/export/glottolog-languoids-utf8.csv.gz')}">
+                    <a href="${request.static_url('glottolog3:static/export/glottolog-languoids-utf8.csv.gz')}">
                         languoids-utf8.csv
                     </a>
                 </dd>
@@ -30,7 +30,7 @@
             <dl>
                 <dt>BIB</dt>
                 <dd>
-                    <a href="${request.static_url('glottolog2:static/export/glottolog-references-utf8.bib.gz')}">
+                    <a href="${request.static_url('glottolog3:static/export/glottolog-references-utf8.bib.gz')}">
                         references-utf8.bib
                     </a>
                 </dd>
@@ -40,16 +40,16 @@
         </dd>
     </dl>
 </div>
-<div>
+<div class="span7">
     <p>
         Glottolog is part of the
+        ${h.external_link("http://linguistics.okfn.org/resources/llod/", label='Linguistic Linked Open Data Cloud')}.
         <a href="http://linguistics.okfn.org/resources/llod/">Linguistic Linked Open Data Cloud</a>.
-        You can request RDF representations of the resources by adding the extensions '.rdf' or '.n3' to
         the resource URL in the address bar (e.g.
-        <a href="${request.route_url('glottolog.languoid', id='stan1295', ext='rdf')}">${request.route_url('glottolog.languoid', id='stan1295', ext='rdf')}</a>),
-        or by using content negotiation. Glottolog makes use of popular ontologies such as Dublin Core,
-        but some particular concepts had to be added. The Glottolog/Langdoc ontology can be found
-        <a href="/ontologies/glottolog.owl">here</a>.
+        <a href="${request.route_url('language', id='stan1295', ext='rdf')}">${request.route_url('language', id='stan1295', ext='rdf')}</a>),
+        or by using content negotiation. Glottolog makes use of popular ontologies such as Dublin Core.
+        ##but some particular concepts had to be added. The Glottolog/Langdoc ontology can be found
+        ##<a href="/ontologies/glottolog.owl">here</a>.
     </p>
     ##<p>
     ##    We do receive requests to access our database in JSON format. Up to now, the following requests are available.
@@ -78,4 +78,3 @@
     ##    (in this case the Swedish wikipedia about Faroese).
     ##</p>
 </div>
-</%g:meta_page>

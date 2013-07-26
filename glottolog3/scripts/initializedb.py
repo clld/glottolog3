@@ -14,32 +14,13 @@ from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.util import slug
 from clld.lib import dsv
+from clld.lib.bibtex import EntryType
 
 from glottolog3 import models as models2
 from glottolog2.lib.util import glottocode, REF_PATTERN
 
 
 LIMIT = 10000
-
-
-def drop(table, indexes=None, fks=None):
-    for name in fks or {}:
-        DBSession.execute("ALTER TABLE %s DROP CONSTRAINT %s" % (table, name))
-
-    for name in indexes or {}:
-        DBSession.execute("DROP INDEX %s" % name)
-
-    DBSession.execute('COMMIT')
-
-
-def add(table, indexes=None, fks=None):
-    for name, spec in (fks or {}).items():
-        DBSession.execute("ALTER TABLE %s ADD CONSTRAINT %s %s" % (table, name, spec))
-
-    for name, spec in (indexes or {}).items():
-        DBSession.execute("CREATE INDEX %s ON %s %s" % (name, table, spec))
-
-    DBSession.execute('COMMIT')
 
 
 def select(db, sql, handler):
@@ -93,13 +74,18 @@ def create(args):
             sc=data.add(common.Parameter, 'sc', id='sc', name='Subclassification'),
         )
 
-        dataset = data.add(common.Dataset, 'd',
-                           id='glottolog',
-                           name='',
-                           description='',
-                           published=datetime.date(2013, 8, 15),
-                           domain='glottolog.org',
-                           contact='glottolog@eva.mpg.de')
+        dataset = data.add(
+            common.Dataset, 'd',
+            id='glottolog',
+            name='Glottolog 2.0',
+            description='',
+            published=datetime.date(2013, 8, 15),
+            domain='glottolog.org',
+            contact='glottolog@eva.mpg.de',
+            jsondata={
+                'license_icon': 'http://i.creativecommons.org/l/by-sa/3.0/88x31.png',
+                'license_name':
+                    'Creative Commons Attribution-ShareAlike 3.0 Unported License'})
         for i, ed in enumerate([sn, hh, rf, mh]):
             DBSession.add(common.Editor(dataset=dataset, contributor=ed, ord=i + 1))
 
@@ -161,11 +147,12 @@ def create(args):
             dicts = {
                 's': dict(
                     pk=row['id'],
+                    polymorphic_type='base',
                     id=str(row['id']),
                     name='%(author)s %(year)s' % row,
                     description=row['title'],
-                    bibtex_type=row['type'],
-                    jsondata=json.dumps(jsondata)),
+                    bibtex_type=getattr(EntryType, row['type']),
+                    jsondata=jsondata),
                 'r': dict(pk=row['id']),
             }
             for model, map_ in {

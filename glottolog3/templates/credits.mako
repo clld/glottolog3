@@ -1,13 +1,9 @@
 <%inherit file="home_comp.mako"/>
 <%namespace name="util" file="util.mako"/>
 
-<%! multirow = True %>
-
-<div class="row-fluid">
-    <div class="span10 offset1">
 <h3>Credits</h3>
 
-<div class="span6 well well-small">
+<div class="span7">
     <p>
         Glottolog is collaborative work.
     </p>
@@ -34,23 +30,10 @@
         coordination, and is currently responsible for languoid names and dialects.
     </p>
     <p>
-        The table on the right gives the source bibliographies for Langdoc.
-    <p>
+        A table of source bibliographies for Langdoc is available at
+        <a href="${request.route_url('providers')}">Langdoc information</a>.
+    </p>
+</div>
+<div class="span4 well well-small">
     <img src="${request.static_url('glottolog3:static/Spitzweg.jpg')}"/>
-</div>
-
-<div class="span5">
-    <%util:table items="${stats}" args="item" eid="refs" class_="table-condensed table-striped">\
-        <%def name="head()">
-            <th>Bibliography</th><th>References</th>
-        </%def>
-        <td>${h.link(request, item[0])}</td>
-        <td class="right">${item[1]}</td>
-        <%def name="foot()">
-            <th style="text-align: right;">Total:</th><th style="text-align: right;">${sum(i[1] for i in stats)}</th>
-        </%def>
-    </%util:table>
-</div>
-
-    </div>
 </div>

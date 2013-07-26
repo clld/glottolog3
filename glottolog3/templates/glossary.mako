@@ -9,7 +9,7 @@
     <dd>
         A dialect, language or language family. A more extensive definition
         can be found in
-        <a href="http://ceur-ws.org/Vol-783/paper7.pdf">Nordhoff &amp; Hammarström 2011</a>
+        ${h.external_link("http://ceur-ws.org/Vol-783/paper7.pdf", label=u"Nordhoff & Hammarstr\xf6m 2011")}
     </dd>
     <dt id="Doculect"> Doculect</dt>
     <dd>
@@ -22,7 +22,7 @@
     <dt id="Doctype"> Document type</dt>
     <dd>
         The class a document belongs to. There are ${doctypes.count()} classes.
-        A <a href="#Lectodoc">document</a> can belong to more than one class.
+        document can belong to more than one class.
         The following doctypes are distinguished
         <dl>
             % for doctype in doctypes:
@@ -69,7 +69,7 @@
         this information is so scanty that it cannot be decided whether or not
         it is genealogically related to any other language.
         They are treated as belonging to the top-level pseudo-family „Unclassified“.
-        (See also the <a href="${request.route_url('glottolog.meta')}">Glottolog information</a> section.)
+        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </dd>
     <dt>Unclassified languoid in family X</dt>
     <dd>
@@ -84,14 +84,14 @@
                 lack of data or because of lack of investigation).
             </li>
         </ol>
-        (See also the <a href="${request.route_url('glottolog.meta')}">Glottolog information</a> section.)
+        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </dd>
     <dt>Status in Glottolog</dt>
     <dd>
         The vast majority of languoids have the status „Established“, but there are some
         special cases: Some languages are Unattested, some are Provisional, and some
         languoids are Spurious. In addition, quite a few families have the status „Retired“.
-        (See also the <a href="${request.route_url('glottolog.meta')}">Glottolog information</a> section.)
+        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </dd>
     <dt>Unattested language</dt>
     <dd>
@@ -105,12 +105,12 @@
             to a family on non-linguistic grounds, but here they are treated as belonging
             to the pseudo-family „Unclassified“.
         </p>
-        (See also the <a href="${request.route_url('glottolog.meta')}">Glottolog information</a> section.)
+        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </dd>
     <dt>Provisional language</dt>
     <dd>
         A language whose status is currently under consideration by the Glottolog editors.
-        (See also the <a href="${request.route_url('glottolog.meta')}">Glottolog information</a> section.)
+        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </dd>
     <dt>Spurious languoid</dt>
     <dd>
@@ -118,7 +118,7 @@
         not proven beyond doubt. This includes super-families like Amerind and
         small languages or dialects which somehow made it into other language catalogues
         without proof that they actually do exist.
-        (See also the <a href="${request.route_url('glottolog.meta')}">Glottolog information</a> section.)
+        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </dd>
     <dt>Retired family</dt>
     <dd>

@@ -2,10 +2,10 @@ from datetime import date
 
 from sqlalchemy import or_, desc
 from clld.db.meta import DBSession
-from clld.db.models.common import Language
+from clld.db.models.common import Language, Source
 
 from glottolog3.models import (
-    Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider,
+    Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider, Provider,
 )
 from glottolog3.config import CFG
 
@@ -68,3 +68,55 @@ def families(request):
 
 def languages(request):
     return {'dt': request.get_datatable('languages', Language, type='languages')}
+
+
+def get_filtered_params(request):
+    res = dict(param_spec=[
+        ('author', 'Author'),
+        ('year', 'Precise year'),
+        ('after', 'Start year'),
+        ('before', 'End year'),
+        ('title', 'Title'),
+        ('editor', 'Editor'),
+        ('journal', 'Journal'),
+        ('address', 'Address'),
+        ('publisher', 'Publisher'),
+    ])
+    res['params'] = {}
+    for spec in res['param_spec']:
+        res['params'][spec[0]] = request.params.get(spec[0], u'').strip()
+    return res
+
+
+def langdocquery(request):
+    return get_filtered_params(request)
+
+
+def langdoccomplexquery(request):
+    res = get_filtered_params(request)
+
+    #languoids, macroareas, reftypes
+    if request.params.get('languoids'):
+        res['params']['languoids'] = [
+            m.group('code') for m in
+            GLOTTOCODE_PATTERN.finditer(request.params['languoids'].replace('\n', ' '))]
+
+    res['params']['macroareas'] = map(int, request.params.getall('macroarea'))
+    res['params']['reftypes'] = map(int, request.params.getall('reftype'))
+    res['params']['iso'] = request.params.getall('iso')
+    res['refs'] = []#getRefs(**res['params'])
+
+    fmt = request.params.get('format')
+    if fmt == 'html':
+        return render_to_response('reflist.mako', {'refs': res['refs'][1]}, request=request)
+    if fmt == 'bib' or fmt == 'txt':
+        if fmt == 'bib':
+            c = '\n\n'.join(rec.bibtex().__unicode__().encode('utf8') for rec in res['refs'][1])
+        else:
+            c = '\n\n'.join(rec.txt().encode('utf8') for rec in res['refs'][1])
+        return Response(c, content_type='text/plain; charset=UTF-8')
+
+    res.update(
+        reftypes=DBSession.query(Doctype).order_by(Doctype.id),
+        macroareas=DBSession.query(Macroarea).order_by(Macroarea.id))
+    return res

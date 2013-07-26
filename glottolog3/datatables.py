@@ -1,20 +1,40 @@
 from __future__ import unicode_literals
 
 from sqlalchemy import func, or_, and_
-from sqlalchemy.orm import joinedload, joinedload_all
-from clld.web.datatables.base import DataTable, Col, LinkCol
+from sqlalchemy.orm import joinedload, joinedload_all, aliased
+from clld.web.datatables.base import DataTable, Col, LinkCol, DetailsRowLinkCol
 from clld.web.util.helpers import button, JSModal, icon, link
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
 from clld.db.models.common import Language
-from clld.web.datatables.language import Languages as BaseTable
+from clld.web.datatables.language import Languages
+from clld.web.datatables.source import Sources
 
 from glottolog3.models import (
-    Macroarea, Languoidmacroarea, Languoid, TreeClosureTable, Justification,
-    LanguoidLevel, LanguoidStatus,
+    Macroarea, Languoidmacroarea, Languoid, TreeClosureTable,
+    LanguoidLevel, LanguoidStatus, Provider, Refprovider, Refdoctype, Doctype, Ref,
 )
 #from glottolog2.lib.util import top_node_query, link, format_justifications
+
+
+class RefCountCol(Col):
+    def format(self, item):
+        return self.dt.ref_count[item.pk]
+
+
+class Providers(DataTable):
+    def __init__(self, req, model, **kw):
+        self.ref_count = Refprovider.get_stats()
+        super(Providers, self).__init__(req, Provider, **kw)
+
+    def col_defs(self):
+        return [
+            Col(self, 'id'),
+            Col(self, 'name'),
+            RefCountCol(self, 'refs', bSortable=False, bSearchable=False),
+            Col(self, 'description'),
+        ]
 
 
 class NameCol(Col):
@@ -99,7 +119,7 @@ class IsoCol(Col):
         return Languoid.hid.contains(qs.lower())
 
 
-class Families(BaseTable):
+class Families(Languages):
     def __init__(self, req, model, **kw):
         self.type = kw.pop('type', req.params.get('type', 'families'))
         super(Families, self).__init__(req, model, **kw)
@@ -108,9 +128,7 @@ class Families(BaseTable):
         query = query.filter(Language.active == True)\
             .outerjoin(Languoidmacroarea)\
             .distinct()\
-            .options(
-                joinedload(Languoid.macroareas),
-                joinedload_all(Languoid.justifications, Justification.source))
+            .options(joinedload(Languoid.macroareas))
 
         if self.type == 'families':
             return query.filter(
@@ -153,3 +171,39 @@ class Families(BaseTable):
         opts = super(Families, self).get_options()
         opts['sAjaxSource'] = self.req.route_url('languages', _query={'type': self.type})
         return opts
+
+
+class DoctypeCol(Col):
+    def __init__(self, dt, name, **kw):
+        self.doctypes = DBSession.query(Doctype).order_by(Doctype.id).all()
+        kw['bSortable'] = False
+        super(DoctypeCol, self).__init__(dt, name, **kw)
+
+    def format(self, item):
+        return ', '.join(a.name for a in item.doctypes)
+
+    def search(self, qs):
+        return self.dt.refdoctype.doctype_pk == int(qs)
+
+    @property
+    def choices(self):
+        return [(a.pk, a.name) for a in self.doctypes]
+
+
+class Refs(Sources):
+    def __init__(self, *args, **kw):
+        super(Refs, self).__init__(*args, **kw)
+        self.refdoctype = aliased(Refdoctype)
+
+    def col_defs(self):
+        cols = super(Refs, self).col_defs()
+        if self.language:
+            cols.append(DoctypeCol(self, 'doctype'))
+        return cols
+
+    def base_query(self, query):
+        query = super(Refs, self).base_query(query)
+        if self.language:
+            query = query.outerjoin(self.refdoctype, Ref.pk == self.refdoctype.ref_pk)\
+                .distinct()
+        return query

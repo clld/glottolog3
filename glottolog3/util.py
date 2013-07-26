@@ -1,4 +1,6 @@
 from json import dumps
+import re
+from itertools import cycle
 
 from sqlalchemy import or_, not_
 from sqlalchemy.orm import joinedload, joinedload_all
@@ -7,11 +9,56 @@ from pyramid.httpexceptions import HTTPFound
 
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    Identifier, LanguageIdentifier, IdentifierType, Language,
+    Identifier, LanguageIdentifier, IdentifierType, Language, Source,
 )
+from clld.web.util.helpers import link
+from clld.web.util.htmllib import HTML
+from clld.web.icon import SHAPES
+from clld.interfaces import IIcon
 
-from glottolog3.models import Country, Languoid, Languoidcountry
+from glottolog3.models import Country, Languoid, Languoidcountry, Refprovider, Provider
 from glottolog3.maps import LanguoidsMap
+
+
+REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
+
+
+#def provider_detail_html(request=None, **kw):
+#    raise HTTPFound(request.route_url('providers', _anchor='provider-' + request.matchdict['id']))
+
+def provider_index_html(request=None, **kw):
+    return {
+        'providers': DBSession.query(Provider),
+        'totalrefs': DBSession.query(Source).count(),
+        'totalnodes': DBSession.query(Language).count(),
+    }
+
+
+def format_classificationcomment(req, comment):
+    parts = []
+    pos = 0
+    for match in REF_PATTERN.finditer(comment):
+        preceding = comment[pos:match.start()]
+        parts.append(preceding)
+        preceding_words = preceding.strip().split()
+        if preceding_words and preceding_words[-1] not in ['in', 'of', 'per', 'by']:
+            parts.append('(')
+        parts.append(link(req, Source.get(match.group('id'))))
+        if preceding_words and preceding_words[-1] not in ['in', 'of', 'per', 'by']:
+            parts.append(')')
+        pos = match.end()
+    parts.append(comment[pos:])
+    return HTML.p(*parts)
+
+
+def format_justifications(req, refs):
+    r = []
+    for ref in refs:
+        label = ref.source.name
+        if ref.description:
+            label += '[%s]' % ref.description
+        r.append(HTML.li(link(req, ref.source, label=label)))
+    return HTML.ul(*r)
 
 
 def getLanguoids(name=False,
@@ -80,3 +127,18 @@ def language_index_html(request=None, **kw):
         map_ = None
     res.update(map=map_, languoids=languoids)
     return res
+
+
+COLORS = [
+    #            red     yellow
+    "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
+]
+
+
+def language_detail_html(request=None, context=None, **kw):
+    icon_map = dict(
+        zip([context.pk] + [l.pk for l in context.children],
+            cycle([s + c for s in SHAPES for c in COLORS])))
+    for key in icon_map:
+        icon_map[key] = request.registry.getUtility(IIcon, icon_map[key]).url(request)
+    return dict(icon_map=icon_map)

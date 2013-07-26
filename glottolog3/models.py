@@ -24,7 +24,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from clld import interfaces
+from clld.interfaces import ISource, ILanguage
 from clld.db.meta import DBSession, Base, CustomModelMixin
 from clld.db.models.common import Language, Source, HasSourceMixin, IdNameDescriptionMixin
 from clld.web.util.htmllib import literal
@@ -120,11 +120,12 @@ class Refprovider(Base):
 
     @classmethod
     def get_stats(cls):
-        return DBSession.query(Provider, func.count(cls.ref_pk).label('c'))\
-            .filter(Provider.pk == cls.provider_pk)\
-            .group_by(Provider)\
-            .order_by(desc('c'))\
-            .all()
+        return dict(
+            DBSession.query(Provider.pk, func.count(cls.ref_pk).label('c'))
+            .filter(Provider.pk == cls.provider_pk)
+            .group_by(Provider.pk)
+            .order_by(desc('c'))
+            .all())
 
 
 #-----------------------------------------------------------------------------
@@ -145,7 +146,7 @@ class LanguoidStatus(DeclEnum):
     retired = 'retired', 'retired'
 
 
-@implementer(interfaces.ILanguage)
+@implementer(ILanguage)
 class Languoid(Language, CustomModelMixin):
     """
     id -> pk
@@ -237,13 +238,41 @@ class Languoid(Language, CustomModelMixin):
             .filter(TreeClosureTable.parent_pk.in_(child_pks))\
             .filter(Language.latitude != None)
 
-    def get_code(self, provider):
-        for li in self.languageidentifier:
-            if li.identifier.type == provider:
-                return li.identifier.name
+    def classification(self, type_):
+        assert type_ in ['fc', 'sc']
+        for vs in self.valuesets:
+            if vs.parameter.id == type_:
+                return vs
+
+    @property
+    def fc(self):
+        c = self.classification('fc')
+        if c.description:
+            return c
+
+    @property
+    def sc(self):
+        c = self.classification('sc')
+        if c.description:
+            return c
+
+    @property
+    def crefs(self):
+        def refs(t):
+            c = self.classification(t)
+            if c:
+                return list(c.references)
+            return []
+        return refs('fc') + refs('sc')
+
+    def __rdf__(self, request):
+        if self.father:
+            yield 'skos:broader', request.resource_url(self.father)
+        for child in self.children:
+            yield 'skos:narrower', request.resource_url(child)
 
 
-@implementer(interfaces.ISource)
+@implementer(ISource)
 class Ref(Source, CustomModelMixin):
     """
     id -> pk
@@ -305,121 +334,6 @@ class Ref(Source, CustomModelMixin):
         order_by='Country.name',
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
-
-    def bibtex(self):
-        exclude = ['pk', 'type', 'id', 'jsondata']
-
-        data = copy(self.jsondata or {})
-        for col in object_mapper(self).local_table.c:
-            if col.key in exclude:
-                continue
-            value = getattr(self, col.key)
-            if value:
-                data[col.key] = '%s' % value
-                #try:
-                #    data[col.key] = unescape(value)
-                #except UnicodeEncodeError:  # pragma: no cover
-                #    data[col.key] = repr(value)
-
-        rec = bibtex.Record(self.type, self.id)
-
-        for field, label in self.field_labels:
-            if field in data:
-                rec[field] = data.pop(field)
-
-        rec['glottolog_ref_id'] = str(self.pk)
-        rec.update(data)
-        return rec
-
-    def txt(self):
-        return self.bibtex().text()
-
-
-#-----------------------------------------------------------------------------
-
-
-#
-#class Noderefs(Base): -> LanguageSource
-#
-#
-#class Nodenames(Base): -> LanguageIdentifier
-#
-#class Nodecodes(Base): -> LanguageIdentifier
-#
-#
-# Codebase and Namebase could be combined into clld Identifier
-#
-#class Namebase(Base): -> Identifier
-#    """
-#    Sets of names for the same languoid are listed in this table
-#    The set can be attached to a languoid through its id.
-#    The mapping of names to languoids poses some difficulties because of synonymy and
-#    inconsistency. The relation languoid_id:namestring is m:n. We use lgname_ids to
-#    distinguish different languages which have the same  string as their name.
-#    """
-#    id = Column(Integer(8), primary_key=True)  -> pk
-#    namestring = Column(Unicode, index=True)  -> name
-#    nameprovider = Column(Unicode, index=True)  -> type
-#    sourcefile = Column(Unicode) -> drop or jsondata?
-#    inlg = Column(Unicode) -> description
-#
-
-#class Codebase(Base): -> Identifier
-#    """provides unique identifiers for codes
-#    Codes are only unique within their namespace, i.e. their provider
-#    Some isocodes are also walscodes but refer to different lgs
-#    All codes get unique arbitrary ids
-#    """
-#    id = Column(Integer(8), primary_key=True) -> pk
-#    codestring = Column(Unicode, index=True) -> name
-#    codeprovider = Column(Unicode, index=True) -> type
-#
-
-
-class Justification(Base, HasSourceMixin):
-    """
-    id -> pk
-    refbase_id -> source_pk
-    languoidbase_id -> languoid_pk
-    """
-    languoidbase_pk = Column(Integer, ForeignKey('languoid.pk'))
-    description = Column(Unicode)
-    type = Column(Unicode)
-    languoid = relationship(Languoid, backref=backref('justifications', lazy=False))
-
-
-#
-# PERIPHERAL BASES
-#
-#class RefAuthors(Base):
-#    "links refs to individual authors"
-#    refbase_id = Column(Integer(8), ForeignKey('refbase.id'), primary_key=True)
-#    authorstring = Column(Unicode, primary_key=True)
-#    authorfirstname = Column(Unicode(), index=True)
-#    authorlastname = Column(Unicode(), index=True)
-#
-#
-#class RefEditors(Base):
-#    "links refs to individual editors"
-#    refbase_id = Column(Integer(8), ForeignKey('refbase.id'), primary_key=True)
-#    editorstring = Column(Unicode, primary_key=True)
-#    editorfirstname = Column(Unicode(), index=True)
-#    editorlastname = Column(Unicode(), index=True)
-#
-#
-#class RefLgNames(Base):
-#    "contains information about lgcodes extracted from the bibtex files"
-#    refbase_id = Column(Integer(8), ForeignKey('refbase.id'), primary_key=True)
-#    name = Column(Unicode(), primary_key=True)
-#    provider = Column(Unicode(), primary_key=True)  # always langnote
-#
-#
-#class RefStrings(Base):
-#    "contains a concordance of all words in a lectodoc"
-#    refbase_id = Column(Integer(8), ForeignKey('refbase.id'), primary_key=True)
-#    string = Column(Unicode(256), primary_key=True)
-#    count = Column(Integer)
-#    filename = Column(Unicode())
 
 
 class TreeClosureTable(Base):

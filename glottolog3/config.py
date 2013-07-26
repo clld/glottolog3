@@ -96,63 +96,63 @@ CFG = {
         {
             'name': 'Ethnologue',
             'href': lambda l: "http://www.ethnologue.com/show_language.asp?code="
-            + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'logo': "ethnologue.png",
             'rdf': "owl:sameAs",
         },
         {
             'name': 'SIL',
             'href': lambda l: "http://www.sil.org/iso639-3/documentation.asp?id="
-            + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'logo': "sil.gif",
             'rdf': "owl:sameAs",
         },
         {
             'name': 'Lexvo',
-            'href': lambda l: "http://lexvo.org/id/iso639-3/" + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            'href': lambda l: "http://lexvo.org/id/iso639-3/" + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'logo': "lexvo.gif",
             'rdf': "owl:sameAs",
         },
         {
             'name': 'Wikipedia',
             'href': lambda l: "http://en.wikipedia.org/wiki/ISO_639:"
-            + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'rdf': "owl:sameAs",
             'logo': "wikipedia.png"
         },
         {
             'name': 'OLAC',
             'href': lambda l: "http://www.language-archives.org/language/"
-            + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'rdf': "rdfs:seeAlso",
             'logo': "olac.png"
         },
         {
             'name': 'Multitree',
             'href': lambda l: "http://multitree.org/codes/"
-            + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'rdf': "owl:sameAs",
             'logo': "multitree.png"
         },
         {
             'name': 'MultitreePrivate',
             'href': lambda l: "http://multitree.linguistlist.org/codes/"
-            + l.get_code('multitree'),
-            'condition': lambda l: l.get_code('multitree'),
+            + l.get_identifier('multitree'),
+            'condition': lambda l: l.get_identifier('multitree'),
             'rdf': "rdfs:seeAlso",
             'logo': "multitree.png"
         },
         {
             'name': 'LL-Map',
             'href': lambda l: "http://www.llmap.org/maps/by-code/%s.html"
-            % l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            % l.iso_code,
+            'condition': lambda l: l.iso_code,
             'rdf': "rdfs:seeAlso",
             'logo': "LL-logo.png"
         },
@@ -160,49 +160,49 @@ CFG = {
             'name': 'LinguistList',
             'href':
             lambda l: "http://linguistlist.org/forms/langs/LLDescription.cfm?code="
-            + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'rdf': "rdfs:seeAlso",
             'logo': "LL-logo.png"
         },
         {
             'name': 'Odin',
             'href': lambda l: "http://odin.linguistlist.org/igt_urls.php?lang="
-            + l.get_code('ISO'),
-            'condition': lambda l: l.get_code('ISO'),
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
             'rdf': "rdfs:seeAlso",
             'logo': "odin.png"
         },
         {
             'name': 'WALS',
             'href': lambda l: "http://wals.info/languoid/lect/wals_code_"
-            + l.get_code('WALS'),
-            'condition': lambda l: l.get_code('WALS'),
+            + l.get_identifier('WALS'),
+            'condition': lambda l: l.get_identifier('WALS'),
             'rdf': "owl:sameAs",
             'logo': "wals.png"
         },
         {
             'name': 'WALSgenus',
             'href': lambda l: "http://wals.info/languoid/genus/"
-            + slug(l.get_code('WALSgenus')),
-            'condition': lambda l: l.get_code('WALSgenus'),
+            + slug(l.get_identifier('WALSgenus')),
+            'condition': lambda l: l.get_identifier('WALSgenus'),
             'rdf': "owl:sameAs",
             'logo': "wals.png"
         },
         {
             'name': 'WALSfamily',
             'href': lambda l: "http://wals.info/languoid/family/"
-            + slug(l.get_code('WALSfamily')),
-            'condition': lambda l: l.get_code('WALSfamily'),
+            + slug(l.get_identifier('WALSfamily')),
+            'condition': lambda l: l.get_identifier('WALSfamily'),
             'rdf': "owl:sameAs",
             'logo': "wals.png"
         },
         {
             'name': 'Endangered Languages',
             'href': lambda l: "http://www.endangeredlanguages.com/lang/"
-            + l.get_code('ISO'),
+            + l.iso_code,
             'rdf': "rdfs:seeAlso",
-            'condition': lambda l: l.get_code('ISO'),
+            'condition': lambda l: l.iso_code,
         },
         #{
         #    'name': 'Unesco',

@@ -5,6 +5,6 @@
 <%def name="contextnav()">
     ${u.contextnavitem('langdoc', label='Bibliographical query')}
     ${u.contextnavitem('langdoc.complexquery', label='Complex query')}
-    ${u.contextnavitem('langdoc.meta', label='Information')}
+    ${u.contextnavitem('providers', label='Langdoc information')}
 </%def>
 ${next.body()}

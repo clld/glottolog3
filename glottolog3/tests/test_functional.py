@@ -11,3 +11,20 @@ class Tests(TestWithApp):
 
     def test_home(self):
         res = self.app.get('/', status=200)
+        res = self.app.get('/', accept='text/html', status=200)
+
+    def test_languoids(self):
+        res = self.app.get('/glottolog', status=200)
+        res = self.app.get('/glottolog', accept='text/html', status=200)
+
+    def test_languoidsmeta(self):
+        res = self.app.get('/glottolog/glottologinformation', status=200)
+        res = self.app.get('/glottolog/glottologinformation', accept='text/html', status=200)
+
+    def test_langdoc(self):
+        res = self.app.get('/langdoc', status=200)
+        res = self.app.get('/langdoc', accept='text/html', status=200)
+
+    def test_langdocmeta(self):
+        res = self.app.get('/langdoc/langdocinformation', status=200)
+        res = self.app.get('/langdoc/langdocinformation', accept='text/html', status=200)
