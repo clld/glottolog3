@@ -3,17 +3,37 @@ import re
 
 import colander
 from purl import URL
+from pyramid.response import Response
 from sqlalchemy import or_, desc
 from sqlalchemy.sql.expression import func
 from clld.db.meta import DBSession
 from clld.db.models.common import Language, Source, LanguageSource
 from clld.db.util import icontains
+from clld.web.util.helpers import JS
+from clld.web.util.multiselect import MultiSelect
 
 from glottolog3.models import (
     Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider, Provider,
     TreeClosureTable, Ref, Refmacroarea, Refdoctype,
 )
 from glottolog3.config import CFG
+from glottolog3.util import getRefs, get_params
+from glottolog3.datatables import Refs
+
+
+YEAR_PATTERN = re.compile('[0-9]{4}$')
+
+
+class LanguoidsMultiSelect(MultiSelect):
+    def format_result(self, l):
+        return dict(id=l.id, text=l.name, level=l.level.value)
+
+    def get_options(self):
+        opts = super(LanguoidsMultiSelect, self).get_options()
+        opts['formatResult'] = JS('GLOTTOLOG3.formatLanguoid')
+        opts['formatSelection'] = JS('GLOTTOLOG3.formatLanguoid')
+        return opts
+
 
 
 def glottologmeta(request):
@@ -47,11 +67,9 @@ def childnodes(request):
         query = DBSession.query(Languoid.id, Languoid.name, Languoid.level)\
             .filter(icontains(Languoid.name, request.params.get('q')))
         total = query.count()
+        ms = LanguoidsMultiSelect(request, Languoid, 'x', url='x')
         return dict(
-            results=[{
-                'text': '%s (%s)' % (l.name, l.id),
-                'id': l.id,
-                'level': l.level.value} for l in query.limit(100)],
+            results=[ms.format_result(l) for l in query.limit(100)],
             context={},
             more=total > 500)
 
@@ -125,40 +143,35 @@ def langdocquery(request):
     return get_filtered_params(request)
 
 
-YEAR_PATTERN = re.compile('[0-9]{4}$')
-
-
-from glottolog3.util import getRefs, get_params
-from glottolog3.datatables import Refs
-
-
 def langdoccomplexquery(request):
     res = {
         'dt': None,
         'doctypes': DBSession.query(Doctype).order_by(Doctype.id),
         'macroareas': DBSession.query(Macroarea).order_by(Macroarea.id),
+        'ms': {}
     }
+
+    res['ms']['languoids'] = LanguoidsMultiSelect(
+        request, Languoid, 'mslanguoids', url=request.route_url('glottolog.childnodes'))
+    res['ms']['macroareas'] = MultiSelect(
+        request, Macroarea, 'msmacroareas', collection=res['macroareas'])
+    res['ms']['doctypes'] = MultiSelect(
+        request, Doctype, 'msdoctypes', collection=res['doctypes'])
+
     res['params'], reqparams = get_params(request.params, **res)
     res['refs'] = getRefs(res['params'])
 
-    #
-    # TODO: initialize datatable with dict of query params for this query!
-    #
     if res['refs']:
         res['dt'] = Refs(request, Source, cq=1, **reqparams)
-        #URL(request.url).query_params()
 
+    #
+    # TODO: use adapters in a smart way! in particular to put together the mods records!
+    #
     fmt = request.params.get('format')
-    if fmt == 'html':
-        return render_to_response('reflist.mako', {'refs': res['refs'][1]}, request=request)
-    if fmt == 'bib' or fmt == 'txt':
-        if fmt == 'bib':
-            c = '\n\n'.join(rec.bibtex().__unicode__().encode('utf8') for rec in res['refs'][1])
-        else:
-            c = '\n\n'.join(rec.txt().encode('utf8') for rec in res['refs'][1])
-        return Response(c, content_type='text/plain; charset=UTF-8')
+    if fmt:
+        content = []
+        for ref in res['refs']:
+            content.append(ref.bibtex().format(fmt))
+        return Response('\n\n'.join(content), charset='UTF-8', content_type='text/plain; charset=UTF-8')
 
-    res.update(
-        doctypes=DBSession.query(Doctype).order_by(Doctype.id),
-        macroareas=DBSession.query(Macroarea).order_by(Macroarea.id))
     return res
