@@ -1,7 +1,6 @@
 <%inherit file="home_comp.mako"/>
-<%namespace name="g" file="helpers.mako"/>
 
-<%g:meta_page title="Errata">
+<h3>Errata</h3>
     <p>
         This is a list of errata reported by users, and the status of their integration.
         Green errata are already processed, red errata will be processed in due course.
@@ -1096,4 +1095,3 @@ Linguasphere has an equally redundant/spurious entry under 76-CAA-a. Qiang + Dzo
             <a class='errorreport' href="mailto:glottolog@eva.mpg.de?subject=Erratum Glottolog&amp;body=Dear Glottolog maintainers,%0D%0A%0D%0AI%20found%20an%20error%20in%20Glottolog
                 ">report erratum</a>
 
-</%g:meta_page>

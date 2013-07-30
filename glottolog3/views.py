@@ -1,11 +1,17 @@
 from datetime import date
+import re
 
+import colander
+from purl import URL
 from sqlalchemy import or_, desc
+from sqlalchemy.sql.expression import func
 from clld.db.meta import DBSession
-from clld.db.models.common import Language, Source
+from clld.db.models.common import Language, Source, LanguageSource
+from clld.db.util import icontains
 
 from glottolog3.models import (
     Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider, Provider,
+    TreeClosureTable, Ref, Refmacroarea, Refdoctype,
 )
 from glottolog3.config import CFG
 
@@ -34,6 +40,51 @@ def glottologmeta(request):
         - res['number_of_languages']['artificial']\
         - res['number_of_languages']['sign']
     return res
+
+
+def childnodes(request):
+    if request.params.get('t') == 'select2':
+        query = DBSession.query(Languoid.id, Languoid.name, Languoid.level)\
+            .filter(icontains(Languoid.name, request.params.get('q')))
+        total = query.count()
+        return dict(
+            results=[{
+                'text': '%s (%s)' % (l.name, l.id),
+                'id': l.id,
+                'level': l.level.value} for l in query.limit(100)],
+            context={},
+            more=total > 500)
+
+    query = DBSession.query(
+        Languoid.pk,
+        Languoid.id,
+        Languoid.name,
+        Languoid.level,
+        func.count(TreeClosureTable.child_pk).label('children'))\
+        .filter(Language.pk == TreeClosureTable.parent_pk)\
+        .filter(Language.active == True)
+
+    if request.params.get('node'):
+        query = query.filter(Languoid.father_pk == int(request.params['node']))
+    else:
+        # narrow down selection of top-level nodes in the tree:
+        query = query.filter(Languoid.father_pk == None)
+        if request.params.get('q'):
+            query = query.filter(Language.name.contains(request.params.get('q')))
+
+    query = query.group_by(Languoid.pk,
+        Languoid.id,
+        Languoid.name,
+        Languoid.level).order_by(Language.name)
+    return [{
+        'label': ('%s (%s)' % (l.name, l.children - 1))
+            if l.children > 1 else l.name,
+        'glottocode': l.id,
+        'lname': l.name,
+        'id': l.pk,
+        'level': l.level.value,
+        #'children': l.children
+        'load_on_demand': l.children > 1} for l in query]
 
 
 def credits(request):
@@ -70,41 +121,32 @@ def languages(request):
     return {'dt': request.get_datatable('languages', Language, type='languages')}
 
 
-def get_filtered_params(request):
-    res = dict(param_spec=[
-        ('author', 'Author'),
-        ('year', 'Precise year'),
-        ('after', 'Start year'),
-        ('before', 'End year'),
-        ('title', 'Title'),
-        ('editor', 'Editor'),
-        ('journal', 'Journal'),
-        ('address', 'Address'),
-        ('publisher', 'Publisher'),
-    ])
-    res['params'] = {}
-    for spec in res['param_spec']:
-        res['params'][spec[0]] = request.params.get(spec[0], u'').strip()
-    return res
-
-
 def langdocquery(request):
     return get_filtered_params(request)
 
 
+YEAR_PATTERN = re.compile('[0-9]{4}$')
+
+
+from glottolog3.util import getRefs, get_params
+from glottolog3.datatables import Refs
+
+
 def langdoccomplexquery(request):
-    res = get_filtered_params(request)
+    res = {
+        'dt': None,
+        'doctypes': DBSession.query(Doctype).order_by(Doctype.id),
+        'macroareas': DBSession.query(Macroarea).order_by(Macroarea.id),
+    }
+    res['params'], reqparams = get_params(request.params, **res)
+    res['refs'] = getRefs(res['params'])
 
-    #languoids, macroareas, reftypes
-    if request.params.get('languoids'):
-        res['params']['languoids'] = [
-            m.group('code') for m in
-            GLOTTOCODE_PATTERN.finditer(request.params['languoids'].replace('\n', ' '))]
-
-    res['params']['macroareas'] = map(int, request.params.getall('macroarea'))
-    res['params']['reftypes'] = map(int, request.params.getall('reftype'))
-    res['params']['iso'] = request.params.getall('iso')
-    res['refs'] = []#getRefs(**res['params'])
+    #
+    # TODO: initialize datatable with dict of query params for this query!
+    #
+    if res['refs']:
+        res['dt'] = Refs(request, Source, cq=1, **reqparams)
+        #URL(request.url).query_params()
 
     fmt = request.params.get('format')
     if fmt == 'html':
@@ -117,6 +159,6 @@ def langdoccomplexquery(request):
         return Response(c, content_type='text/plain; charset=UTF-8')
 
     res.update(
-        reftypes=DBSession.query(Doctype).order_by(Doctype.id),
+        doctypes=DBSession.query(Doctype).order_by(Doctype.id),
         macroareas=DBSession.query(Macroarea).order_by(Macroarea.id))
     return res

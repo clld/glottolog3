@@ -219,7 +219,11 @@ def create(args):
             bibfield=row['bibfield']),
          None),
         ('doctype', models2.Doctype, lambda i, row: dict(
-            pk=row['id'], id=str(row['id']), abbr=row['abbr'], name=row['name']),
+            pk=row['id'],
+            id=slug(row['name']),
+            abbr=row['abbr'],
+            name=row['name'],
+            description=row['description']),
          None),
         ('refprovider', models2.Refprovider, lambda i, row: dict(
             pk=i, provider_pk=row['provider_id'], ref_pk=row['refbase_id']),

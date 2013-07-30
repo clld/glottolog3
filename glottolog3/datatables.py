@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
+import re
 
+from purl import URL
 from sqlalchemy import func, or_, and_
 from sqlalchemy.orm import joinedload, joinedload_all, aliased
 from clld.web.datatables.base import DataTable, Col, LinkCol, DetailsRowLinkCol
@@ -7,7 +9,7 @@ from clld.web.util.helpers import button, JSModal, icon, link
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
-from clld.db.models.common import Language
+from clld.db.models.common import Language, LanguageSource
 from clld.web.datatables.language import Languages
 from clld.web.datatables.source import Sources
 
@@ -15,7 +17,7 @@ from glottolog3.models import (
     Macroarea, Languoidmacroarea, Languoid, TreeClosureTable,
     LanguoidLevel, LanguoidStatus, Provider, Refprovider, Refdoctype, Doctype, Ref,
 )
-#from glottolog2.lib.util import top_node_query, link, format_justifications
+from glottolog3.util import getRefs, get_params
 
 
 class RefCountCol(Col):
@@ -150,8 +152,8 @@ class Families(Languages):
                 LevelCol(self, 'level', bSortable=False),
                 MacroareaCol(self, 'macro-area'),
                 RefsLinkCol(self, 'refs', bSearchable=False, bSortable=False),
-                Col(self, 'child_family_count', sTitle='Sub-families'),
-                Col(self, 'child_language_count', sTitle='Child languages'),
+                Col(self, 'child_family_count', model_col=Languoid.child_family_count, sTitle='Sub-families'),
+                Col(self, 'child_language_count', model_col=Languoid.child_language_count, sTitle='Child languages'),
                 #Col(self, 'child_dialect_count', sTitle='Child dialects'),
             ]
         else:
@@ -183,7 +185,7 @@ class DoctypeCol(Col):
         return ', '.join(a.name for a in item.doctypes)
 
     def search(self, qs):
-        return self.dt.refdoctype.doctype_pk == int(qs)
+        return Refdoctype.doctype_pk == int(qs)
 
     @property
     def choices(self):
@@ -191,19 +193,38 @@ class DoctypeCol(Col):
 
 
 class Refs(Sources):
-    def __init__(self, *args, **kw):
-        super(Refs, self).__init__(*args, **kw)
-        self.refdoctype = aliased(Refdoctype)
+    def __init__(self, req, *args, **kw):
+        if 'cq' in kw:
+            self.complexquery = get_params(kw)
+        elif 'cq' in req.params:
+            self.complexquery = get_params(req.params)
+        else:
+            self.complexquery = None
+        super(Refs, self).__init__(req, *args, **kw)
 
     def col_defs(self):
         cols = super(Refs, self).col_defs()
+        if self.complexquery:
+            cols = cols[:3]
         if self.language:
             cols.append(DoctypeCol(self, 'doctype'))
         return cols
 
     def base_query(self, query):
-        query = super(Refs, self).base_query(query)
         if self.language:
-            query = query.outerjoin(self.refdoctype, Ref.pk == self.refdoctype.ref_pk)\
+            query = query.join(LanguageSource)\
+                .join(TreeClosureTable, TreeClosureTable.child_pk == LanguageSource.language_pk)\
+                .filter(TreeClosureTable.parent_pk == self.language.pk)
+            query = query.outerjoin(Refdoctype, Ref.pk == Refdoctype.ref_pk)\
                 .distinct()
+        elif self.complexquery:
+            query = getRefs(self.complexquery[0])
         return query
+
+    def get_options(self):
+        opts = super(Refs, self).get_options()
+        if self.complexquery:
+            query = {'cq': '1'}
+            query.update(self.complexquery[1])
+            opts['sAjaxSource'] = self.req.route_url('sources', _query=query)
+        return opts

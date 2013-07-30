@@ -22,7 +22,7 @@ def main(global_config, **settings):
         'languages': '/glottolog',
         'language': '/resource/languoid/id/{id:[^/\.]+}',
         'source': '/resource/reference/id/{id:[^/\.]+}',
-        #'sources': '/langdoc',
+        'sources': '/langdoc',
         #'provider': '/langdoc/langdocinformation#provider-{id}',
         'providers': '/langdoc/langdocinformation',
     }
@@ -56,10 +56,16 @@ def main(global_config, **settings):
         renderer='languages.mako')
 
     config.add_route_and_view(
-        'langdoc',
-        '/langdoc',
-        views.langdocquery,
-        renderer='langdocquery.mako')
+        'glottolog.childnodes',
+        '/db/getchildlects',
+        views.childnodes,
+        renderer='json')
+
+    #config.add_route_and_view(
+    #    'langdoc',
+    #    '/langdoc',
+    #    views.langdocquery,
+    #    renderer='langdocquery.mako')
 
     config.add_route_and_view(
         'langdoc.complexquery',

@@ -16,9 +16,9 @@
         <li>
             <%util:tree_node_label level="${str(level)}" id="tn${str(item.id)}">
                 % if item == ctx:
-                    % if item.level == 'dialect':
+                    % if item.level.value == 'dialect':
                     <em>${item}</em>
-                    % elif item.level == 'language':
+                    % elif item.level.value == 'language':
                     <strong>${item}</strong>
                     % else:
                     ${item}
@@ -136,10 +136,12 @@
             <%util:accordion_group eid="acc-names" parent="sidebar-accordion" title="Alternative names">
                 <dl>
                 % for provider, names in h.groupby(sorted(filter(lambda i: i.type == 'name', ctx.identifiers), key=lambda n: n.description), lambda j: j.description):
+                    % if provider != 'Glottolog':
                     <dt>${provider}:</dt>
                     % for name in names:
                     <dd>${name.name}</dd>
                     % endfor
+                    % endif
                 % endfor
                 </dl>
             </%util:accordion_group>
@@ -147,11 +149,15 @@
     </div>
 </div>
 
-% if ctx.sources:
 <div class="row-fluid">
     <div class="span12">
     <h4>References</h4>
+% if ctx.child_language_count < 500:
     ${request.get_datatable('sources', h.models.Source, language=ctx).render()}
+% else:
+    <div class="alert alert-block">
+        This family has more than 500 languages. Please select an appropriate sub-family to get a list of relevant references.
+    </div>
+% endif
     </div>
 </div>
-% endif

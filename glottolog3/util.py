@@ -2,6 +2,7 @@ from json import dumps
 import re
 from itertools import cycle
 
+import colander
 from sqlalchemy import or_, not_
 from sqlalchemy.orm import joinedload, joinedload_all
 from sqlalchemy.sql.expression import func
@@ -9,22 +10,127 @@ from pyramid.httpexceptions import HTTPFound
 
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    Identifier, LanguageIdentifier, IdentifierType, Language, Source,
+    Identifier, LanguageIdentifier, IdentifierType, Language, Source, LanguageSource,
 )
+from clld.db.util import icontains
 from clld.web.util.helpers import link
 from clld.web.util.htmllib import HTML
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
 
-from glottolog3.models import Country, Languoid, Languoidcountry, Refprovider, Provider
+from glottolog3.models import (
+    Country, Languoid, Languoidcountry, Refprovider, Provider, Ref,
+    Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
+)
 from glottolog3.maps import LanguoidsMap
 
 
 REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
 
 
+class ModelInstance(object):
+    def __init__(self, cls, attr='id', collection=None):
+        self.cls = cls
+        self.attr = attr
+        self.collection = collection
+
+    def serialize(self, node, appstruct):
+        if appstruct is colander.null:
+            return colander.null
+        if not isinstance(appstruct, self.cls):
+            raise colander.Invalid(node, '%r is not a boolean' % appstruct)
+        return getattr(appstruct, self.attr)
+
+    def deserialize(self, node, cstruct):
+        if cstruct is colander.null:
+            return colander.null
+        value = None
+        if self.collection:
+            for obj in self.collection:
+                if getattr(obj, self.attr) == cstruct:
+                    value = obj
+        else:
+            value = self.cls.get(cstruct, key=self.attr, default=None)
+        if value is None:
+            raise Invalid(node, 'no single result found')
+        return value
+
+    def cstruct_children(self, node, cstruct):
+        return []
+
+
+def get_params(params, **kw):
+    """
+    :return: pair (appstruct, request params dict)
+    """
+    reqparams = {}
+    cstruct = dict(biblio={})
+
+    biblio = colander.SchemaNode(colander.Mapping(), name='biblio', missing={})
+    for name in 'author year title editor journal address publisher'.split():
+        biblio.add(
+            colander.SchemaNode(colander.String(), name=name, missing='', title=name.capitalize()))
+        cstruct['biblio'][name] = params.get(name, '')
+        if cstruct['biblio'][name]:
+            reqparams[name] = cstruct['biblio'][name]
+
+    schema = colander.SchemaNode(colander.Mapping())
+    for name, cls in dict(languoid=Languoid, doctype=Doctype, macroarea=Macroarea).items():
+        plural = name + 's'
+        schema.add(
+            colander.SchemaNode(
+                colander.Sequence(),
+                colander.SchemaNode(ModelInstance(cls, collection=kw.get(plural)), name=name),
+                missing=[],
+                name=plural))
+        if plural != 'languoids':
+            cstruct[plural] = params.getall(plural) if hasattr(params, 'getall') else params.get(plural, [])
+            if cstruct[plural]:
+                reqparams[plural] = cstruct[plural]
+        else:
+            cstruct[plural] = filter(None, params.get(plural, '').split(','))
+            if cstruct[plural]:
+                reqparams[plural] = params[plural]
+    schema.add(biblio)
+    return schema.deserialize(cstruct), reqparams
+
+
+def getRefs(params):
+    query = DBSession.query(Ref)
+    filtered = False
+
+    for param, value in params['biblio'].items():
+        if value:
+            filtered = True
+            query = query.filter(icontains(getattr(Ref, param), value))
+
+    if params.get('languoids'):
+        filtered = True
+        lids = DBSession.query(TreeClosureTable.child_pk)\
+            .filter(TreeClosureTable.parent_pk.in_([l.pk for l in params['languoids']]))\
+            .subquery()
+        query = query.join(LanguageSource, LanguageSource.source_pk == Ref.pk)\
+            .filter(LanguageSource.language_pk.in_(lids))
+
+    if params.get('doctypes'):
+        filtered = True
+        query = query.join(Refdoctype)\
+            .filter(Refdoctype.doctype_pk.in_([l.pk for l in params['doctypes']]))
+
+    if params.get('macroareas'):
+        filtered = True
+        query = query.join(Refmacroarea)\
+            .filter(Refmacroarea.macroarea_pk.in_([l.pk for l in params['macroareas']]))
+
+    if not filtered:
+        return []
+
+    return query.distinct()
+
+
 #def provider_detail_html(request=None, **kw):
 #    raise HTTPFound(request.route_url('providers', _anchor='provider-' + request.matchdict['id']))
+
 
 def provider_index_html(request=None, **kw):
     return {

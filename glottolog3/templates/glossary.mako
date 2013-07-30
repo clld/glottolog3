@@ -1,9 +1,6 @@
 <%inherit file="home_comp.mako"/>
-<%! multirow = True %>
 
-<div class="row-fluid">
-    <div class="span10 offset1">
-        <h3>Glossary</h3>
+<h3>Glossary</h3>
 <dl>
     <dt id="Languoid">Languoid</dt>
     <dd>
@@ -126,5 +123,3 @@
         current version of Glottolog.
     </dd>
 </dl>
-    </div>
-</div>
