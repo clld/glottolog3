@@ -17,7 +17,7 @@ from glottolog3.models import (
     Macroarea, Languoidmacroarea, Languoid, TreeClosureTable,
     LanguoidLevel, LanguoidStatus, Provider, Refprovider, Refdoctype, Doctype, Ref,
 )
-from glottolog3.util import getRefs, get_params
+from glottolog3.util import getRefs, get_params, languoid_link
 
 
 class RefCountCol(Col):
@@ -41,7 +41,7 @@ class Providers(DataTable):
 
 class NameCol(Col):
     def format(self, item):
-        return link(self.dt.req, item)
+        return languoid_link(self.dt.req, item)
 
 
 class LevelCol(Col):
@@ -98,17 +98,6 @@ class RefCol(Col):
         return format_justifications(self.dt.req, item)
 
 
-class RefsLinkCol(Col):
-    def format(self, item):
-        return button(
-            #
-            # TODO
-            #
-            #icon('icon-list'), href=self.dt.req.route_url(
-            #    'langdoc.complexquery', _query=dict(languoids='(%s)' % item.id)),
-            title='show all references for any languoid in %s' % item.name)
-
-
 class IsoCol(Col):
     def format(self, item):
         if item.hid and len(item.hid) == 3:
@@ -151,7 +140,6 @@ class Families(Languages):
                 #Col(self, 'active', sFilter='True'),
                 LevelCol(self, 'level', bSortable=False),
                 MacroareaCol(self, 'macro-area'),
-                RefsLinkCol(self, 'refs', bSearchable=False, bSortable=False),
                 Col(self, 'child_family_count', model_col=Languoid.child_family_count, sTitle='Sub-families'),
                 Col(self, 'child_language_count', model_col=Languoid.child_language_count, sTitle='Child languages'),
                 #Col(self, 'child_dialect_count', sTitle='Child dialects'),

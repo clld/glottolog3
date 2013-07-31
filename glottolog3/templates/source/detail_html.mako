@@ -3,7 +3,7 @@
 <%! active_menu_item = "sources" %>
 
 
-<h2>${ctx.name}</h2>
+<h3>${ctx.name}  ${h.contactmail(req, ctx, title='report a problem')}</h3>
 
 <div class="tabbable">
     <ul class="nav nav-tabs">

@@ -4,13 +4,18 @@ import re
 import colander
 from purl import URL
 from pyramid.response import Response
+from pyramid.httpexceptions import HTTPNotAcceptable, HTTPNotFound, HTTPFound
 from sqlalchemy import or_, desc
 from sqlalchemy.sql.expression import func
 from clld.db.meta import DBSession
-from clld.db.models.common import Language, Source, LanguageSource
+from clld.db.models.common import (
+    Language, Source, LanguageSource, LanguageIdentifier, Identifier, IdentifierType,
+)
 from clld.db.util import icontains
-from clld.web.util.helpers import JS
+from clld.web.util.helpers import JS, get_adapter
 from clld.web.util.multiselect import MultiSelect
+from clld.lib import bibtex
+from clld.interfaces import IRepresentation
 
 from glottolog3.models import (
     Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider, Provider,
@@ -34,6 +39,17 @@ class LanguoidsMultiSelect(MultiSelect):
         opts['formatSelection'] = JS('GLOTTOLOG3.formatLanguoid')
         return opts
 
+
+def iso(request):
+    q = DBSession.query(Languoid).join(LanguageIdentifier).join(Identifier)\
+        .filter(Identifier.type == IdentifierType.iso.value)\
+        .filter(Identifier.name == request.matchdict['id']).first()
+    if not q:
+        return HTTPNotFound()
+    params = {}
+    if 'ext' in request.matchdict:
+        params['ext'] = request.matchdict['ext']
+    return HTTPFound(location=request.resource_url(q, **params))
 
 
 def glottologmeta(request):
@@ -164,14 +180,12 @@ def langdoccomplexquery(request):
     if res['refs']:
         res['dt'] = Refs(request, Source, cq=1, **reqparams)
 
-    #
-    # TODO: use adapters in a smart way! in particular to put together the mods records!
-    #
     fmt = request.params.get('format')
     if fmt:
-        content = []
-        for ref in res['refs']:
-            content.append(ref.bibtex().format(fmt))
-        return Response('\n\n'.join(content), charset='UTF-8', content_type='text/plain; charset=UTF-8')
+        db = bibtex.Database([ref.bibtex() for ref in res['refs']])
+        for name, adapter in request.registry.getAdapters([db], IRepresentation):
+            if name == fmt:
+                return adapter.render_to_response(db, request)
+        return HTTPNotAcceptable()
 
     return res

@@ -16,18 +16,12 @@
         <li>
             <%util:tree_node_label level="${str(level)}" id="tn${str(item.id)}">
                 % if item == ctx:
-                    % if item.level.value == 'dialect':
-                    <em>${item}</em>
-                    % elif item.level.value == 'language':
-                    <strong>${item}</strong>
-                    % else:
-                    ${item}
-                    % endif
+                    ${u.languoid_link(request, ctx, active=False, classification=True)}
                     % if request.map and ctx.latitude:
                     <img src="${request.map.icon_map[ctx.pk]}" height="20" width="20">
                     % endif
                 % else:
-                ${h.link(request, item)}
+                ${u.languoid_link(request, item, classification=True)}
                 % endif
             </%util:tree_node_label>
 
@@ -38,7 +32,7 @@
             <ul>
                 % for child in ctx.children:
                 <li>
-                    ${h.link(request, child)}
+                    ${u.languoid_link(request, child, classification=True)}
                     % if child.level.value != 'dialect' and map:
                     <label class="checkbox inline" title="click to toggle markers">
                         <input type="checkbox" onclick="GLOTTOLOG3.filterMarkers(this);" class="checkbox inline" checked="checked" value="${child.pk}">
@@ -52,7 +46,7 @@
         </li>
         % if len(tree) == level + 1:
             % for sibling in filter(lambda s: s != ctx, ctx.father.children if ctx.father else []):
-            <li>${h.link(request, sibling)}</li>
+            <li>${u.languoid_link(request, sibling, classification=True)}</li>
             % endfor
         % endif
     </ul>
@@ -60,7 +54,7 @@
 
 <div class="row-fluid">
     <div class="span8">
-        <h3>${ctx}</h3>
+        <h3>${ctx} ${h.contactmail(req, ctx, title='report a problem')}</h3>
         % if ctx.active:
         <div class="treeview well well-small">
             ${nodes(list(reversed([ctx] + list(ctx.get_ancestors()))), 0)}
@@ -78,7 +72,7 @@
             </p>
             <ul>
                 % for l, r in ctx.get_replacements():
-                <li>${h.link(request, l)} [${r}]</li>
+                <li>${u.languoid_link(request, l)} [${r}]</li>
                 % endfor
             </ul>
         </div>
@@ -106,7 +100,7 @@
         <div class="codes pull-right">
             <span class="label label-info">Glottocode: ${ctx.id}</span>
         % for code in filter(lambda c: c.type == h.models.IdentifierType.iso.value, ctx.identifiers):
-            <span class="large label label-info">ISO 639-3: ${h.external_link('http://www.sil.org/iso639-3/documentation.asp?id=' + code.id, inverted=True, label=code.id, style="color: white;")}</span>
+            <span class="large label label-info">ISO 639-3: ${h.external_link('http://www.sil.org/iso639-3/documentation.asp?id=' + code.name, inverted=True, label=code.name, style="color: white;")}</span>
         % endfor
         </div>
         <div class="accordion" id="sidebar-accordion" style="margin-top: 1em; clear: right;">

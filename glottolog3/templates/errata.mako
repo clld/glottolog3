@@ -1,6 +1,6 @@
 <%inherit file="home_comp.mako"/>
 
-<h3>Errata</h3>
+<h3>Errata ${h.contactmail(req, None, title='report a problem')}</h3>
     <p>
         This is a list of errata reported by users, and the status of their integration.
         Green errata are already processed, red errata will be processed in due course.

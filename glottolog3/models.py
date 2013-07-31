@@ -256,14 +256,31 @@ class Languoid(Language, CustomModelMixin):
         if c.description:
             return c
 
+    def _crefs(self, t):
+        c = self.classification(t)
+        if c:
+            return list(c.references)
+        return []
+
     @property
     def crefs(self):
-        def refs(t):
-            c = self.classification(t)
-            if c:
-                return list(c.references)
-            return []
-        return refs('fc') + refs('sc')
+        return self._crefs('fc') + self.screfs
+
+    @property
+    def screfs(self):
+        """
+        The subclassification justification have a hereditary semantics. I.e.,
+        if there is a reference to, e.g., Indo-European it justifies every child
+        such as Germanic, Northwest Germanic and so on unless the child has its
+        own justification (in which case that ref supersedes and takes over everything
+        below). Suppose one is looking at a subfamily without its own
+        explicit justification, then one should get the parent justification.
+        """
+        res = self._crefs('sc')
+        if not res:
+            if self.father:
+                res = self.father.screfs
+        return res
 
     def __rdf__(self, request):
         if self.father:

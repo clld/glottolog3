@@ -13,7 +13,7 @@ from clld.db.models.common import (
     Identifier, LanguageIdentifier, IdentifierType, Language, Source, LanguageSource,
 )
 from clld.db.util import icontains
-from clld.web.util.helpers import link
+from clld.web.util.helpers import link, icon
 from clld.web.util.htmllib import HTML
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
@@ -26,6 +26,15 @@ from glottolog3.maps import LanguoidsMap
 
 
 REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
+
+
+def languoid_link(req, languoid, active=True, classification=False):
+    content = [link(req, languoid) if active else languoid.name]
+    if classification:
+        if languoid.fc or languoid.sc:
+            content.append(
+                icon("icon-info-sign", title="classification comment available"))
+    return HTML.span(*content, **dict(class_="level-" + languoid.level.value))
 
 
 class ModelInstance(object):

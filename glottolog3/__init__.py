@@ -50,6 +50,11 @@ def main(global_config, **settings):
         renderer='families.mako')
 
     config.add_route_and_view(
+        'glottolog.iso',
+        '/resource/languoid/iso/{id:[^/\.]+}',
+        views.iso)
+
+    config.add_route_and_view(
         'glottolog.languages',
         '/glottolog/language',
         views.languages,
@@ -61,23 +66,11 @@ def main(global_config, **settings):
         views.childnodes,
         renderer='json')
 
-    #config.add_route_and_view(
-    #    'langdoc',
-    #    '/langdoc',
-    #    views.langdocquery,
-    #    renderer='langdocquery.mako')
-
     config.add_route_and_view(
         'langdoc.complexquery',
         '/langdoc/complexquery',
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
-
-    #config.add_route_and_view(
-    #    'langdoc.meta',
-    #    '/langdoc/langdocinformation',
-    #    views.langdocmeta,
-    #    renderer='langdocmeta.mako')
 
     for name in 'credits glossary cite downloads errata contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
