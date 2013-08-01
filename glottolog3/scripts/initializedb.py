@@ -92,9 +92,10 @@ def create(args):
         valuesets = {}
 
         def create_languoid(row, father_pk=None):
+            glottocode = {'akun1242': 'akun1241'}.get(row['alnumcode'], row['alnumcode'])
             attrs = dict(
                 pk=row['id'],
-                id=row['alnumcode'],
+                id=glottocode,
                 name=row['primaryname'],
                 description=row['globalclassificationcomment'],
                 level=getattr(models2.LanguoidLevel, row['level']),
