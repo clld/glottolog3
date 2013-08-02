@@ -68,8 +68,8 @@
         <td>${h.link(request, item, label=item.id)}</td>
         <td class="level-${item.level.value}">${h.link(request, item)}</td>
         ##<td>${item.level}</td>
-        <td>${item.status}</td>
+        <td>${item.status or ''}</td>
         ##<td>${', '.join(n.name for n in item.identifiers if n.type == 'iso639-3')}</td>
-        <td class="right">${len(item.languagesource)}</td>
+        <td class="right">${len(item.sources)}</td>
     </%util:table>
 </div>

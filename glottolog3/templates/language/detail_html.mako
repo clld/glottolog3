@@ -99,16 +99,15 @@
     <div class="span4">
         <div class="codes pull-right">
             <span class="label label-info">Glottocode: ${ctx.id}</span>
-        % for code in filter(lambda c: c.type == h.models.IdentifierType.iso.value, ctx.identifiers):
-            <span class="large label label-info">ISO 639-3: ${h.external_link('http://www.sil.org/iso639-3/documentation.asp?id=' + code.name, inverted=True, label=code.name, style="color: white;")}</span>
-        % endfor
+            % if ctx.iso_code:
+            <span class="large label label-info">ISO 639-3: ${h.external_link('http://www.sil.org/iso639-3/documentation.asp?id=' + ctx.iso_code, inverted=True, label=ctx.iso_code, style="color: white;")}</span>
+            % endif
         </div>
         <div class="accordion" id="sidebar-accordion" style="margin-top: 1em; clear: right;">
             % if request.map:
             <%util:accordion_group eid="acc-map" parent="sidebar-accordion" title="Map" open="${True}">
                 ${request.map.render()}
-                ##    <a class="btn btn-info" href="${request.route_url('glottolog.languoid_bigmap', id=ctx.alnumcode)}">show big map</a>
-                <p>Coordinates: ${ctx.latitude}, ${ctx.longitude}</p>
+                ${h.button('show big map', href=request.resource_url(ctx, ext='bigmap.html'))}
             </%util:accordion_group>
             % endif
             <%util:accordion_group eid="acc-partner" parent="sidebar-accordion" title="Links" open="${map is None}">

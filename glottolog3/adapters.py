@@ -10,3 +10,10 @@ class Redirect(Representation):
     def render(self, ctx, req):
         raise HTTPFound(
             req.route_url('providers', _anchor='provider-' + req.matchdict['id']))
+
+
+class Bigmap(Representation):
+    mimetype = 'text/vnd.clld.bigmap+html'
+    send_mimetype = 'text/html'
+    extension = 'bigmap.html'
+    template = 'language/bigmap_html.mako'

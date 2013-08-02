@@ -4,6 +4,8 @@ from clld.web.util.htmllib import HTML, literal
 from clld.web.util.helpers import link
 from clld.interfaces import IIcon
 
+from glottolog3.models import LanguoidLevel
+
 
 class Language(object):
     def __init__(self, pk, name, longitude, latitude, id_):
@@ -52,25 +54,29 @@ class LanguoidMap(Map):
                 self.ctx, self.icon_map).render(self.ctx, self.req, dump=False))
 
     def options(self):
-        return {'sidebar': self.req.matched_route.name != 'glottolog.languoid_bigmap'}
+        return {'sidebar': self.req.matchdict.get('ext') != 'bigmap.html'}
 
     def legend(self):
-        if self.req.matched_route.name == 'glottolog.languoid_bigmap':
+        from glottolog3.util import languoid_link
+        if self.req.matchdict.get('ext') == 'bigmap.html':
             def value_li(l):
                 return HTML.li(
+                    HTML.img(height="20", width="20", src=self.icon_map[l.pk]),
+                    literal('&nbsp;'),
+                    languoid_link(self.req, l),
+                    literal('&nbsp;'),
                     HTML.label(
-                        HTML.img(
-                            height="20",
-                            width="20",
-                            src=self.icon_map[l.id]),
-                        literal('&nbsp;'),
-                        HTML.a(
-                            l.primaryname,
-                            class_="Languoid %s" % l.level,
-                            href=self.req.resource_url(l)),
-                        style='margin-left: 1em; margin-right: 1em;'))
+                        HTML.input(
+                            type="checkbox",
+                            onclick="GLOTTOLOG3.filterMarkers(this);",
+                            class_="checkbox inline",
+                            checked="checked",
+                            value=str(l.pk)),
+                        class_="checkbox inline",
+                        title="click to toggle markers"),
+                )
 
-            ls = [l for l in self.ctx.children if l.level != 'dialect']
+            ls = [l for l in self.ctx.children if l.level != LanguoidLevel.dialect]
             if self.ctx.latitude:
                 ls = [self.ctx] + ls
             return HTML.li(

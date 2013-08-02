@@ -35,17 +35,18 @@
     <ul class="nav nav-pills nav-stacked">
     % for dt in ctx.doctypes:
         <li>
-            <a href="${request.route_url('home.glossary', _anchor='doctype-' + dt.id)}">${dt.name}</a>
+            <a title="${dt.description}"
+               href="${request.route_url('home.glossary', _anchor='doctype-' + dt.id)}">${dt.name}</a>
         </li>
     % endfor
     </ul>
 </%util:well>
 % endif
-% if ctx.languagesource:
+% if ctx.languages:
 <%util:well title="${_('Languages')}">
     <ul class="nav nav-pills nav-stacked">
-    % for source_assoc in ctx.languagesource:
-        <li>${h.link(request, source_assoc.language)}</li>
+    % for language in ctx.languages:
+        <li>${h.link(request, language)}</li>
     % endfor
     </ul>
 </%util:well>

@@ -1,6 +1,6 @@
 from functools import partial
 
-from clld.interfaces import IMenuItems
+from clld.interfaces import IMenuItems, ILanguage
 from clld.web.app import menu_item, get_configurator
 from clld.web.adapters.base import adapter_factory, Index
 
@@ -34,6 +34,7 @@ def main(global_config, **settings):
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(adapters.Redirect, IProvider)
+    config.register_adapter(adapters.Bigmap, ILanguage)
     config.register_adapter(adapter_factory('provider/index_html.mako', base=Index), IProvider)
     config.register_datatable('providers', datatables.Providers)
 

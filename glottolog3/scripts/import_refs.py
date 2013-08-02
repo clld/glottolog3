@@ -302,21 +302,24 @@ def main(bib, mode):  # pragma: no cover
                 for k in kw.keys():
                     if k == 'pk':
                         continue
-                    if k == 'title':
-                        v = ref.title or ref.description
-                    else:
+                    #if k == 'title':
+                    #    v = ref.title or ref.description
+                    #else:
+                    if 1:
                         v = getattr(ref, k)
                     if kw[k] != v:
                         #
                         # TODO!
                         #
-                        #setattr(ref, k, kw[k])
-                        if k not in ['jsondata', 'publisher']:
-                            print k, ref.pk
-                            print kw[k]
-                            print v
-                            print '--------------'
+                        setattr(ref, k, kw[k])
+                        #if k not in ['jsondata', 'publisher']:
+                        #    print k, ref.pk
+                        #    print kw[k]
+                        #    print v
+                        #    print '--------------'
                         changed = True
+                    if ref.title:
+                        ref.description = ref.title
             else:
                 changed = True
                 ref = Ref(**kw)
@@ -327,7 +330,7 @@ def main(bib, mode):  # pragma: no cover
                     #
                     # TODO!
                     #
-                    #attr.append(obj)
+                    attr.append(obj)
 
             for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')])):
                 append(ref.macroareas, macroarea_map[name])
@@ -356,11 +359,11 @@ def main(bib, mode):  # pragma: no cover
                     append(ref.languages, languoid_map[glottocode])
 
             if not update:
-                pass
+                #pass
                 #
                 # TODO!
                 #
-                #DBSession.add(ref)
+                DBSession.add(ref)
 
             if i % 100 == 0:
                 print i, 'records done'

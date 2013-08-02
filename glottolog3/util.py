@@ -187,7 +187,7 @@ def getLanguoids(name=False,
         return []
 
     query = DBSession.query(Languoid)\
-        .options(joinedload(Language.languagesource))\
+        .options(joinedload(Language.sources))\
         .order_by(Languoid.name)
 
     if name:
@@ -250,10 +250,18 @@ COLORS = [
 ]
 
 
-def language_detail_html(request=None, context=None, **kw):
+def get_icon_map(request, context):
     icon_map = dict(
         zip([context.pk] + [l.pk for l in context.children],
             cycle([s + c for s in SHAPES for c in COLORS])))
     for key in icon_map:
         icon_map[key] = request.registry.getUtility(IIcon, icon_map[key]).url(request)
-    return dict(icon_map=icon_map)
+    return icon_map
+
+
+def language_detail_html(request=None, context=None, **kw):
+    return dict(icon_map=get_icon_map(request, context))
+
+
+def language_bigmap_html(request=None, context=None, **kw):
+    return dict(icon_map=get_icon_map(request, context))
