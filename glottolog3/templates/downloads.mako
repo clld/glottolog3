@@ -3,53 +3,26 @@
 <h3>Linked Data</h3>
 
 <div class="span4 well">
-    You can download the following items as gzipped, utf-8 encoded files:
+    You can download the following items as zipped, utf-8 encoded archives:
     <dl>
-        <dt>Languoids</dt>
+    % for model, dls in h.get_downloads(request):
+        <dt>${_(model)}</dt>
+        % for dl in dls:
         <dd>
-            <dl>
-                ##<dt>N3</dt>
-                ##<dd><a href="/downloadarea/languoids.n3.tgz">languoids.n3.tgz</a></dd>
-                <dt>CSV</dt>
-                <dd>
-                    <a href="${request.static_url('glottolog3:static/export/glottolog-languoids-utf8.csv.gz')}">
-                        languoids-utf8.csv
-                    </a>
-                </dd>
-            </dl>
+            <a href="${dl.url(request)}">${dl.label(req)}</a>
         </dd>
-        ##<dt>Names</dt>
-        ##<dd>
-        ##    <dl>
-        ##        <dt>CSV</dt>
-                ##<dd><a href="${h.url('/downloadarea/names.csv.zip')}">names.csv.zip</a></dd>
-        ##    </dl>
-        ##</dd>
-        <dt>References</dt>
-        <dd>
-            <dl>
-                <dt>BIB</dt>
-                <dd>
-                    <a href="${request.static_url('glottolog3:static/export/glottolog-references-utf8.bib.gz')}">
-                        references-utf8.bib
-                    </a>
-                </dd>
-                ##<dt>RDF</dt>
-                ##<dd><a href="${h.url('/downloadarea/references.rdf.zip')}">references.rdf.zip</a></dd>
-            </dl>
-        </dd>
+        % endfor
+    % endfor
     </dl>
 </div>
 <div class="span7">
     <p>
         Glottolog is part of the
         ${h.external_link("http://linguistics.okfn.org/resources/llod/", label='Linguistic Linked Open Data Cloud')}.
-        <a href="http://linguistics.okfn.org/resources/llod/">Linguistic Linked Open Data Cloud</a>.
-        the resource URL in the address bar (e.g.
+        You can request RDF representations of the resources by adding a suitable extension
+        (like '.rdf' or '.n3') in the address bar (e.g.
         <a href="${request.route_url('language', id='stan1295', ext='rdf')}">${request.route_url('language', id='stan1295', ext='rdf')}</a>),
         or by using content negotiation. Glottolog makes use of popular ontologies such as Dublin Core.
-        ##but some particular concepts had to be added. The Glottolog/Langdoc ontology can be found
-        ##<a href="/ontologies/glottolog.owl">here</a>.
     </p>
     ##<p>
     ##    We do receive requests to access our database in JSON format. Up to now, the following requests are available.
@@ -68,13 +41,7 @@
     ##    which will not be documented in detail and might change without notice.
     ##</p>
     <p>
-        <a href="http://glottolog.org/resource/languoid/iso/aaa">http://glottolog.org/resource/languoid/iso/aaa</a>
+        <a href="${request.route_url('glottolog.iso', id='deu')}">${request.route_url('glottolog.iso', id='deu')}</a>
         can be used to link to a language when the ISO 639-3 code is known, but the Glottocode is unknown.
     </p>
-    ##<p>
-    ##    Furthermore, URLs of the pattern
-    ##    <a href="http://www.glottolog.org/util/wikipedialink/sv/fao">http://www.glottolog.org/util/wikipedialink/sv/fao</a>
-    ##    will redirect you to the wikipediapage in the first language describing the second language
-    ##    (in this case the Swedish wikipedia about Faroese).
-    ##</p>
 </div>

@@ -12,40 +12,6 @@
 
     <div class="alert alert-block alert-success">
         <p>
-Dear Glottolog maintainers,
-I found an error in reference 107425.
-It now reads<br>
-<br>
-Naumann, Christfried
-2011
-An Acoustically-Based Phonology and Morphophonology of Siwi (Berber)<br>
-<br>
-but should read<br>
-<br>
-Naumann, Christfried
-2011
-Acoustically Based Phonemics of Siwi (Berber)
-        </p>
-    </div>
-    <div class="alert alert-block alert-success">
-        <p>
-                    Dear Glottolog maintainers,
-
-I found an error in reference 85533.
-
-It now reads<br>
-<br>
-Lejeune, Michel
-1974
-Manuel de la langue vénète<br>
-<br>
-It is linked to "Venetian", but should be linked to Venetic, an extinct language with an ISO code that is currently missing in Glottolog (see http://www.sil.org/iso639-3/documentation.asp?id=xve).
-
-Venetic should probably be in an "Unclassified Indo-European" pseudo-family.
-        </p>
-    </div>
-    <div class="alert alert-block alert-success">
-        <p>
                    Dear Glottolog maintainers,
 I found an error in reference 81495.
 It now reads<br><br>
@@ -66,28 +32,6 @@ Timofeev, K.A.
 Strukturno-semanticeskie svjazi slov
 but should read
 should be deleted: does not relate to Even
-        </p>
-    </div>
-    <div class="alert alert-block alert-success">
-        <p>
-                    Dear all,
-
-When we made the interview with the person who gave us the data for chholo we clearly heared an aspiration, so we prefer to talk about chholo rather then cholo. Which does not meen that we are shure about the existence of such language, as there is only one person who claimes to remember rests of this language and most of the material is not analysable.
-        </p>
-    </div>
-    <div class="alert alert-block alert-success">
-        <p>
-
-Ich  möchte vorschlagen, den Namen von Yakha zu Yakkha zu ändern. So nennen sie sich, und so schreibt man es auch in Nepal, auch wenn es etliche Quellen gibt, die es falsch schreiben. Ich habe SIL diesbezüglich auch schon kontaktiert, und sie wollten es in einer aktualisierten Version übernehmen.
-        </p>
-    </div>
-    <div class="alert alert-block">
-        <p>
-                     Dear all,
-
-I have found that you cited our article on the Chholo language. There is one more article about that language:
-
-López García, Ulpian Ricardo 2010. Huella de las lenguas cholo y pukina de los urus del lago Poopo. En: XXIII y I Reunión anual de etnología. Repensando el mestizaje: 647-654. MUSEF, La Paz. http://200.87.119.77:8180/musef/bitstream/123456789/400/1/647-654.pdf
         </p>
     </div>
 
@@ -136,16 +80,6 @@ Baum Central Semitic:<br>
 Gruppe.<br>
 - Bei Western Aramaic fehlt einiges: Jewish Palestinian Aram., Christian
 Palestinian.<br>
-        </p>
-    </div>
-
-    <div class="alert alert-block alert-success">
-        <p>
-
-es gibt eine duplizierte Familie in Glottolog<br>
-<br>
-http://glottolog.org/resource/languoid/id/gall1255.xhtml<br>
-http://glottolog.org/resource/languoid/id/nort2675.xhtml
         </p>
     </div>
 

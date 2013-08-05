@@ -3,6 +3,7 @@ from functools import partial
 from clld.interfaces import IMenuItems, ILanguage
 from clld.web.app import menu_item, get_configurator
 from clld.web.adapters.base import adapter_factory, Index
+from clld.web.adapters.download import CsvDump, N3Dump, Download
 
 from glottolog3 import views
 from glottolog3 import models
@@ -84,4 +85,9 @@ def main(global_config, **settings):
     config.register_map('language', maps.LanguoidMap)
     config.register_datatable('languages', datatables.Families)
     config.register_datatable('sources', datatables.Refs)
+
+    config.register_download(CsvDump(models.Languoid, 'glottolog3'))
+    config.register_download(N3Dump(models.Languoid, 'glottolog3'))
+    config.register_download(Download(models.Ref, 'glottolog3', ext='bib'))
+    config.register_download(N3Dump(models.Ref, 'glottolog3'))
     return config.make_wsgi_app()
