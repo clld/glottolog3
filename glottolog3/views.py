@@ -155,10 +155,6 @@ def languages(request):
     return {'dt': request.get_datatable('languages', Language, type='languages')}
 
 
-def langdocquery(request):
-    return get_filtered_params(request)
-
-
 def langdoccomplexquery(request):
     res = {
         'dt': None,

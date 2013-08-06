@@ -4,6 +4,7 @@ import requests
 from path import path
 from fabric.api import task, hosts, local, sudo, cd
 from fabric.contrib.console import confirm
+from fabtools.require.files import directory
 from alembic.script import ScriptDirectory
 from alembic.config import Config
 from alembic.util import rev_id
@@ -40,28 +41,26 @@ def start_test():
 @hosts('robert@vmext24-203.gwdg.de')
 @task
 def run_script(script_name, *args):
-    sudo(
-        '%s %s %s#%s %s' % (
-            APP.bin('python'),
-            APP.src.joinpath(APP.name, 'scripts', '%s.py' % script_name),
-            APP.config,
-            APP.name,
-            ' '.join('%s' % arg for arg in args),
-        ),
-        user=APP.name)
+    with cd(APP.home):
+        sudo(
+            '%s %s %s#%s %s' % (
+                APP.bin('python'),
+                APP.src.joinpath(APP.name, 'scripts', '%s.py' % script_name),
+                APP.config.basename(),
+                APP.name,
+                ' '.join('%s' % arg for arg in args),
+            ),
+            user=APP.name)
 
 
 @hosts('robert@vmext24-203.gwdg.de')
 @task
-def create_exports():
-    # run the script to create the exports from the database as glottolog2 user
-    run_script('update_exports', APP.home)
-
-    # copy the files from temp directory to the export dir as root
-    ls = sudo('ls %s/glottolog-*.gz' % APP.home)
-    for p in ls.split():
-        sudo('cp %s %s' % (
-            p, APP.src.joinpath(APP.name, 'static', 'export', path(p).basename())))
+def create_exports_test():
+    dl_dir = APP.src.joinpath(APP.name, 'static', 'download')
+    directory(dl_dir, use_sudo=True, mode="777")
+    # run the script to create the exports from the database as glottolog3 user
+    run_script('create_downloads')
+    directory(dl_dir, use_sudo=True, mode="755")
 
 
 @task

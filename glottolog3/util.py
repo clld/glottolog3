@@ -137,10 +137,6 @@ def getRefs(params):
     return query.distinct()
 
 
-#def provider_detail_html(request=None, **kw):
-#    raise HTTPFound(request.route_url('providers', _anchor='provider-' + request.matchdict['id']))
-
-
 def provider_index_html(request=None, **kw):
     return {
         'providers': DBSession.query(Provider),
