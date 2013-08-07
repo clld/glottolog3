@@ -183,7 +183,7 @@ def getLanguoids(name=False,
         return []
 
     query = DBSession.query(Languoid)\
-        .options(joinedload(Language.sources))\
+        .options(joinedload(Language.sources), joinedload(Languoid.family))\
         .order_by(Languoid.name)
 
     if name:
@@ -200,7 +200,11 @@ def getLanguoids(name=False,
             query = query.filter(or_(
                 Identifier.lang.in_((u'', u'eng', u'en')), Identifier.lang == None))
     elif country:
-        alpha2 = country.split('(')[1].split(')')[0] if len(country) > 2 else country.upper()
+        try:
+            alpha2 = country.split('(')[1].split(')')[0] \
+                if len(country) > 2 else country.upper()
+        except IndexError:
+            return []
         query = query.join(Languoidcountry).join(Country)\
             .filter(Country.id == alpha2)
     else:
@@ -220,7 +224,8 @@ def language_index_html(request=None, **kw):
             'name': '',
             'iso': '',
             'namequerytype': 'part',
-            'country': ''})
+            'country': ''},
+        message=None)
 
     for param, default in res['params'].items():
         res['params'][param] = request.params.get(param, default).strip()
@@ -228,10 +233,15 @@ def language_index_html(request=None, **kw):
     res['params']['multilingual'] = 'multilingual' in request.params
 
     if request.params.get('alnum'):
-        raise HTTPFound(location=request.route_url(
-            'language', id=request.params['alnum']))
+        l = Languoid.get(request.params.get('alnum'), default=None)
+        if l:
+            raise HTTPFound(location=request.resource_url(l))
+        res['message'] = 'No matching languoids found'
 
     languoids = list(getLanguoids(**res['params']))
+    if not languoids and \
+            (res['params']['name'] or res['params']['iso'] or res['params']['country']):
+        res['message'] = 'No matching languoids found'
     map_ = LanguoidsMap(languoids, request)
     layer = list(map_.get_layers())[0]
     if not layer.data['features']:

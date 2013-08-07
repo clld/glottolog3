@@ -6,7 +6,7 @@
     <form>
         <fieldset>
             <legend>Name</legend>
-            <input type="text" name="name" id="inputName" placeholder="Name" value="${params['name']}">
+            <input type="text" name="name" id="inputName" placeholder="Name" value="${'' if message else params['name']}">
             <label class="radio">
                 <input type="radio" name="namequerytype" value="whole" ${'checked' if params['namequerytype'] == 'whole' else ''}>
                 match whole name
@@ -25,7 +25,7 @@
         <fieldset>
             <legend>ISO 639-3</legend>
             <div class="input-append">
-                <input class="input-small" type="text" name="iso" id="inputIso" value="${params['iso']}" placeholder="abc">
+                <input class="input-small" type="text" name="iso" id="inputIso" value="${'' if message else params['iso']}" placeholder="abc">
                 <button type="submit" class="btn">Submit</button>
             </div>
         </fieldset>
@@ -57,19 +57,25 @@
         </%util:accordion_group>
     </div>
     % endif
+    % if message:
+    <div class="alert alert-error"><p>${message}</p></div>
+    % else:
     <%util:table items="${languoids}" args="item" class_="table-condensed table-striped">\
         <%def name="head()">
             <th>Glottocode</th>
             <th>Name</th>
             ##<th>Type</th>
-            <th>Status</th>
+            ##<th>Status</th>
+            <th>Family</th>
             <th># refs</th>
         </%def>
         <td>${h.link(request, item, label=item.id)}</td>
         <td class="level-${item.level.value}">${h.link(request, item)}</td>
         ##<td>${item.level}</td>
-        <td>${item.status or ''}</td>
+        ##<td>${item.status or ''}</td>
+        <td>${u.languoid_link(request, item.family) if item.family else ''}</td>
         ##<td>${', '.join(n.name for n in item.identifiers if n.type == 'iso639-3')}</td>
         <td class="right">${len(item.sources)}</td>
     </%util:table>
+    % endif
 </div>

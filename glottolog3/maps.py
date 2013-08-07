@@ -1,4 +1,4 @@
-from clld.web.maps import Map, Layer
+from clld.web.maps import Map, Layer, Legend
 from clld.web.adapters import GeoJson
 from clld.web.util.htmllib import HTML, literal
 from clld.web.util.helpers import link
@@ -54,15 +54,16 @@ class LanguoidMap(Map):
                 self.ctx, self.icon_map).render(self.ctx, self.req, dump=False))
 
     def options(self):
-        return {
-            'sidebar': self.req.matchdict.get('ext') != 'bigmap.html',
-            'max_zoom': 6 if self.req.matchdict.get('ext') != 'bigmap.html' else 12}
+        if self.req.matchdict.get('ext') == 'bigmap.html':
+            return {'max_zoom': 12, 'hash': True}
+        return {'sidebar': True}
 
-    def legend(self):
+    def get_legends(self):
         from glottolog3.util import languoid_link
+
         if self.req.matchdict.get('ext') == 'bigmap.html':
             def value_li(l):
-                return HTML.li(
+                return (
                     HTML.img(height="20", width="20", src=self.icon_map[l.pk]),
                     literal('&nbsp;'),
                     languoid_link(self.req, l),
@@ -81,16 +82,16 @@ class LanguoidMap(Map):
             ls = [l for l in self.ctx.children if l.level != LanguoidLevel.dialect]
             if self.ctx.latitude:
                 ls = [self.ctx] + ls
-            return HTML.li(
-                HTML.a(
-                    'Legend',
-                    HTML.b(class_='caret'),
-                    **{'class': 'dropdown-toggle', 'data-toggle': "dropdown", 'href': "#"}
-                ),
-                HTML.ul(*[value_li(l) for l in ls], class_='dropdown-menu'),
-                class_='dropdown'
-            )
-        return ''
+
+            yield Legend(
+                self,
+                'languoids',
+                [value_li(l) for l in ls],
+                label='Legend',
+                stay_open=True)
+
+        for legend in super(LanguoidMap, self).get_legends():
+            yield legend
 
 
 class LanguoidsGeoJson(LanguoidGeoJson):

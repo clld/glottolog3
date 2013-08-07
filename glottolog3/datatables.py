@@ -125,14 +125,28 @@ class IsoCol(Col):
         return Languoid.hid.contains(qs.lower())
 
 
+class FamilyCol(Col):
+    def format(self, item):
+        if item.family_pk:
+            return languoid_link(self.dt.req, item.family)
+
+    def order(self):
+        return self.dt.top_level_family.name
+
+    def search(self, qs):
+        return icontains(self.dt.top_level_family.name, qs)
+
+
 class Families(Languages):
     def __init__(self, req, model, **kw):
         self.type = kw.pop('type', req.params.get('type', 'families'))
+        self.top_level_family = aliased(Language)
         super(Families, self).__init__(req, model, **kw)
 
     def base_query(self, query):
         query = query.filter(Language.active == True)\
             .outerjoin(Languoidmacroarea)\
+            .outerjoin(self.top_level_family, self.top_level_family.pk == Languoid.family_pk)\
             .distinct()\
             .options(joinedload(Languoid.macroareas))
 
@@ -148,7 +162,8 @@ class Families(Languages):
         if self.type == 'families':
             return [
                 NameCol(self, 'name'),
-                StatusCol(self),
+                #StatusCol(self),
+                FamilyCol(self, 'top-level family'),
                 LevelCol(self),
                 MacroareaCol(self, 'macro-area'),
                 Col(self, 'child_family_count', model_col=Languoid.child_family_count, sTitle='Sub-families'),
@@ -159,8 +174,9 @@ class Families(Languages):
             return [
                 Col(self, 'id', sTitle='Glottocode'),
                 NameCol(self, 'name'),
+                FamilyCol(self, 'top-level family'),
                 IsoCol(self, 'iso', sTitle='ISO-639-3'),
-                StatusCol(self),
+                #StatusCol(self),
                 MacroareaCol(self, 'macro-area'),
                 Col(self, 'child_dialect_count', sTitle='Child dialects'),
             ]

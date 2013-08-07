@@ -174,6 +174,11 @@ class Languoid(Language, CustomModelMixin):
     child_language_count = Column(Integer)
     child_dialect_count = Column(Integer)
 
+    descendants = relationship(
+        'Languoid',
+        order_by='Languoid.name, Languoid.id',
+        foreign_keys=[family_pk],
+        backref=backref('family', remote_side=[pk]))
     children = relationship(
         'Languoid',
         order_by='Languoid.name, Languoid.id',
