@@ -2,65 +2,13 @@ from getpass import getpass
 
 import requests
 from path import path
-from fabric.api import task, hosts, local, sudo, cd
-from fabric.contrib.console import confirm
-from fabtools.require.files import directory
+from fabric.api import task
 from alembic.script import ScriptDirectory
 from alembic.config import Config
 from alembic.util import rev_id
-from clld.deploy import config, util
 
-
-APP = config.APPS['glottolog3']
-
-
-@hosts('robert@vmext24-203.gwdg.de')
-@task
-def deploy_test():
-    util.deploy(APP, 'test')
-
-
-@hosts('forkel@cldbstest.eva.mpg.de')
-@task
-def deploy():
-    util.deploy(APP, 'production')
-
-
-@hosts('robert@vmext24-203.gwdg.de')
-@task
-def stop_test():
-    util.supervisor(APP, 'pause')
-
-
-@hosts('robert@vmext24-203.gwdg.de')
-@task
-def start_test():
-    util.supervisor(APP, 'run')
-
-
-@hosts('robert@vmext24-203.gwdg.de')
-@task
-def run_script(script_name, *args):
-    with cd(APP.home):
-        sudo(
-            '%s %s %s#%s %s' % (
-                APP.bin('python'),
-                APP.src.joinpath(APP.name, 'scripts', '%s.py' % script_name),
-                APP.config.basename(),
-                APP.name,
-                ' '.join('%s' % arg for arg in args),
-            ),
-            user=APP.name)
-
-
-@hosts('robert@vmext24-203.gwdg.de')
-@task
-def create_exports_test():
-    dl_dir = APP.src.joinpath(APP.name, 'static', 'download')
-    directory(dl_dir, use_sudo=True, mode="777")
-    # run the script to create the exports from the database as glottolog3 user
-    run_script('create_downloads')
-    directory(dl_dir, use_sudo=True, mode="755")
+from clld.deploy import tasks
+tasks.init('glottolog3')
 
 
 @task
