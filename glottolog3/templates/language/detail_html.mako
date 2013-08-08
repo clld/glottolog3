@@ -70,9 +70,13 @@
             <p>
                 This languoid is no longer part of the Glottolog classification.
             </p>
+            <% repl = list(ctx.get_replacements()) %>
+            % if repl:
+            <p>You may want to look at the following languoids for relevant information.</p>
+            % endif
             <ul>
-                % for l, r in ctx.get_replacements():
-                <li>${u.languoid_link(request, l)} [${r}]</li>
+                % for l, r in repl:
+                <li>${u.languoid_link(request, l)}${' [' + r + ']' if r else ''}</li>
                 % endfor
             </ul>
         </div>

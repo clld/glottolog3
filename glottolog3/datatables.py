@@ -163,12 +163,12 @@ class Families(Languages):
             return [
                 NameCol(self, 'name'),
                 #StatusCol(self),
-                FamilyCol(self, 'top-level family'),
                 LevelCol(self),
                 MacroareaCol(self, 'macro-area'),
                 Col(self, 'child_family_count', model_col=Languoid.child_family_count, sTitle='Sub-families'),
                 Col(self, 'child_language_count', model_col=Languoid.child_language_count, sTitle='Child languages'),
                 #Col(self, 'child_dialect_count', sTitle='Child dialects'),
+                FamilyCol(self, 'top-level family'),
             ]
         else:
             return [
@@ -184,6 +184,8 @@ class Families(Languages):
     def get_options(self):
         opts = super(Families, self).get_options()
         opts['sAjaxSource'] = self.req.route_url('languages', _query={'type': self.type})
+        if self.type == 'families':
+            opts['aaSorting'] = [[4, 'desc'], [0, 'asc']]
         return opts
 
 

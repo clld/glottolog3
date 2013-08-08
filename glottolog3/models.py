@@ -196,19 +196,9 @@ class Languoid(Language, CustomModelMixin):
         backref=backref('languoids', order_by='Languoid.name, Languoid.id'))
 
     def get_replacements(self):
-        return DBSession.query(Languoid, SpuriousReplacements.relation)\
-            .filter(SpuriousReplacements.languoidbase_pk == self.pk)\
-            .filter(SpuriousReplacements.replacement_pk == Languoid.pk)
-
-    @hybrid_property
-    def glottocode(self):
-        return self.id
-
-    @hybrid_property
-    def child_count(self):
-        return (self.child_dialect_count or 0) \
-            + (self.child_family_count or 0) \
-            + (self.child_language_count or 0)
+        return DBSession.query(Languoid, Superseded.relation)\
+            .filter(Superseded.languoid_pk == self.pk)\
+            .filter(Superseded.replacement_pk == Languoid.pk)
 
     def get_ancestors(self):
         """
@@ -356,6 +346,29 @@ class Ref(Source, CustomModelMixin):
         order_by='Country.name',
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
+
+    def __rdf__(self, request):
+        """
+        % for provider in ctx.providers:
+        <dcterms:provenance rdf:parseType="Resource">
+            <dcterms:description rdf:resource="${request.route_url('langdoc.meta', _anchor='provider-' + str(provider.id))}"/>
+            <rdfs:label>${provider.description}</rdfs:label>
+        </dcterms:provenance>
+        % endfor
+
+        % for ma in ctx.macroareas:
+        <dcterms:spatial rdf:parseType="Resource">
+            <dcterms:description rdf:resource="${request.route_url('home.glossary', _anchor='macroarea-'+str(ma.id))}"/>
+            <rdfs:label>${ma.name}</rdfs:label>
+        </dcterms:spatial>
+        % endfor
+        % for dt in ctx.doctypes:
+        <dc:type rdf:parseType="Resource">
+            <dcterms:description rdf:resource="${request.route_url('home.glossary', _anchor='doctype-'+str(dt.id))}"/>
+            <rdfs:label>${dt.name}</rdfs:label>
+        </dc:type>
+        % endfor
+        """
 
 
 class TreeClosureTable(Base):

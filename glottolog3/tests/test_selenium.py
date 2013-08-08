@@ -15,11 +15,11 @@ class Tests(TestWithSelenium):
         {'__file__': str(PROJECT.joinpath('development.ini')), 'here': str(PROJECT)},
         **{'sqlalchemy.url': 'postgres://robert@/glottolog3'})
 
-    #def test_map(self):
-    #    map_ = self.get_map('/contributions')
-    #    map_.test_show_marker()
-    #    map_.test_show_legend()
-    #    map_.test_show_legend('lexifier')
+    def test_map(self):
+        map_ = self.get_map('/resource/languoid/id/berb1260.bigmap.html')
+        map_.test_show_marker()
+        map_.test_show_legend()
+        map_.test_show_legend('languoids')
 
     def test_datatable_family(self):
         dt = self.get_datatable('/glottolog/family')
@@ -30,3 +30,10 @@ class Tests(TestWithSelenium):
         dt = self.get_datatable('/glottolog/language')
         dt.filter('name', u'\xfc')
         self.assertEqual(dt.get_info().filtered, 2)
+
+    def test_languoid_map_and_table(self):
+        map_ = self.get_map('/resource/languoid/id/berb1260')
+        map_.test_show_marker()
+        dt = self.get_datatable('/resource/languoid/id/berb1260')
+        dt.sort('Year')
+        dt.sort('Title')

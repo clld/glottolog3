@@ -4,6 +4,7 @@ from clld.interfaces import IMenuItems, ILanguage
 from clld.web.app import menu_item, get_configurator
 from clld.web.adapters.base import adapter_factory, Index
 from clld.web.adapters.download import CsvDump, N3Dump, Download
+from clld.db.models.common import Language, Source
 
 from glottolog3 import views
 from glottolog3 import models
@@ -86,8 +87,12 @@ def main(global_config, **settings):
     config.register_datatable('languages', datatables.Families)
     config.register_datatable('sources', datatables.Refs)
 
-    config.register_download(CsvDump(models.Languoid, 'glottolog3'))
-    config.register_download(N3Dump(models.Languoid, 'glottolog3'))
-    config.register_download(Download(models.Ref, 'glottolog3', ext='bib'))
-    config.register_download(N3Dump(models.Ref, 'glottolog3'))
+    config.register_download(CsvDump(
+        Language, 'glottolog3', description="Languoids as CSV"))
+    config.register_download(N3Dump(
+        Language, 'glottolog3', description="Languoids as RDF"))
+    config.register_download(Download(
+        Source, 'glottolog3', ext='bib', description="References as BibTeX"))
+    config.register_download(N3Dump(
+        Source, 'glottolog3', description="References as RDF"))
     return config.make_wsgi_app()

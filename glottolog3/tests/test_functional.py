@@ -20,6 +20,11 @@ class Tests(TestWithApp):
     def test_languoids(self):
         res = self.app.get('/glottolog', status=200)
         res = self.app.get('/glottolog', accept='text/html', status=200)
+        res = self.app.get('/glottolog?alnum=stan1295', accept='text/html', status=302)
+        res = self.app.get('/glottolog?alnum=xxxx9999', accept='text/html', status=200)
+        assert 'No matching languoids' in res
+        res = self.app.get('/glottolog?name=xxxx', accept='text/html', status=200)
+        assert 'No matching languoids' in res
 
     def test_languoidsfamily(self):
         res = self.app.get('/glottolog/family?sEcho=1', xhr=True, status=200)
@@ -46,6 +51,7 @@ class Tests(TestWithApp):
         res = self.app.get('/langdoc/complexquery?languoids=guac1239', status=200)
         res = self.app.get('/langdoc/complexquery?languoids=guac1239&format=xls', status=406)
         res = self.app.get('/langdoc/complexquery?languoids=guac1239&format=bib', status=200)
+        res = self.app.get('/langdoc/complexquery?languoids=cher1273&macroareas=northamerica&doctypes=grammar&author=King', status=200)
 
     def test_childnodes(self):
         res = self.app.get('/db/getchildlects?q=ac', status=200)
@@ -57,5 +63,11 @@ class Tests(TestWithApp):
         res = self.app.get('/resource/languoid/iso/xxxx', status=404)
 
     def test_language(self):
+        res = self.app.get('/resource/languoid/id/stan1295.rdf', status=200)
         res = self.app.get('/resource/languoid/id/stan1295', accept='text/html', status=200)
+        res = self.app.get('/resource/languoid/id/nilo1235', accept='text/html', status=200)
         res = self.app.get('/resource/languoid/id/stan1295.bigmap.html', accept='text/html', status=200)
+
+    def test_ref(self):
+        res = self.app.get('/resource/reference/id/2.rdf', status=200)
+        res = self.app.get('/resource/languoid/id/2', accept='text/html', status=200)
