@@ -45,7 +45,6 @@ def main(global_config, **settings):
     config.register_adapter(adapters.Bigmap, ILanguage)
     config.register_adapter(adapter_factory('provider/index_html.mako', base=Index), IProvider)
     config.register_datatable('providers', datatables.Providers)
-    config.google_site_verification('googlebbc8f4da1abdc58b')
 
     config.add_view(views.redirect_languoid_xhtml, route_name='languoid.xhtml')
     config.add_view(views.redirect_reference_xhtml, route_name='reference.xhtml')

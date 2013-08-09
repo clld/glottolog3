@@ -4,6 +4,8 @@
 
 
 <h3>${ctx.name}  ${h.contactmail(req, ctx, title='report a problem')}</h3>
+##<abbr class="unapi-id" title="${h.urlescape(request.resource_url(ctx))}"></abbr>
+${ctx.coins(request)|n}
 
 <div class="tabbable">
     <ul class="nav nav-tabs">
