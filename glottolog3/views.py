@@ -4,7 +4,9 @@ import re
 import colander
 from purl import URL
 from pyramid.response import Response
-from pyramid.httpexceptions import HTTPNotAcceptable, HTTPNotFound, HTTPFound
+from pyramid.httpexceptions import (
+    HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
+)
 from sqlalchemy import or_, desc
 from sqlalchemy.sql.expression import func
 from clld.db.meta import DBSession
@@ -185,3 +187,11 @@ def langdoccomplexquery(request):
         return HTTPNotAcceptable()
 
     return res
+
+
+def redirect_languoid_xhtml(req):
+    return HTTPMovedPermanently(location=req.route_url('language', id=req.matchdict['id']))
+
+
+def redirect_reference_xhtml(req):
+    return HTTPMovedPermanently(location=req.route_url('source', id=req.matchdict['id']))

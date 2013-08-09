@@ -28,7 +28,12 @@ def main(global_config, **settings):
         #'provider': '/langdoc/langdocinformation#provider-{id}',
         'providers': '/langdoc/langdocinformation',
     }
-    config = get_configurator('glottolog3', settings=settings)
+    config = get_configurator(
+        'glottolog3',
+        settings=settings,
+        routes=[
+            ('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml'),
+            ('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')])
     config.register_menu(
         ('dataset', partial(menu_item, 'dataset', label='Home')),
         ('languages', partial(menu_item, 'languages', label='Languoids')),
@@ -39,6 +44,9 @@ def main(global_config, **settings):
     config.register_adapter(adapters.Bigmap, ILanguage)
     config.register_adapter(adapter_factory('provider/index_html.mako', base=Index), IProvider)
     config.register_datatable('providers', datatables.Providers)
+
+    config.add_view(views.redirect_languoid_xhtml, route_name='languoid.xhtml')
+    config.add_view(views.redirect_reference_xhtml, route_name='reference.xhtml')
 
     config.add_route_and_view(
         'glottolog.meta',
