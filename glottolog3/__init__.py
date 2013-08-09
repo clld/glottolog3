@@ -3,7 +3,7 @@ from functools import partial
 from clld.interfaces import IMenuItems, ILanguage
 from clld.web.app import menu_item, get_configurator
 from clld.web.adapters.base import adapter_factory, Index
-from clld.web.adapters.download import CsvDump, N3Dump, Download
+from clld.web.adapters.download import CsvDump, N3Dump, Download, RdfXmlDump
 from clld.db.models.common import Language, Source
 
 from glottolog3 import views
@@ -89,10 +89,10 @@ def main(global_config, **settings):
 
     config.register_download(CsvDump(
         Language, 'glottolog3', description="Languoids as CSV"))
-    config.register_download(N3Dump(
+    config.register_download(RdfXmlDump(
         Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
         Source, 'glottolog3', ext='bib', description="References as BibTeX"))
-    config.register_download(N3Dump(
+    config.register_download(RdfXmlDump(
         Source, 'glottolog3', description="References as RDF"))
     return config.make_wsgi_app()

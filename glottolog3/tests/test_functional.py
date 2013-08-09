@@ -70,4 +70,4 @@ class Tests(TestWithApp):
 
     def test_ref(self):
         res = self.app.get('/resource/reference/id/2.rdf', status=200)
-        res = self.app.get('/resource/languoid/id/2', accept='text/html', status=200)
+        res = self.app.get('/resource/reference/id/2', accept='text/html', status=200)

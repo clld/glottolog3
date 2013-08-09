@@ -2,6 +2,7 @@ import time
 
 from path import path
 
+from clld.lib.bibtex import Database
 from clld.tests.util import TestWithSelenium
 
 import glottolog3
@@ -35,5 +36,11 @@ class Tests(TestWithSelenium):
         map_ = self.get_map('/resource/languoid/id/berb1260')
         map_.test_show_marker()
         dt = self.get_datatable('/resource/languoid/id/berb1260')
+        dt.filter('doctype', 'grammar')
         dt.sort('Year')
         dt.sort('Title')
+        recs = dt.get_info().filtered
+        assert not self.downloads.listdir()
+        dt.download('bib')
+        bib = Database.from_file(self.downloads.joinpath('glottolog-refs.bib'))
+        self.assertEqual(recs, len(bib))
