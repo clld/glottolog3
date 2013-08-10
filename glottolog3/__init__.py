@@ -29,6 +29,7 @@ def main(global_config, **settings):
         #'provider': '/langdoc/langdocinformation#provider-{id}',
         'providers': '/langdoc/langdocinformation',
     }
+    settings['sitemaps'] = ['language', 'source']
     config = get_configurator(
         'glottolog3',
         settings=settings,
