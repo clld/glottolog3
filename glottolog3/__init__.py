@@ -99,10 +99,10 @@ def main(global_config, **settings):
 
     config.register_download(CsvDump(
         Language, 'glottolog3', description="Languoids as CSV"))
-    config.register_download(RdfXmlDump(
+    config.register_download(N3Dump(
         Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
         Source, 'glottolog3', ext='bib', description="References as BibTeX"))
-    config.register_download(RdfXmlDump(
+    config.register_download(N3Dump(
         Source, 'glottolog3', description="References as RDF"))
     return config.make_wsgi_app()
