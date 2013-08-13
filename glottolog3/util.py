@@ -21,6 +21,7 @@ from clld.interfaces import IIcon
 from glottolog3.models import (
     Country, Languoid, Languoidcountry, Refprovider, Provider, Ref,
     Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
+    LanguoidStatus,
 )
 from glottolog3.maps import LanguoidsMap
 

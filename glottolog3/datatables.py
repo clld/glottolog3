@@ -145,6 +145,7 @@ class Families(Languages):
 
     def base_query(self, query):
         query = query.filter(Language.active == True)\
+            .filter(Languoid.status == LanguoidStatus.established)\
             .outerjoin(Languoidmacroarea)\
             .outerjoin(self.top_level_family, self.top_level_family.pk == Languoid.family_pk)\
             .distinct()\

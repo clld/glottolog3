@@ -25,12 +25,12 @@ class Tests(TestWithSelenium):
     def test_datatable_family(self):
         dt = self.get_datatable('/glottolog/family')
         dt.filter('level', '--any--')
-        self.assertEqual(dt.get_info().filtered, 4039)
+        self.assertEqual(dt.get_info().filtered, 3961)
 
     def test_datatable_language(self):
         dt = self.get_datatable('/glottolog/language')
         dt.filter('name', u'\xfc')
-        self.assertEqual(dt.get_info().filtered, 2)
+        self.assertEqual(dt.get_info().filtered, 1)
 
     def test_languoid_map_and_table(self):
         map_ = self.get_map('/resource/languoid/id/berb1260')

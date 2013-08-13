@@ -82,6 +82,12 @@
         </div>
         % endif
 
+        % if ctx.status and ctx.status != u.LanguoidStatus.established:
+        <div class="alert">
+            This languoid is not an established entity, but its status is "${ctx.status}".
+        </div>
+        % endif
+
         % if ctx.fc or ctx.sc or ctx.crefs:
         <div class="alert alert-success">
             <button type="button" class="close" data-dismiss="alert">&times;</button>
