@@ -77,11 +77,17 @@ def get_params(params, **kw):
     """
     :return: pair (appstruct, request params dict)
     """
+    def default_params():
+        d = dict(biblio={})
+        for name in 'author year title editor journal address publisher'.split():
+            d['biblio'][name] = ''
+        return d
+
     reqparams = {}
-    cstruct = dict(biblio={})
+    cstruct = default_params()
 
     biblio = colander.SchemaNode(colander.Mapping(), name='biblio', missing={})
-    for name in 'author year title editor journal address publisher'.split():
+    for name in cstruct['biblio']:
         biblio.add(
             colander.SchemaNode(colander.String(), name=name, missing='', title=name.capitalize()))
         cstruct['biblio'][name] = params.get(name, '')
@@ -109,7 +115,10 @@ def get_params(params, **kw):
             if cstruct[plural]:
                 reqparams[plural] = params[plural]
     schema.add(biblio)
-    return schema.deserialize(cstruct), reqparams
+    try:
+        return schema.deserialize(cstruct), reqparams
+    except colander.Invalid:
+        return default_params(), {}
 
 
 def getRefs(params):
