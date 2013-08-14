@@ -39,9 +39,10 @@ def languoid_link(req, languoid, active=True, classification=False):
 
 
 class ModelInstance(object):
-    def __init__(self, cls, attr='id', collection=None):
+    def __init__(self, cls, attr='id', collection=None, alias=None):
         self.cls = cls
         self.attr = attr
+        self.alias = alias
         self.collection = collection
 
     def serialize(self, node, appstruct):
@@ -57,12 +58,15 @@ class ModelInstance(object):
         value = None
         if self.collection:
             for obj in self.collection:
-                if getattr(obj, self.attr) == cstruct:
+                if getattr(obj, self.attr) == cstruct \
+                        or (self.alias and getattr(obj, self.alias) == cstruct):
                     value = obj
         else:
             value = self.cls.get(cstruct, key=self.attr, default=None)
+            if self.alias and value is None:
+                value = self.cls.get(cstruct, key=self.alias, default=None)
         if value is None:
-            raise Invalid(node, 'no single result found')
+            raise colander.Invalid(node, 'no single result found')
         return value
 
     def cstruct_children(self, node, cstruct):
@@ -87,10 +91,13 @@ def get_params(params, **kw):
     schema = colander.SchemaNode(colander.Mapping())
     for name, cls in dict(languoid=Languoid, doctype=Doctype, macroarea=Macroarea).items():
         plural = name + 's'
+        _kw = dict(collection=kw.get(plural))
+        if name == 'languoid':
+            _kw['alias'] = 'hid'
         schema.add(
             colander.SchemaNode(
                 colander.Sequence(),
-                colander.SchemaNode(ModelInstance(cls, collection=kw.get(plural)), name=name),
+                colander.SchemaNode(ModelInstance(cls, **_kw), name=name),
                 missing=[],
                 name=plural))
         if plural != 'languoids':
