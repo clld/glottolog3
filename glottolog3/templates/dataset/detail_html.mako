@@ -79,11 +79,10 @@
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}
 </blockquote>
-##        ${g.cite()}
         <p>
             Particularly important contributors to the Langdoc database are Alain Fabre,
-            Jouni Majo and SIL International. For more details, see the
-            ##<a href="${request.route_url('home.credits')}" title="credits"> Credits </a> page.
+            Jouni Maho and SIL International. For more details, see the
+            <a href="${request.route_url('home.credits')}" title="credits">Credits</a> page.
         </p>
     </div>
 </div>
