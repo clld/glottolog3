@@ -42,5 +42,6 @@ class Tests(TestWithSelenium):
         recs = dt.get_info().filtered
         assert not self.downloads.listdir()
         dt.download('bib')
+        time.sleep(1.5)
         bib = Database.from_file(self.downloads.joinpath('glottolog-refs.bib'))
         self.assertEqual(recs, len(bib))
