@@ -1,12 +1,16 @@
 from functools import partial
+from json import load
 
 from pyramid.response import Response
-from clld.interfaces import IMenuItems, ILanguage
-from clld.web.app import menu_item, get_configurator
+from pyramid.httpexceptions import HTTPGone
+from path import path
+from clld.interfaces import IMenuItems, ILanguage, ICtxFactoryQuery
+from clld.web.app import menu_item, get_configurator, CtxFactoryQuery
 from clld.web.adapters.base import adapter_factory, Index
 from clld.web.adapters.download import CsvDump, N3Dump, Download, RdfXmlDump
 from clld.db.models.common import Language, Source
 
+import glottolog3
 from glottolog3 import views
 from glottolog3 import models
 from glottolog3 import maps
@@ -16,9 +20,22 @@ from glottolog3.config import CFG
 from glottolog3.interfaces import IProvider
 
 
+class GLCtxFactoryQuery(CtxFactoryQuery):
+    def __call__(self, model, req):
+        if model == Language:
+            # responses for no longer supported legacy codes
+            if req.matchdict['id'] in req.registry.settings['legacy_codes']:
+                raise HTTPGone()
+        return super(GLCtxFactoryQuery, self).__call__(model, req)
+
+
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
+    lc = path(glottolog3.__file__).dirname().joinpath('static', 'legacy_codes.json')
+    with open(lc) as fp:
+        settings['legacy_codes'] = load(fp)
+
     settings.update(CFG)
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
@@ -32,6 +49,7 @@ def main(global_config, **settings):
     settings['sitemaps'] = ['language', 'source']
     config = get_configurator(
         'glottolog3',
+        (GLCtxFactoryQuery(), ICtxFactoryQuery),
         settings=settings,
         routes=[
             ('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml'),

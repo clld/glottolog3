@@ -62,6 +62,10 @@ class Tests(TestWithApp):
         res = self.app.get('/resource/languoid/iso/deu.rdf', status=302)
         res = self.app.get('/resource/languoid/iso/xxxx', status=404)
 
+    def test_legacy(self):
+        res = self.app.get('/resource/languoid/id/zulu1241', status=410)
+        res = self.app.get('/resource/languoid/id/zzzz9999', status=404)
+
     def test_language(self):
         res = self.app.get('/resource/languoid/id/stan1295.rdf', status=200)
         res = self.app.get('/resource/languoid/id/stan1295', accept='text/html', status=200)
