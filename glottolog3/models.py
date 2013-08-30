@@ -370,6 +370,14 @@ class Ref(Source, CustomModelMixin):
         % endfor
         """
 
+    def __bibtex__(self):
+        res = {}
+        for attr in 'inlg inlg_code subject subject_headings keywords ozbib_id'.split():
+            v = getattr(self, attr, None)
+            if v:
+                res[attr] = '%s' % v
+        return res
+
 
 class TreeClosureTable(Base):
     __table_args__ = (UniqueConstraint('parent_pk', 'child_pk'),)
