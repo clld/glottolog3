@@ -11,6 +11,8 @@ Create Date: ${create_date}
 revision = ${repr(up_revision)}
 down_revision = ${repr(down_revision)}
 
+import datetime
+
 from alembic import op
 import sqlalchemy as sa
 ${imports if imports else ""}
