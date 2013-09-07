@@ -85,7 +85,7 @@ def childnodes(request):
         query = DBSession.query(Languoid.id, Languoid.name, Languoid.level)\
             .filter(icontains(Languoid.name, request.params.get('q')))
         total = query.count()
-        ms = LanguoidsMultiSelect(request, Languoid, 'x', url='x')
+        ms = LanguoidsMultiSelect(request, None, None, url='x')
         return dict(
             results=[ms.format_result(l) for l in query.limit(100)],
             context={},
@@ -165,12 +165,13 @@ def langdoccomplexquery(request):
         'ms': {}
     }
 
-    res['ms']['languoids'] = LanguoidsMultiSelect(
-        request, Languoid, 'mslanguoids', url=request.route_url('glottolog.childnodes'))
-    res['ms']['macroareas'] = MultiSelect(
-        request, Macroarea, 'msmacroareas', collection=res['macroareas'])
-    res['ms']['doctypes'] = MultiSelect(
-        request, Doctype, 'msdoctypes', collection=res['doctypes'])
+    for name, cls, kw in [
+        ('languoids', LanguoidsMultiSelect, dict(
+            url=request.route_url('glottolog.childnodes'))),
+        ('macroareas', MultiSelect, dict(collection=res['macroareas'])),
+        ('doctypes', MultiSelect, dict(collection=res['doctypes'])),
+    ]:
+        res['ms'][name] = cls(request, name, 'ms' + name, **kw)
 
     res['params'], reqparams = get_params(request.params, **res)
     res['refs'] = getRefs(res['params'])
