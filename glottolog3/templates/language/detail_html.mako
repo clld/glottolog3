@@ -66,7 +66,7 @@
         </script>
         % else:
         <div class="alert">
-            <h4>Superseeded Languoid</h4>
+            <h4>Superseded Languoid</h4>
             <p>
                 This languoid is no longer part of the Glottolog classification.
             </p>
