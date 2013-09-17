@@ -190,21 +190,50 @@ class Families(Languages):
         return opts
 
 
-class DoctypeCol(Col):
+#
+# Refs
+#
+class _CollectionCol(Col):
+    cls = None
+    attr = None
+    route = None
+
     def __init__(self, dt, name, **kw):
-        self.doctypes = DBSession.query(Doctype).order_by(Doctype.id).all()
+        self.collection = DBSession.query(self.cls).order_by(self.cls.id).all()
+        self.collection_dict = {o.id: o for o in self.collection}
         kw['bSortable'] = False
-        super(DoctypeCol, self).__init__(dt, name, **kw)
+        super(_CollectionCol, self).__init__(dt, name, **kw)
+
+    def link(self, id_):
+        if not id_:
+            return ''
+        return HTML.a(
+            id_,
+            title=self.collection_dict[id_].name,
+            href=self.dt.req.route_url(
+                self.route, _anchor='%s-%s' % (self.cls.mapper_name().lower(), id_)))
 
     def format(self, item):
-        return ', '.join(a.name for a in item.doctypes)
+        return ', '.join(filter(None, map(self.link, (getattr(item, self.attr) or '').split(', '))))
 
     def search(self, qs):
-        return Refdoctype.doctype_pk == int(qs)
+        return getattr(Ref, self.attr).contains(qs)
 
     @property
     def choices(self):
-        return [(a.pk, a.name) for a in self.doctypes]
+        return [o.id for o in self.collection]
+
+
+class DoctypeCol(_CollectionCol):
+    cls = Doctype
+    attr = 'doctypes_str'
+    route = 'home.glossary'
+
+
+class ProviderCol(_CollectionCol):
+    cls = Provider
+    attr = 'providers_str'
+    route = 'providers'
 
 
 class Refs(Sources):
@@ -221,16 +250,18 @@ class Refs(Sources):
         cols = super(Refs, self).col_defs()
         if self.complexquery:
             cols = cols[:3]
-        if self.language:
-            cols.append(DoctypeCol(self, 'doctype'))
+        else:
+            cols = cols[:-1]
+
+        cols.append(DoctypeCol(self, 'doctype'))
+        cols.append(ProviderCol(self, 'provider'))
         return cols
 
     def base_query(self, query):
         if self.language:
             query = query.join(LanguageSource)\
                 .join(TreeClosureTable, TreeClosureTable.child_pk == LanguageSource.language_pk)\
-                .filter(TreeClosureTable.parent_pk == self.language.pk)
-            query = query.outerjoin(Refdoctype, Ref.pk == Refdoctype.ref_pk)\
+                .filter(TreeClosureTable.parent_pk == self.language.pk)\
                 .distinct()
         elif self.complexquery:
             query = getRefs(self.complexquery[0])

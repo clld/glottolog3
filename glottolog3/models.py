@@ -318,6 +318,9 @@ class Ref(Source, CustomModelMixin):
     normalizededitorstring = Column(Unicode)
     ozbib_id = Column(Integer)
 
+    doctypes_str = Column(Unicode)
+    providers_str = Column(Unicode)
+
     providers = relationship(
         Provider,
         secondary=Refprovider.__table__,
