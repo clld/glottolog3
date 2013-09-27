@@ -1,6 +1,6 @@
 import re
 
-from sqlalchemy import sql
+from sqlalchemy import sql, desc
 
 from clld.db.meta import DBSession
 from clld.util import slug
@@ -223,3 +223,11 @@ def update_coordinates(args):
             elif diff(language.longitude, lon) or diff(language.latitude, lat):
                 language.longitude, language.latitude = lon, lat
                 args.log.info('~~ %s' % language.id)
+
+
+def update_refnames(args):
+    for ref in DBSession.query(Ref).order_by(desc(Ref.pk)):
+        name = '%s %s' % (ref.author or 'n.a.', ref.year or 'n.d.')
+        if name != ref.name:
+            args.log.info('%s: %s -> %s' % (ref.id, ref.name, name))
+            ref.name = name

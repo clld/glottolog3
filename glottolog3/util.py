@@ -3,7 +3,7 @@ import re
 from itertools import cycle
 
 import colander
-from sqlalchemy import or_, not_
+from sqlalchemy import or_, not_, desc
 from sqlalchemy.orm import joinedload, joinedload_all
 from sqlalchemy.sql.expression import func
 from pyramid.httpexceptions import HTTPFound
@@ -151,7 +151,7 @@ def getRefs(params):
     if not filtered:
         return []
 
-    return query.distinct()
+    return query.distinct().order_by(desc(Source.updated))
 
 
 def provider_index_html(request=None, **kw):
