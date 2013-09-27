@@ -10,12 +10,11 @@ from glottolog3.models import Languoid
 
 def main(args):  # pragma: no cover
     with transaction.manager:
-        for l in DBSession.query(Languoid).filter(Languoid.father_pk != None):
+        for l in DBSession.query(Languoid):
             family = None
             for ll in l.get_ancestors():
                 family = ll
-            if family:
-                l.family = family
+            l.family = family
 
 
 if __name__ == '__main__':

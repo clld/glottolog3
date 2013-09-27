@@ -19,6 +19,10 @@ from glottolog3.lib.util import glottocode
 import glottolog3
 
 
+def data_file(args, name):
+    return args.data_file(args.version, name)
+
+
 NOCODE_PATTERN = re.compile('NOCODE\_[a-zA-Z\-\_]+$')
 
 
@@ -202,7 +206,7 @@ def match_nodes(leafs, nodes, rnodes, urnodes, leafsets, names):
 
 def main(args):
     active_only = not args.all
-    coords = dict((r[0], r[1:]) for r in dsv.rows(args.data_file('coordinates.tab')))
+    coords = dict((r[0], r[1:]) for r in dsv.rows(data_file(args, 'coordinates.tab')))
     codes = dict((row[0], row[1]) for row in
                  DBSession.execute("select ll.hid, l.pk from languoid as ll, language as l where ll.pk = l.pk and ll.hid is not null"))
 
@@ -220,7 +224,7 @@ def main(args):
     # dict mapping identifiers of H-languages to branches
     languages = OrderedDict()
 
-    parse_families(args.data_file('lff.txt'), families, languages)
+    parse_families(data_file(args, 'lff.txt'), families, languages)
 
     # handle isolates / collapse families with exactly one leaf:
     isolate_names = {}
@@ -246,7 +250,7 @@ def main(args):
             names[name] = [branch]
 
     # now add the unclassifiabble, unattested, un-whatever
-    parse_families(args.data_file('lof.txt'), families, languages)
+    parse_families(data_file(args, 'lof.txt'), families, languages)
 
     ncodes = {}
     languoids = []
@@ -274,14 +278,19 @@ def main(args):
     urnodes = {}
     rnodes = {}
     for family in families:
-        leafs = families[family]
+        #leafs = families[family]
         assert family[0] not in ['Speech Register', 'Spurious']
         leafs = tuple(sorted(code for code in families[family].keys() if code in codes))
         assert leafs
         if leafs in rnodes:
             # special case: there may be additional "Unclassified something" nodes in
             # branch without any changes in the set of leafs.
-            assert [n for n in family if n.startswith('Unclassified')]
+            try:
+                assert [n for n in family if n.startswith('Unclassified')]
+            except:
+                #print family
+                #print leafs
+                assert [code for code in families[family[:-1]].keys() if code in ncodes]
             fset, rset = set(family), set(rnodes[leafs])
             assert rset.issubset(fset)
             assert leafs not in urnodes
@@ -431,9 +440,12 @@ def main(args):
                 row[0], 'language', status='retired', active=False, father_pk=None)
             languoids.append(attrs)
 
-    with open(args.data_file('languoids.json'), 'w') as fp:
+    with open(data_file(args, 'languoids.json'), 'w') as fp:
         json.dump(languoids, fp)
 
 
 if __name__ == '__main__':
-    main(parsed_args((("--all",), dict(action="store_true"))))
+    main(parsed_args(
+        (("--all",), dict(action="store_true")),
+        (("--version",), dict(default="")),
+    ))

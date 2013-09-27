@@ -8,7 +8,7 @@ from sqlalchemy.orm import joinedload
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 
-from glottolog3.models import Ref
+from glottolog3.models import Ref, Languoid
 
 
 def main(args):  # pragma: no cover

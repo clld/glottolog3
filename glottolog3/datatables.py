@@ -45,7 +45,7 @@ class NameCol(Col):
 
 
 class StatusCol(Col):
-    def __init__(self, dt, name='status', **kw):
+    def __init__(self, dt, name, **kw):
         kw['sFilter'] = LanguoidStatus.established.value
         kw['choices'] = get_distinct_values(Languoid.status)
         super(StatusCol, self).__init__(dt, name, **kw)
@@ -58,11 +58,10 @@ class StatusCol(Col):
 
 
 class LevelCol(Col):
-    def __init__(self, dt, name='level', **kw):
-        kw['choices'] = ['Top-level family', 'Isolate', 'Top-level unit', 'Subfamily']
-        kw['sFilter'] = 'Top-level unit'
-        kw['bSortable'] = False
-        super(LevelCol, self).__init__(dt, name, **kw)
+    __kw__ = dict(
+        choices=['Top-level family', 'Isolate', 'Top-level unit', 'Subfamily'],
+        sFilter='Top-level unit',
+        bSortable=False)
 
     def format(self, item):
         if item.father_pk is None:
@@ -163,8 +162,8 @@ class Families(Languages):
         if self.type == 'families':
             return [
                 NameCol(self, 'name'),
-                #StatusCol(self),
-                LevelCol(self),
+                #StatusCol(self, 'status'),
+                LevelCol(self, 'level'),
                 MacroareaCol(self, 'macro-area'),
                 Col(self, 'child_family_count', model_col=Languoid.child_family_count, sTitle='Sub-families'),
                 Col(self, 'child_language_count', model_col=Languoid.child_language_count, sTitle='Child languages'),
@@ -177,7 +176,7 @@ class Families(Languages):
                 NameCol(self, 'name'),
                 FamilyCol(self, 'top-level family'),
                 IsoCol(self, 'iso', sTitle='ISO-639-3'),
-                #StatusCol(self),
+                #StatusCol(self, 'status'),
                 MacroareaCol(self, 'macro-area'),
                 Col(self, 'child_dialect_count', sTitle='Child dialects'),
             ]
@@ -267,10 +266,9 @@ class Refs(Sources):
             query = getRefs(self.complexquery[0])
         return query
 
-    def get_options(self):
-        opts = super(Refs, self).get_options()
+    def xhr_query(self):
+        query = super(Refs, self).xhr_query() or {}
         if self.complexquery:
-            query = {'cq': '1'}
+            query['cq'] = '1'
             query.update(self.complexquery[1])
-            opts['sAjaxSource'] = self.req.route_url('sources', _query=query)
-        return opts
+        return query

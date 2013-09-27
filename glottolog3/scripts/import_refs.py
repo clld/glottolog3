@@ -19,6 +19,7 @@ from glottolog3.models import (
     Ref, Provider, Refprovider, Macroarea, Doctype, Country, Languoid,
 )
 from glottolog3.lib.util import get_map
+from glottolog3.scripts.util import update_providers
 
 # id
 # bibtexkey
@@ -201,11 +202,18 @@ CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
 # TODO: implement three modes: compare, import, update
 #
 
-def main(bib, mode):  # pragma: no cover
+def main(args):  # pragma: no cover
+    bib = Database.from_file(args.data_file(args.version, 'refs.bib'), encoding='utf8')
+    mode = args.mode
+
     count = 0
     skipped = 0
 
+    changes = {}
+
     with transaction.manager:
+        update_providers(args)
+        DBSession.flush()
         provider_map = get_map(Provider)
         macroarea_map = get_map(Macroarea)
         doctype_map = get_map(Doctype)
@@ -235,7 +243,7 @@ def main(bib, mode):  # pragma: no cover
 
             kw = {
                 'pk': id_,
-                'bibtex_type': getattr(EntryType, rec.genre),
+                'bibtex_type': rec.genre,
                 'id': str(id_),
                 'jsondata': {'bibtexkey': rec.id},
             }
@@ -308,16 +316,17 @@ def main(bib, mode):  # pragma: no cover
                     if 1:
                         v = getattr(ref, k)
                     if kw[k] != v:
-                        #
-                        # TODO!
-                        #
-                        setattr(ref, k, kw[k])
-                        #if k not in ['jsondata', 'publisher']:
-                        #    print k, ref.pk
-                        #    print kw[k]
-                        #    print v
-                        #    print '--------------'
-                        changed = True
+                        if k == 'jsondata':
+                            ref.update_jsondata(**kw[k])
+                        else:
+                            print k, '--', v
+                            print k, '++', kw[k]
+                            setattr(ref, k, kw[k])
+                            changed = True
+                            if ref.id in changes:
+                                changes[ref.id][k] = ('%s' % v, '%s' % kw[k])
+                            else:
+                                changes[ref.id] = {k: ('%s' % v, '%s' % kw[k])}
                     if ref.title:
                         ref.description = ref.title
             else:
@@ -326,20 +335,20 @@ def main(bib, mode):  # pragma: no cover
 
             def append(attr, obj):
                 if obj and obj not in attr:
-                    changed = True
-                    #
-                    # TODO!
-                    #
                     attr.append(obj)
+                    return True
 
             for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')])):
-                append(ref.macroareas, macroarea_map[name])
+                result = append(ref.macroareas, macroarea_map[name])
+                changed = changed or result
 
             for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('src', '').split(',')])):
-                append(ref.providers, provider_map[slug(name)])
+                result = append(ref.providers, provider_map[slug(name)])
+                changed = changed or result
 
             for m in DOCTYPE_PATTERN.finditer(kw['jsondata'].get('hhtype', '')):
-                append(ref.doctypes, doctype_map[m.group('name')])
+                result = append(ref.doctypes, doctype_map[m.group('name')])
+                changed = changed or result
 
             if len(kw['jsondata'].get('lgcode', '')) == 3:
                 kw['jsondata']['lgcode'] = '[%s]' % kw['jsondata']['lgcode']
@@ -350,13 +359,15 @@ def main(bib, mode):  # pragma: no cover
                         if code not in ['NOCODE_Payagua', 'emx']:
                             print '--> unknown code:', code.encode('utf8')
                     else:
-                        append(ref.languages, languoid_map[code])
+                        result = append(ref.languages, languoid_map[code])
+                        changed = changed or result
 
             for glottocode in filter(None, kw['jsondata'].get('alnumcodes', '').split(';')):
                 if glottocode not in languoid_map:
                     print '--> unknown glottocode:', glottocode.encode('utf8')
                 else:
-                    append(ref.languages, languoid_map[glottocode])
+                    result = append(ref.languages, languoid_map[glottocode])
+                    changed = changed or result
 
             if not update:
                 #pass
@@ -365,16 +376,25 @@ def main(bib, mode):  # pragma: no cover
                 #
                 DBSession.add(ref)
 
-            if i % 100 == 0:
-                print i, 'records done'
-
             if changed:
                 count += 1
+                ref.doctypes_str = ', '.join(o.id for o in ref.doctypes)
+                ref.providers_str = ', '.join(o.id for o in ref.providers)
+
+            if i % 1000 == 0:
+                print i, 'records done', count, 'changed'
 
         print count, 'records updated or imported'
         print skipped, 'records skipped because of lack of information'
 
+    return changes
+
 
 if __name__ == '__main__':
-    args = parsed_args((('--mode',), dict(default='insert')))
-    main(Database.from_file(args.data_file('refs.bib'), encoding='utf8'), args.mode)
+    args = parsed_args(
+        (('--mode',), dict(default='insert')),
+        (("--version",), dict(default="2.0")),
+    )
+    res = main(args)
+    with open(args.data_file(args.version, 'refs.json'), 'w') as fp:
+        json.dump(res, fp)

@@ -242,13 +242,13 @@ class Languoid(Language, CustomModelMixin):
     @property
     def fc(self):
         c = self.classification('fc')
-        if c.description:
+        if c and c.description:
             return c
 
     @property
     def sc(self):
         c = self.classification('sc')
-        if c.description:
+        if c and c.description:
             return c
 
     def _crefs(self, t):

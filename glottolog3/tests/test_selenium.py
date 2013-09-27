@@ -25,7 +25,7 @@ class Tests(TestWithSelenium):
     def test_datatable_family(self):
         dt = self.get_datatable('/glottolog/family')
         dt.filter('level', '--any--')
-        self.assertEqual(dt.get_info().filtered, 3961)
+        self.assertTrue(dt.get_info().filtered > 3500)
 
     def test_datatable_language(self):
         dt = self.get_datatable('/glottolog/language')

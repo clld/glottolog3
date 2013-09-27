@@ -11,7 +11,7 @@ from clld.lib import iso
 from clld.db.meta import DBSession
 from clld.db.models.common import Language, LanguageIdentifier, Identifier, IdentifierType
 
-from glottolog3.models import Languoid, TreeClosureTable, LanguoidLevel
+from glottolog3.models import Languoid, TreeClosureTable, LanguoidLevel, LanguoidStatus
 
 
 def get_macrolangs(codes):
@@ -43,15 +43,15 @@ def main(args):  # pragma: no cover
             isoleafs = set()
             i += 1
 
-            if i % 100 == 0:
+            if i % 1000 == 0:
                 print i
 
-            for row in DBSession.query(TreeClosureTable.child, Languoid.hid)\
+            for row in DBSession.query(TreeClosureTable.child_pk, Languoid.hid)\
                 .filter(family.pk == TreeClosureTable.parent_pk)\
                 .filter(Languoid.pk == TreeClosureTable.child_pk)\
                 .filter(Languoid.hid != None)\
                 .filter(Languoid.level == LanguoidLevel.language)\
-                .filter(Languoid.status == 'established')\
+                .filter(Languoid.status == LanguoidStatus.established)\
                 .all():
                 if len(row[1]) == 3:
                     isoleafs.add(row[1])
@@ -74,7 +74,7 @@ def main(args):  # pragma: no cover
                     found = True
                     break
                 elif leafs.issubset(isoleafs):
-                    print '~~~', family.primaryname, '-->', mid, 'distance:', len(leafs), len(isoleafs)
+                    print '~~~', family.name, '-->', mid, 'distance:', len(leafs), len(isoleafs)
                     near += 1
                     found = True
                     break

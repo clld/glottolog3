@@ -9,82 +9,95 @@ from clld.db.models.common import Identifier, LanguageIdentifier, IdentifierType
 from clld.db.meta import DBSession
 from clld.util import EnumSymbol
 
-from glottolog3.models import Languoid, Macroarea, Superseded
+from glottolog3.models import (
+    Languoid, Macroarea, Superseded, LanguoidLevel, LanguoidStatus,
+)
+from glottolog3.scripts.util import (
+    recreate_treeclosure, update_justifications, update_macroareas, update_coordinates,
+)
 from glottolog3.lib.util import get_map
 
 
+MAX_IDENTIFIER_PK = None
+
+
+def create_identifier(identifier, l, **kw):
+    global MAX_IDENTIFIER_PK
+    if identifier is None:
+        MAX_IDENTIFIER_PK += 1
+        DBSession.add(Identifier(pk=MAX_IDENTIFIER_PK, id=str(MAX_IDENTIFIER_PK), **kw))
+        pk = MAX_IDENTIFIER_PK
+    else:
+        pk = identifier.pk
+    DBSession.add(LanguageIdentifier(language_pk=l.pk, identifier_pk=pk))
+
+
 def main(args):  # pragma: no cover
+    global MAX_IDENTIFIER_PK
+
     with transaction.manager:
-        max_identifier_pk = DBSession.query(
+        MAX_IDENTIFIER_PK = DBSession.query(
             Identifier.pk).order_by(desc(Identifier.pk)).first()[0]
+
+        gc_names = {i.name: i for i in DBSession.query(Identifier).filter(
+            Identifier.type == 'name').filter(Identifier.description == 'Glottolog')}
+
         ma_map = get_map(Macroarea)
         languoids = dict((l.pk, l) for l in DBSession.query(Languoid))
-        with open(args.data_file('languoids.json')) as fp:
+        with open(args.data_file(args.version, 'languoids.json')) as fp:
             for attrs in json.load(fp):
                 ma = attrs.pop('macroarea', None)
                 replacement = attrs.pop('replacement', None)
                 hname = attrs.pop('hname', None)
+
+                for name, enum in [('level', LanguoidLevel), ('status', LanguoidStatus)]:
+                    if name in attrs:
+                        attrs[name] = enum.from_string(attrs[name])
 
                 l = languoids.get(attrs['pk'])
                 if l:
                     for k, v in attrs.items():
                         if k == 'globalclassificationcomment':
                             continue
-                        cv = getattr(l, k)
-                        if isinstance(cv, EnumSymbol):
-                            cv = cv.value
-                        assert v == cv
-                        #setattr(l, k, v)
+                        setattr(l, k, v)
                     if len(l.hid or '') == 3:
-                        assert l.iso_code
-                        #if not l.iso_code:
-                        #    l.identifiers.append(
-                        #        Identifier(
-                        #            id=str(max_identifier_pk + 1),
-                        #            name=l.hid,
-                        #            type=IdentifierType.iso.value))
-                        #    max_identifier_pk += 1
+                        if not l.iso_code:
+                            create_identifier(
+                                None, l, name=l.hid, type=IdentifierType.iso.value)
                 else:
-                    raise ValueError()
-                    try:
-                        l = Languoid(**attrs)
-                    except Exception:
-                        print attrs
-                        raise
+                    l = Languoid(**attrs)
                     DBSession.add(l)
                     languoids[l.pk] = l
 
                     if len(attrs.get('hid', '')) == 3:
-                        l.identifiers.append(
-                            Identifier(
-                                id=str(max_identifier_pk + 1),
-                                name=attrs['hid'],
-                                type=IdentifierType.iso.value))
-                        max_identifier_pk += 1
+                        create_identifier(
+                            None, l, name=attrs['hid'], type=IdentifierType.iso.value)
                     if ma:
                         l.macroareas.append(ma_map[ma])
 
-                    l.identifiers.append(
-                        Identifier(
-                            id=str(max_identifier_pk + 1),
-                            name=l.name,
-                            description='Glottolog',
-                            type='name'))
-                    max_identifier_pk += 1
+                    create_identifier(
+                        gc_names.get(l.name),
+                        l,
+                        name=l.name,
+                        description='Glottolog',
+                        type='name')
 
                 if hname:
-                    assert l.jsondata['hname'] == hname
-                    #l.hname = hname
+                    l.update_jsondata(hname=hname)
 
                 if replacement:
-                    raise ValueError()
                     DBSession.add(Superseded(
                         languoid_pk=l.pk,
                         replacement_pk=replacement,
                         relation='classification update'))
 
-                #DBSession.flush()
+                DBSession.flush()
+
+        recreate_treeclosure()
+        update_justifications(args)
+        update_macroareas(args)
+        update_coordinates(args)
 
 
 if __name__ == '__main__':
-    main(parsed_args())
+    main(parsed_args((("--version",), dict(default=""))))
