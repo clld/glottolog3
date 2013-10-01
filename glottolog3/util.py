@@ -151,7 +151,7 @@ def getRefs(params):
     if not filtered:
         return []
 
-    return query.distinct().order_by(desc(Source.updated))
+    return query.distinct()
 
 
 def provider_index_html(request=None, **kw):
@@ -193,7 +193,8 @@ def getLanguoids(name=False,
                  iso=False,
                  namequerytype='part',
                  country=False,
-                 multilingual=False):
+                 multilingual=False,
+                 inactive=False):
     """return an array of languoids responding to the specified criterion.
     """
     if not (name or iso or country):
@@ -202,6 +203,9 @@ def getLanguoids(name=False,
     query = DBSession.query(Languoid)\
         .options(joinedload(Language.sources), joinedload(Languoid.family))\
         .order_by(Languoid.name)
+
+    if not inactive:
+        query = query.filter(Language.active == True)
 
     if name:
         namequeryfilter = {
@@ -259,6 +263,8 @@ def language_index_html(request=None, **kw):
     if not languoids and \
             (res['params']['name'] or res['params']['iso'] or res['params']['country']):
         res['message'] = 'No matching languoids found'
+    if len(languoids) == 1:
+        raise HTTPFound(request.resource_url(languoids[0]))
     map_ = LanguoidsMap(languoids, request)
     layer = list(map_.get_layers())[0]
     if not layer.data['features']:
