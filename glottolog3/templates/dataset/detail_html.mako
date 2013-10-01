@@ -1,8 +1,22 @@
 <%inherit file="../home_comp.mako"/>
+<%namespace name="util" file="../util.mako"/>
 <% TxtCitation = h.get_adapter(h.interfaces.IRepresentation, ctx, request, ext='md.txt') %>
 
+<%block name="head">
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+        google.load("feeds", "1");
+    </script>
+</%block>
+
+<%def name="sidebar()">
+  ${util.feed('New Grammars', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=grammar', eid='grammars', linkTitle=True)}
+  ${util.feed('New Languages', 'http://glottolog.org/glottolog.atom?type=languages', eid='languoids', linkTitle=True)}
+  ${util.feed('New Dictionaries', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=dictionary', eid='dictionaries', linkTitle=True)}
+</%def>
+
 <div class="row-fluid">
-    <div class="span10 offset1">
+    <div class="span12">
         <h2>Welcome to Glottolog</h2>
     <p class="lead">
         Comprehensive reference information for the world's languages, especially the
@@ -25,12 +39,12 @@
 </div>
 
 <div class="row-fluid">
-    <div class="span3 offset1">
+    <div class="span4">
         <div class="well well-small">
             <img src="${request.static_url('glottolog3:static/World_Map.jpg')}"/>
         </div>
     </div>
-    <div class="span7">
+    <div class="span8">
         <h3>Languoid catalogue</h3>
         <p>
             <strong>Glottolog</strong> provides a
@@ -46,7 +60,7 @@
 </div>
 
 <div class="row-fluid">
-    <div class="span7 offset1">
+    <div class="span8">
         <h3>Langdoc</h3>
         <p>
             <strong><a href="${request.route_url('sources')}" title="langdoc"> Langdoc </a></strong>
@@ -59,7 +73,7 @@
             Firefox plugin.
         </p>
     </div>
-    <div class="span3">
+    <div class="span4">
         <div class="well well-small">
             <img src="${request.static_url('glottolog3:static/nebrija.jpg')}"/>
         </div>
@@ -67,7 +81,7 @@
 </div>
 
 <div class="row-fluid">
-    <div class="span10 offset1">
+    <div class="span12">
         <p>
             Glottolog will be continuously expanded and improved with the help
             of their users. The input of expert linguists is crucial.

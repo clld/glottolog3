@@ -2,14 +2,14 @@ from __future__ import unicode_literals
 import re
 
 from purl import URL
-from sqlalchemy import func, or_, and_
+from sqlalchemy import func, or_, and_, desc
 from sqlalchemy.orm import joinedload, joinedload_all, aliased
 from clld.web.datatables.base import DataTable, Col, LinkCol, DetailsRowLinkCol
 from clld.web.util.helpers import button, JSModal, icon, link
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
-from clld.db.models.common import Language, LanguageSource
+from clld.db.models.common import Language, LanguageSource, Source
 from clld.web.datatables.language import Languages
 from clld.web.datatables.source import Sources
 
@@ -142,6 +142,9 @@ class Families(Languages):
         self.top_level_family = aliased(Language)
         super(Families, self).__init__(req, model, **kw)
 
+    def default_order(self):
+        return desc(Language.created)
+
     def base_query(self, query):
         query = query.filter(Language.active == True)\
             .filter(Languoid.status == LanguoidStatus.established)\
@@ -244,6 +247,9 @@ class Refs(Sources):
         else:
             self.complexquery = None
         super(Refs, self).__init__(req, *args, **kw)
+
+    def default_order(self):
+        return desc(Source.updated)
 
     def col_defs(self):
         cols = super(Refs, self).col_defs()
