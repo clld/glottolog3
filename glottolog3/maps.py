@@ -1,5 +1,5 @@
 from clld.web.maps import Map, Layer, Legend
-from clld.web.adapters import GeoJson
+from clld.web.adapters.geojson import GeoJson, pacific_centered_coordinates
 from clld.web.util.htmllib import HTML, literal
 from clld.web.util.helpers import link
 from clld.interfaces import IIcon
@@ -39,6 +39,9 @@ class LanguoidGeoJson(GeoJson):
 
     def get_language(self, ctx, req, feature):
         return Language(*feature)
+
+    def get_coordinates(self, language):
+        return pacific_centered_coordinates(language)
 
 
 class LanguoidMap(Map):
