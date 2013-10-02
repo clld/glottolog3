@@ -210,6 +210,16 @@ class Languoid(Language, CustomModelMixin):
             languoid = languoid.father
             yield languoid
 
+    def __json__(self, req=None):
+        def ancestor(l):
+            r = {"name": l.name, "id": l.id}
+            if req:
+                r['url'] = req.resource_url(l)
+            return r
+        res = super(Languoid, self).__json__(req)
+        res['classification'] = [ancestor(l) for l in reversed(list(self.get_ancestors()))]
+        return res
+
     def get_geocoords(self):
         """
         :return: sqlalchemy Query selecting quadrupels \
