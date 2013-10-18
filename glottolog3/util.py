@@ -31,7 +31,10 @@ REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
 
 
 def languoid_link(req, languoid, active=True, classification=False):
-    content = [link(req, languoid) if active else languoid.name]
+    link_attrs = {'class': 'Language ' + languoid.status.value}
+    if languoid.status != LanguoidStatus.established:
+        link_attrs['title'] = '%s - %s' % (languoid.name, languoid.status.description)
+    content = [link(req, languoid, **link_attrs) if active else languoid.name]
     if classification:
         if languoid.fc or languoid.sc:
             content.append(

@@ -84,7 +84,7 @@
 
         % if ctx.status and ctx.status != u.LanguoidStatus.established:
         <div class="alert">
-            This languoid is not an established entity, but its status is "${ctx.status}".
+            This language is ${ctx.status}.
         </div>
         % endif
 
