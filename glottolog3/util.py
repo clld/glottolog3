@@ -13,6 +13,7 @@ from clld.db.models.common import (
     Identifier, LanguageIdentifier, IdentifierType, Language, Source, LanguageSource,
 )
 from clld.db.util import icontains
+from clld.web.adapters.download import download_dir, download_asset_spec
 from clld.web.util.helpers import link, icon
 from clld.web.util.htmllib import HTML
 from clld.web.icon import SHAPES
@@ -36,6 +37,17 @@ def languoid_link(req, languoid, active=True, classification=False):
             content.append(
                 icon("icon-info-sign", title="classification comment available"))
     return HTML.span(*content, **dict(class_="level-" + languoid.level.value))
+
+
+def old_downloads(req):
+    for version in sorted(download_dir('glottolog3').dirs()):
+        number = version.basename()
+        dls = []
+        for f in version.files():
+            dls.append((
+                f.basename(),
+                req.static_url(download_asset_spec('glottolog3', number, f.basename()))))
+        yield number, dls
 
 
 class ModelInstance(object):

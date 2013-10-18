@@ -1,13 +1,17 @@
 import re
+import json
 
-from sqlalchemy import sql, desc
+from sqlalchemy import sql, desc, not_
+from sqlalchemy.orm import joinedload
 
 from clld.db.meta import DBSession
 from clld.util import slug
 from clld.lib import dsv
+from clld.lib.bibtex import Database
 from clld.db.models.common import (
     Parameter, ValueSet, ValueSetReference, Value, Contribution, Source, Language,
 )
+from clld.db.util import page_query
 
 from glottolog3.lib.util import get_map, REF_PATTERN, PAGES_PATTERN
 from glottolog3.lib.bibtex import unescape
@@ -17,19 +21,143 @@ from glottolog3.models import (
 
 
 WORD_PATTERN = re.compile('[a-z]+')
+SQUARE_BRACKET_PATTERN = re.compile('\[(?P<content>[^\]]+)\]')
+CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_[A-Za-z\-]+)$')
 
 
-def update_relationship(col, new, log=None):
+def update_relationship(col, new, log=None, log_only=False):
+    added, removed = 0, 0
     old = set(item for item in col)
     new = set(new)
     for item in old - new:
-        col.remove(item)
+        removed += 1
+        if not log_only:
+            col.remove(item)
         if log:
             log.info('--')
     for item in new - old:
-        col.append(item)
+        added += 1
+        if not log_only:
+            col.append(item)
         if log:
             log.info('++')
+    return added, removed
+
+
+def get_obsolete_refs(args):
+    """compute all refs that no longer have an equivalent in the bib file.
+    """
+    refs = []
+    known_ids = {}
+    bib = Database.from_file(args.data_file(args.version, 'refs.bib'), encoding='utf8')
+    for rec in bib:
+        known_ids[rec['glottolog_ref_id']] = 1
+
+    for row in DBSession.query(Ref.id):
+        if row[0] not in known_ids:
+            refs.append(row[0])
+
+    with open(args.data_file(args.version, 'obsolete_refs.json'), 'w') as fp:
+        json.dump(refs, fp)
+
+    return bib
+
+
+def match_obsolete_refs(args):
+    with open(args.data_file(args.version, 'obsolete_refs.json')) as fp:
+        refs = json.load(fp)
+
+    f, m = 0, 0
+    for id_ in refs:
+        ref = Ref.get(id_)
+        found = False
+        for match in DBSession.query(Ref)\
+            .filter(not_(Source.id.in_(refs)))\
+            .filter(Source.description.contains(ref.description)):
+            if (match.author == ref.author) or (match.year == ref.year):
+                print '++', ref.id, '->', match.id, '++', ref.author, '->', match.author, '++', ref.year, '->', match.year
+                found = True
+                break
+        if not found:
+            for match in DBSession.query(Ref)\
+                .filter(not_(Source.id.in_(refs)))\
+                .filter(Source.name == ref.name):
+                if match.description and ref.description and slug(match.description) == slug(ref.description):
+                    print '++', ref.id, '->', match.id, '++', ref.description, '->', match.description
+                    found = True
+                    break
+        if not found:
+            m += 1
+            print '--', ref.id, ref.name, ref.description
+        else:
+            f += 1
+    print f, 'found'
+    print m, 'missed'
+
+
+def get_lgcodes(ref):
+    """detect language codes in a string
+
+    known formats:
+    - cul
+    - cul, Culina [cul]
+    - cul, aka
+    - [cul, aka, NOCODE_Culina]
+    """
+    res = []
+    lgcode = ref.jsondatadict.get('lgcode', '')
+    if not lgcode:
+        return res
+
+    if '[' not in lgcode:
+        lgcode = '[%s]' % lgcode
+
+    # look at everything in square brackets
+    for match in SQUARE_BRACKET_PATTERN.finditer(lgcode):
+        # then split by comma, and look at the parts
+        for code in [s.strip() for s in match.group('content').split(',')]:
+            if CODE_PATTERN.match(code):
+                res.append(code)
+    return set(res)
+
+
+def update_reflang(args):
+    changes = {}
+    known_ids = {}
+    with_lgcode = 0
+    bib = get_obsolete_refs(args)
+    for rec in bib:
+        known_ids[rec['glottolog_ref_id']] = 1
+        if rec.get('lgcode'):
+            with_lgcode += 1
+
+    added, removed, unknown = 0, 0, {}
+    languoid_map = {}
+    for l in DBSession.query(Languoid).filter(Languoid.hid != None):
+        languoid_map[l.hid] = l
+
+    for ref in page_query(DBSession.query(Ref).order_by(Source.pk), verbose=True):
+        if not ref.id in known_ids:
+            continue
+        langs = [l for l in ref.languages if l.level != LanguoidLevel.language or not l.active]
+        for code in get_lgcodes(ref):
+            if code not in languoid_map:
+                unknown[code] = 1
+            else:
+                langs.append(languoid_map[code])
+        a, r = update_relationship(ref.languages, langs, log=args.log)
+        if a or r:
+            changes[ref.id] = ([l.id for l in ref.languages], [l.id for l in langs])
+        added += a
+        removed += r
+
+    with open(args.data_file(args.version, 'reflang_changes.json'), 'w') as fp:
+        json.dump(changes, fp)
+
+    print len(known_ids), 'refs in bib', with_lgcode, 'with lgcode'
+    print added, 'added'
+    print removed, 'removed'
+    print 'unknown codes', unknown.keys()
 
 
 def update_justifications(args):
@@ -231,3 +359,50 @@ def update_refnames(args):
         if name != ref.name:
             args.log.info('%s: %s -> %s' % (ref.id, ref.name, name))
             ref.name = name
+
+
+prefix = '/subgroups/'
+
+
+def parse_subgroups(doc):
+    for a in bs(doc).find_all('a', href=True):
+        if a['href'].startswith(prefix):
+            yield a.text.split('(')[0].strip(), a['href'][len(prefix):]
+
+
+def update_ethnologue_subgroups(args):
+    from clld.lib.ethnologue import get_classification
+
+    ethnologue = json.load(open(args.data_file('ethnologue_subgroups.json')))
+
+    ext = {}
+    for id_, doc in ethnologue['docs'].items():
+        c = get_classification(id_, doc)
+
+    return
+
+
+    glottolog = {}
+    for family in DBSession.query(Languoid)\
+            .filter(Languoid.level == LanguoidLevel.family)\
+            .filter(Language.active == True):
+        glottolog[family.name] = family
+    glottologl = {}
+    for family in DBSession.query(Languoid)\
+            .filter(Languoid.level == LanguoidLevel.language)\
+            .filter(Language.active == True):
+        glottologl[family.name] = family
+
+    f = 0
+    m = 0
+    for name in ethnologue:
+        if name not in glottolog:
+            if name not in glottologl:
+                print name
+                m += 1
+            else:
+                f += 1
+        else:
+            f += 1
+    print f, 'found'
+    print m, 'missed'

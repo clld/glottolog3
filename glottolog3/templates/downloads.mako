@@ -3,7 +3,10 @@
 <h3>Linked Data</h3>
 
 <div class="span4 well">
-    You can download the following items as zipped, utf-8 encoded archives:
+    <h4>Current version</h4>
+    <p>
+        You can download the following items as zipped, utf-8 encoded archives:
+    </p>
     <dl>
     % for model, dls in h.get_downloads(request):
         <dt>${_(model)}</dt>
@@ -14,6 +17,14 @@
         % endfor
     % endfor
     </dl>
+    % for version, files in list(u.old_downloads(request)):
+    <h4>Version ${version}</h4>
+    <ul>
+        % for name, url in files:
+        <li><a href="${url}">${name}</a></li>
+        % endfor
+    </ul>
+    % endfor
 </div>
 <div class="span7">
     <p>
