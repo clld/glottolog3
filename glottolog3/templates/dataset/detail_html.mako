@@ -10,9 +10,9 @@
 </%block>
 
 <%def name="sidebar()">
-  ${util.feed('New Grammars', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=grammar', eid='grammars', linkTitle=True)}
+  ${util.feed('New Grammars', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=grammar&year=' + str(h.datetime.date.today().year), eid='grammars', linkTitle=True)}
   ${util.feed('New Languages', 'http://glottolog.org/glottolog.atom?type=languages', eid='languoids', linkTitle=True)}
-  ${util.feed('New Dictionaries', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=dictionary', eid='dictionaries', linkTitle=True)}
+  ${util.feed('New Dictionaries', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=dictionary&year=' + str(h.datetime.date.today().year), eid='dictionaries', linkTitle=True)}
 </%def>
 
 <div class="row-fluid">
@@ -100,4 +100,3 @@
         </p>
     </div>
 </div>
-
