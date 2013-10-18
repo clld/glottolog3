@@ -30,7 +30,7 @@
             % endif
             % if item == ctx:
             <ul>
-                % for child in ctx.children:
+                % for child in filter(lambda c: not (ctx.level.value == 'family' and c.level.value == 'dialect'), ctx.children):
                 <li>
                     ${u.languoid_link(request, child, classification=True)}
                     % if child.level.value != 'dialect' and map:
@@ -45,7 +45,7 @@
             % endif
         </li>
         % if len(tree) == level + 1:
-            % for sibling in filter(lambda s: s != ctx, ctx.father.children if ctx.father else []):
+            % for sibling in filter(lambda s: s != ctx and not (ctx.father.level.value == 'family' and s.level.value == 'dialect'), ctx.father.children if ctx.father else []):
             <li>${u.languoid_link(request, sibling, classification=True)}</li>
             % endfor
         % endif
@@ -120,10 +120,11 @@
                 ${h.button('show big map', href=request.resource_url(ctx, ext='bigmap.html'))}
             </%util:accordion_group>
             % endif
+            <% sites = filter(lambda s: s['condition'](ctx), request.registry.settings.get('PARTNERSITES', [])) %>
+            % if sites:
             <%util:accordion_group eid="acc-partner" parent="sidebar-accordion" title="Links" open="${map is None}">
                 <ul class="nav nav-tabs nav-stacked">
-                % for site in request.registry.settings.get('PARTNERSITES', []):
-                    % if site['condition'](ctx):
+                % for site in sites:
                     <li>
                         <a href="${site['href'](ctx)}" target="_blank" title="${site['name']}">
                             % if 'logo' in site:
@@ -132,22 +133,23 @@
                             ${site['name']}
                         </a>
                     </li>
-                    % endif
                 % endfor
                 </ul>
             </%util:accordion_group>
+            % endif
+            <% altnames = filter(lambda i: i.type == 'name' and i.description != 'Glottolog', ctx.identifiers) %>
+            % if altnames:
             <%util:accordion_group eid="acc-names" parent="sidebar-accordion" title="Alternative names">
                 <dl>
-                % for provider, names in h.groupby(sorted(filter(lambda i: i.type == 'name', ctx.identifiers), key=lambda n: n.description), lambda j: j.description):
-                    % if provider != 'Glottolog':
+                % for provider, names in h.groupby(sorted(altnames, key=lambda n: n.description), lambda j: j.description):
                     <dt>${provider}:</dt>
                     % for name in names:
                     <dd>${name.name}</dd>
                     % endfor
-                    % endif
                 % endfor
                 </dl>
             </%util:accordion_group>
+            % endif
         </div>
     </div>
 </div>
