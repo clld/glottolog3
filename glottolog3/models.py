@@ -26,7 +26,9 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from clld.interfaces import ISource, ILanguage
 from clld.db.meta import DBSession, Base, CustomModelMixin
-from clld.db.models.common import Language, Source, HasSourceMixin, IdNameDescriptionMixin
+from clld.db.models.common import (
+    Language, Source, HasSourceMixin, IdNameDescriptionMixin, IdentifierType,
+)
 from clld.web.util.htmllib import literal
 from clld.lib import bibtex
 from clld.util import UnicodeMixin
@@ -218,6 +220,8 @@ class Languoid(Language, CustomModelMixin):
             return r
         res = super(Languoid, self).__json__(req)
         res['classification'] = [ancestor(l) for l in reversed(list(self.get_ancestors()))]
+        if self.iso_code:
+            res[IdentifierType.iso.value] = self.iso_code
         return res
 
     def get_geocoords(self):
