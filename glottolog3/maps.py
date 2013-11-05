@@ -56,7 +56,7 @@ class LanguoidMap(Map):
             LanguoidGeoJson(
                 self.ctx, self.icon_map).render(self.ctx, self.req, dump=False))
 
-    def options(self):
+    def get_options(self):
         if self.req.matchdict.get('ext') == 'bigmap.html':
             return {'max_zoom': 12, 'hash': True}
         return {'sidebar': True}

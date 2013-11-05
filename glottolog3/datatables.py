@@ -1,21 +1,18 @@
 from __future__ import unicode_literals
-import re
 
-from purl import URL
-from sqlalchemy import func, or_, and_, desc
-from sqlalchemy.orm import joinedload, joinedload_all, aliased
-from clld.web.datatables.base import DataTable, Col, LinkCol, DetailsRowLinkCol
-from clld.web.util.helpers import button, JSModal, icon, link
+from sqlalchemy import or_, and_, desc
+from sqlalchemy.orm import aliased, joinedload
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
 from clld.db.models.common import Language, LanguageSource, Source
+from clld.web.datatables.base import DataTable, Col
 from clld.web.datatables.language import Languages
 from clld.web.datatables.source import Sources
 
 from glottolog3.models import (
     Macroarea, Languoidmacroarea, Languoid, TreeClosureTable,
-    LanguoidLevel, LanguoidStatus, Provider, Refprovider, Refdoctype, Doctype, Ref,
+    LanguoidLevel, LanguoidStatus, Provider, Refprovider, Doctype, Ref,
 )
 from glottolog3.util import getRefs, get_params, languoid_link
 
@@ -89,11 +86,10 @@ class MacroareaCol(Col):
     def __init__(self, dt, name, **kw):
         self.macroareas = DBSession.query(Macroarea).order_by(Macroarea.id).all()
         kw['bSortable'] = False
-        desc = []
-        for area in self.macroareas:
-            desc.append(HTML.dt(u'%s' % area))
-            desc.append(HTML.dd(area.description))
-        kw['sDescription'] = HTML.span('see ', HTML.a('glossary', href=dt.req.route_url('home.glossary', _anchor='macroarea')))#HTML.dl(*desc)
+        kw['sDescription'] = HTML.span(
+            'see ',
+            HTML.a('glossary',
+                   href=dt.req.route_url('home.glossary', _anchor='macroarea')))
         super(MacroareaCol, self).__init__(dt, name, **kw)
 
     def format(self, item):
@@ -105,11 +101,6 @@ class MacroareaCol(Col):
     @property
     def choices(self):
         return [(a.pk, a.name) for a in self.macroareas]
-
-
-class RefCol(Col):
-    def format(self, item):
-        return format_justifications(self.dt.req, item)
 
 
 class IsoCol(Col):
