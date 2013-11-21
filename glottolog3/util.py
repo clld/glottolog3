@@ -311,3 +311,10 @@ def language_detail_html(request=None, context=None, **kw):
 
 def language_bigmap_html(request=None, context=None, **kw):
     return dict(icon_map=get_icon_map(request, context))
+
+
+def language_snippet_html(request=None, context=None, **kw):
+    source = None
+    if request.params.get('source'):
+        source = Source.get(request.params['source'])
+    return dict(source=source)

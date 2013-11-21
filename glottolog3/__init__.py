@@ -103,6 +103,12 @@ def main(global_config, **settings):
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
 
+    config.add_route_and_view(
+        'desc_stats',
+        '/desc_stats',
+        views.desc_stats,
+        renderer='desc_stats.mako')
+
     for name in 'credits glossary cite downloads errata contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(

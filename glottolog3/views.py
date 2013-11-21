@@ -1,7 +1,8 @@
 from datetime import date
 import re
+import json
 
-import colander
+from path import path
 from purl import URL
 from pyramid.response import Response
 from pyramid.httpexceptions import (
@@ -19,6 +20,7 @@ from clld.web.util.multiselect import MultiSelect
 from clld.lib import bibtex
 from clld.interfaces import IRepresentation
 
+import glottolog3
 from glottolog3.models import (
     Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider, Provider,
     TreeClosureTable, Ref, Refmacroarea, Refdoctype,
@@ -26,6 +28,7 @@ from glottolog3.models import (
 from glottolog3.config import CFG
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
+from glottolog3.maps import DescStatsMap
 
 
 YEAR_PATTERN = re.compile('[0-9]{4}$')
@@ -196,3 +199,9 @@ def redirect_languoid_xhtml(req):
 
 def redirect_reference_xhtml(req):
     return HTTPMovedPermanently(location=req.route_url('source', id=req.matchdict['id']))
+
+
+def desc_stats(req):
+    with open(path(glottolog3.__file__).dirname().joinpath('static', 'meds.json')) as fp:
+        ctx = json.load(fp)
+    return {'map': DescStatsMap(ctx, req)}

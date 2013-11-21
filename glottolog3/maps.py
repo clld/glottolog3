@@ -1,9 +1,15 @@
+import json
+from collections import OrderedDict
+
+from path import path
 from clld.web.maps import Map, Layer, Legend
 from clld.web.adapters.geojson import GeoJson, pacific_centered_coordinates
 from clld.web.util.htmllib import HTML, literal
 from clld.web.util.helpers import link
+from clld.util import cached_property
 from clld.interfaces import IIcon
 
+import glottolog3
 from glottolog3.models import LanguoidLevel
 
 
@@ -110,3 +116,78 @@ class LanguoidsMap(LanguoidMap):
             'languoids',
             'Languoids',
             LanguoidsGeoJson(self.ctx).render(self.ctx, self.req, dump=False))
+
+
+
+
+COLOR_MAP = OrderedDict()
+COLOR_MAP['green'] = ("00ff00", 'Best description is a grammar')
+COLOR_MAP['orange'] = ("ff8040", 'Best description is a grammar sketch')
+COLOR_MAP['orange red'] = ("ff4500", 'Best description is a dictionary, phonology, specific feature, text or new testament')
+COLOR_MAP['red'] = ("ff0000", 'Best description is something else')
+#COLOR_MAP['light gray'] = ("d3d3d3", '')
+#COLOR_MAP['slate gray'] = ("708a90", '')
+#COLOR_MAP['black'] = ("000000", '')
+#COLOR_MAP['dark green'] = ("006400", '')
+
+
+class DescStatsGeoJson(GeoJson):
+    def __init__(self, obj, icon_map=None):
+        super(DescStatsGeoJson, self).__init__(obj)
+        self.icon_map = None
+
+    def feature_iterator(self, ctx, req):
+        return ctx.values()
+
+    def featurecollection_properties(self, ctx, req):
+        return {'layer': 'desc'}
+
+    def feature_properties(self, ctx, req, feature):
+        if not self.icon_map:
+            self.icon_map = {}
+            for name, spec in COLOR_MAP.items():
+                color, desc = spec
+                self.icon_map[name] = req.static_url('glottolog3:static/icons/c%s.png' % color)
+        med = feature['sources'][0] if feature['sources'] else None
+        icon = self.icon_map['red']
+        if med:
+            if med[0] == 'grammar':
+                icon = self.icon_map['green']
+            elif med[0] == 'grammarsketch':
+                icon = self.icon_map['orange']
+            elif med[0] in 'dictionary phonology specificfeature text newtestament'.split():
+                icon = self.icon_map['orange red']
+        return {'icon': icon, 'info_query': {'source': med[3]} if med else {}}
+
+    def get_language(self, ctx, req, feature):
+        return Language(0, feature['name'], feature['longitude'], feature['latitude'], feature['id'])
+
+    def get_coordinates(self, language):
+        return pacific_centered_coordinates(language)
+
+
+class DescStatsMap(Map):
+    def get_layers(self):
+        yield Layer(
+            'languoids',
+            'Languoids',
+            DescStatsGeoJson(self.ctx).render(self.ctx, self.req, dump=False))
+
+    def get_options(self):
+        return {'icon_size': 20, 'hash': True}
+
+    def get_legends(self):
+        values = []
+        for color, desc in COLOR_MAP.values():
+            values.append(HTML.label(
+                HTML.img(
+                    src=self.req.static_url('glottolog3:static/icons/c%s.png' % color),
+                    height='20',
+                    width='20'),
+                literal(desc),
+                style='margin-left: 1em; margin-right: 1em;'))
+
+        yield Legend(self, 'values', values, label='Legend')
+
+        for legend in Map.get_legends(self):
+            yield legend
