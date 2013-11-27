@@ -16,10 +16,10 @@ GLOTTOLOG3.descStatsUpdateIcons = function(year) {
         marker.feature.properties.info_query = {};
         if (marker.feature.properties.sources) {
             for (i = 0; i < marker.feature.properties.sources.length; i++) {
-                source = marker.feature.properties.sources[i];  // [type, year, id, url]
-                if (source[1] && source[1] <= year) {
-                    url = source[3];
-                    marker.feature.properties.info_query = {'source': source[2]};
+                source = marker.feature.properties.sources[i];
+                if (source.year <= year) {
+                    url = source.icon;
+                    marker.feature.properties.info_query = {'source': source.id};
                     break;
                 }
             }

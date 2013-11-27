@@ -113,14 +113,14 @@ class LanguoidsMap(LanguoidMap):
 
 
 COLOR_MAP = OrderedDict()
-COLOR_MAP['green'] = ("00ff00", 'Best description is a grammar')
-COLOR_MAP['orange'] = ("ff8040", 'Best description is a grammar sketch')
-COLOR_MAP['orange red'] = ("ff4500", 'Best description is a dictionary, phonology, specific feature, text or new testament')
-COLOR_MAP['red'] = ("ff0000", 'Best description is something else')
-#COLOR_MAP['light gray'] = ("d3d3d3", '')
-#COLOR_MAP['slate gray'] = ("708a90", '')
-#COLOR_MAP['black'] = ("000000", '')
-#COLOR_MAP['dark green'] = ("006400", '')
+COLOR_MAP['green'] = ("00ff00", 'Most extensive description is a grammar')
+COLOR_MAP['orange'] = ("ff8040", 'Most extensive description is a grammar sketch')
+COLOR_MAP['orange red'] = ("ff4500", 'Most extensive description is a dictionary, phonology, specific feature, text or new testament')
+COLOR_MAP['red'] = ("ff0000", 'Most extensive description is something less')
+COLOR_MAP['dark green'] = ("006400", 'Most extensive description is a grammar')
+COLOR_MAP['light gray'] = ("d3d3d3", 'Most extensive description is a grammar sketch')
+COLOR_MAP['slate gray'] = ("708a90", 'Most extensive description is a dictionary, phonology, specific feature, text or new testament')
+COLOR_MAP['black'] = ("000000", 'Most extensive description is something less')
 
 
 class DescStatsGeoJson(GeoJson):
@@ -152,23 +152,26 @@ class DescStatsGeoJson(GeoJson):
             for name, spec in COLOR_MAP.items():
                 color, desc = spec
                 self.icon_map[name] = req.static_url('glottolog3:static/icons/c%s.png' % color)
-        if not feature['sources']:
-            med = None
+
+        # augment the source dicts
+        for s in feature['sources']:
+            s['icon'] = self.get_icon(s['doctype'])
+
+        if ctx['year'] is None:
+            # take the overall MED
+            med = feature['med']
         else:
-            if ctx['year'] is None:
-                med = feature['sources'][0]
-            else:
-                source = None
-                for s in feature['sources']:
-                    if s[2] and s[2] < ctx['year']:
-                        source = s
-                        break
-                med = source
+            # get best match among the potential MEDs
+            med = None
+            for s in feature['sources']:
+                if s['year'] < ctx['year']:
+                    med = s
+                    break
         return {
-            'icon': self.get_icon(med[0] if med else None),
-            'info_query': {'source': med[3]} if med else {},
+            'icon': self.get_icon(med['doctype'] if med else None),
+            'info_query': {'source': med['id']} if med else {},
             'red_icon': self.icon_map['red'],
-            'sources': [(s[0], s[2], s[3], self.get_icon(s[0])) for s in feature['sources']]}
+            'sources': feature['sources']}
 
     def get_language(self, ctx, req, feature):
         return Language(0, feature['name'], feature['longitude'], feature['latitude'], feature['id'])
