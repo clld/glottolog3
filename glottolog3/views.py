@@ -3,8 +3,6 @@ import re
 import json
 
 from path import path
-from purl import URL
-from pyramid.response import Response
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
@@ -202,6 +200,15 @@ def redirect_reference_xhtml(req):
 
 
 def desc_stats(req):
+    macroarea = req.params.get('macroarea')
+    year = req.params.get('year')
     with open(path(glottolog3.__file__).dirname().joinpath('static', 'meds.json')) as fp:
-        ctx = json.load(fp)
-    return {'map': DescStatsMap(ctx, req)}
+        data = json.load(fp)
+    ctx = {'year': int(year) if year else None}
+    for k, v in data.items():
+        if not macroarea or macroarea in v['macroareas']:
+            ctx[k] = v
+    return {
+        'year': ctx['year'],
+        'map': DescStatsMap(ctx, req),
+    }

@@ -45,10 +45,13 @@ def main(args):  # pragma: no cover
     meds = {}
     s = time.time()
     with transaction.manager:
-        for i, l in enumerate(DBSession.query(Language)\
-                .filter(Language.active == True)\
-                .filter(Language.latitude != None)\
-                .filter(Languoid.level == LanguoidLevel.language)):
+        for i, l in enumerate(
+            DBSession.query(Language)
+            .options(joinedload(Languoid.macroareas))
+            .filter(Language.active == True)
+            .filter(Language.latitude != None)
+            .filter(Languoid.level == LanguoidLevel.language)
+        ):
             sources = []
             for source in l.sources:
                 index = len(order)
@@ -85,6 +88,7 @@ def main(args):  # pragma: no cover
                 'name': l.name,
                 'latitude': l.latitude,
                 'longitude': l.longitude,
+                'macroareas': [ma.name for ma in l.macroareas],
                 'sources': [[t[2], t[1], t[3], t[4], t[5]] for t in cleaned_sources]}
 
             if i % 100 == 0:

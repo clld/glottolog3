@@ -1,15 +1,9 @@
-import json
 from collections import OrderedDict
 
-from path import path
 from clld.web.maps import Map, Layer, Legend
 from clld.web.adapters.geojson import GeoJson, pacific_centered_coordinates
 from clld.web.util.htmllib import HTML, literal
-from clld.web.util.helpers import link
-from clld.util import cached_property
-from clld.interfaces import IIcon
 
-import glottolog3
 from glottolog3.models import LanguoidLevel
 
 
@@ -118,8 +112,6 @@ class LanguoidsMap(LanguoidMap):
             LanguoidsGeoJson(self.ctx).render(self.ctx, self.req, dump=False))
 
 
-
-
 COLOR_MAP = OrderedDict()
 COLOR_MAP['green'] = ("00ff00", 'Best description is a grammar')
 COLOR_MAP['orange'] = ("ff8040", 'Best description is a grammar sketch')
@@ -137,10 +129,22 @@ class DescStatsGeoJson(GeoJson):
         self.icon_map = None
 
     def feature_iterator(self, ctx, req):
-        return ctx.values()
+        for k, v in ctx.items():
+            if k != 'year':
+                yield v
 
     def featurecollection_properties(self, ctx, req):
         return {'layer': 'desc'}
+
+    def get_icon(self, type_=None):
+        icon = self.icon_map['red']
+        if type_ == 'grammar':
+            icon = self.icon_map['green']
+        elif type_ == 'grammarsketch':
+            icon = self.icon_map['orange']
+        elif type_ in 'dictionary phonology specificfeature text newtestament'.split():
+            icon = self.icon_map['orange red']
+        return icon
 
     def feature_properties(self, ctx, req, feature):
         if not self.icon_map:
@@ -148,16 +152,23 @@ class DescStatsGeoJson(GeoJson):
             for name, spec in COLOR_MAP.items():
                 color, desc = spec
                 self.icon_map[name] = req.static_url('glottolog3:static/icons/c%s.png' % color)
-        med = feature['sources'][0] if feature['sources'] else None
-        icon = self.icon_map['red']
-        if med:
-            if med[0] == 'grammar':
-                icon = self.icon_map['green']
-            elif med[0] == 'grammarsketch':
-                icon = self.icon_map['orange']
-            elif med[0] in 'dictionary phonology specificfeature text newtestament'.split():
-                icon = self.icon_map['orange red']
-        return {'icon': icon, 'info_query': {'source': med[3]} if med else {}}
+        if not feature['sources']:
+            med = None
+        else:
+            if ctx['year'] is None:
+                med = feature['sources'][0]
+            else:
+                source = None
+                for s in feature['sources']:
+                    if s[2] and s[2] < ctx['year']:
+                        source = s
+                        break
+                med = source
+        return {
+            'icon': self.get_icon(med[0] if med else None),
+            'info_query': {'source': med[3]} if med else {},
+            'red_icon': self.icon_map['red'],
+            'sources': [(s[0], s[2], s[3], self.get_icon(s[0])) for s in feature['sources']]}
 
     def get_language(self, ctx, req, feature):
         return Language(0, feature['name'], feature['longitude'], feature['latitude'], feature['id'])
