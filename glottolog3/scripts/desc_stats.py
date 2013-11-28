@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+"""
+The description status browser does not work on data from the database directly, instead
+it works on data loaded from a json file. This file is created with this script.
+"""
 import transaction
 import json
 from math import ceil
@@ -65,6 +69,8 @@ class Source(object):
     def __cmp__(self, other):
         """This is the algorithm:
         "more extensive" means: better doctype (i.e. lower index) or more pages or newer.
+
+        Thus, a sorted list of Sources will have the MED as first element.
         """
         return cmp(
             (self.index, -self.pages, -(self.year or 0), int(self.id)),
@@ -107,7 +113,7 @@ def main(args):  # pragma: no cover
 
             # we only have to loop over publication years within all sources, because
             # only in these years something better might have come along.
-            for year in sorted(list(set(s.year for s in sources if s.year))):
+            for year in set(s.year for s in sources if s.year):
                 # let's see if something better was published!
                 eligible = [s for s in sources if s.year and s.year <= year]
                 if eligible:

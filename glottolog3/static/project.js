@@ -12,6 +12,7 @@ GLOTTOLOG3.descStatsUpdateIcons = function(year) {
     var map = CLLD.Maps['map'],
         size = $('input[name=iconsize]:checked').val();
     map.eachMarker(function(marker){
+        // update marker icon and source id used for info query
         var i, source, url = marker.feature.properties.red_icon;
         marker.feature.properties.info_query = {};
         if (marker.feature.properties.sources) {
