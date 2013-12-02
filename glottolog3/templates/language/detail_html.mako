@@ -55,6 +55,9 @@
 <div class="row-fluid">
     <div class="span8">
         <h3>${ctx} ${h.contactmail(req, ctx, title='report a problem')}</h3>
+        % if request.admin:
+        <a href="http://vmext24-203.gwdg.de/glottologcurator/languages/${ctx.id}" class="btn"><i class="icon icon-wrench"> </i> glottologcurator</a>
+        % endif
         % if ctx.active:
         <div class="treeview well well-small">
             ${nodes(list(reversed([ctx] + list(ctx.get_ancestors()))), 0)}
