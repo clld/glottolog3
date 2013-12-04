@@ -1,9 +1,10 @@
 <%inherit file="home_comp.mako"/>
 
-<h3>Language Documentation Status <span id="year"> </span></h3>
+<h3>Language Documentation Status <span id="year">${request.params.get('year', '')}</span></h3>
 
-<form class="inline">
-1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-min="1500" data-slider-max="2014" data-slider-step="1" data-slider-value="${year or 2014}" data-slider-selection="after" data-slider-tooltip="hide">&nbsp;&nbsp;&nbsp;2014
+<form class="form-inline">
+1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-min="1500" data-slider-max="2014" data-slider-step="1" data-slider-value="${request.params.get('year', '2014')}" data-slider-selection="after" data-slider-tooltip="hide">&nbsp;&nbsp;&nbsp;2014
+<label style="margin-left: 2em;"><input type="checkbox" id="extinct_mode" /> Mark extinct languages</label>
 </form>
 
 ${map.render()}
@@ -11,9 +12,15 @@ ${map.render()}
 <script type="text/javascript">
     $(document).ready(function() {
         $("#ys").slider().on("slideStop", function(e) {
-            GLOTTOLOG3.descStatsUpdateIcons(e.value);
             $('#year').text(e.value);
+            GLOTTOLOG3.descStatsUpdateIcons();
         });
+        $("#extinct_mode").change(function() {
+            GLOTTOLOG3.descStatsUpdateIcons();
+        });
+        % if request.params.get('extinct_mode'):
+        $("#extinct_mode").prop('checked', true);
+        % endif
     });
 </script>
 

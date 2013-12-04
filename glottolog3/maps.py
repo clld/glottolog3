@@ -3,6 +3,7 @@ from collections import OrderedDict
 from clld.web.maps import Map, Layer, Legend
 from clld.web.adapters.geojson import GeoJson, pacific_centered_coordinates
 from clld.web.util.htmllib import HTML, literal
+from clld.web.util.helpers import JS
 
 from glottolog3.models import LanguoidLevel
 
@@ -113,14 +114,14 @@ class LanguoidsMap(LanguoidMap):
 
 
 COLOR_MAP = OrderedDict()
-COLOR_MAP['green'] = ("00ff00", 'Most extensive description is a grammar')
-COLOR_MAP['orange'] = ("ff8040", 'Most extensive description is a grammar sketch')
-COLOR_MAP['orange red'] = ("ff4500", 'Most extensive description is a dictionary, phonology, specific feature, text or new testament')
-COLOR_MAP['red'] = ("ff0000", 'Most extensive description is something less')
-COLOR_MAP['dark green'] = ("006400", 'Most extensive description is a grammar')
-COLOR_MAP['light gray'] = ("d3d3d3", 'Most extensive description is a grammar sketch')
-COLOR_MAP['slate gray'] = ("708a90", 'Most extensive description is a dictionary, phonology, specific feature, text or new testament')
-COLOR_MAP['black'] = ("000000", 'Most extensive description is something less')
+COLOR_MAP['green'] = ("00ff00", 'a grammar')
+COLOR_MAP['orange'] = ("ff8040", 'a grammar sketch')
+COLOR_MAP['orange red'] = ("ff4500", 'a dictionary, phonology, specific feature, text or new testament')
+COLOR_MAP['red'] = ("ff0000", 'something less')
+COLOR_MAP['dark green'] = ("006400", '')
+COLOR_MAP['light gray'] = ("d3d3d3", '')
+COLOR_MAP['slate gray'] = ("708a90", '')
+COLOR_MAP['black'] = ("000000", '')
 
 
 class DescStatsGeoJson(GeoJson):
@@ -129,21 +130,19 @@ class DescStatsGeoJson(GeoJson):
         self.icon_map = None
 
     def feature_iterator(self, ctx, req):
-        for k, v in ctx.items():
-            if k != 'year':
-                yield v
+        return ctx.values()
 
     def featurecollection_properties(self, ctx, req):
         return {'layer': 'desc'}
 
-    def get_icon(self, type_=None):
-        icon = self.icon_map['red']
+    def get_icon(self, type_=None, extinct_mode=False):
+        icon = self.icon_map['black'] if extinct_mode else self.icon_map['red']
         if type_ == 'grammar':
-            icon = self.icon_map['green']
+            icon = self.icon_map['dark green'] if extinct_mode else self.icon_map['green']
         elif type_ == 'grammarsketch':
-            icon = self.icon_map['orange']
+            icon = self.icon_map['light gray'] if extinct_mode else self.icon_map['orange']
         elif type_ in 'dictionary phonology specificfeature text newtestament'.split():
-            icon = self.icon_map['orange red']
+            icon = self.icon_map['slate gray'] if extinct_mode else self.icon_map['orange red']
         return icon
 
     def feature_properties(self, ctx, req, feature):
@@ -155,26 +154,29 @@ class DescStatsGeoJson(GeoJson):
 
         # augment the source dicts
         for s in feature['sources']:
-            s['icon'] = self.get_icon(s['doctype'])
+            s['eicon'] = s['icon'] = self.get_icon(s['doctype'])
+            if feature['extinct']:
+                s['eicon'] = self.get_icon(s['doctype'], extinct_mode=True)
 
-        if ctx['year'] is None:
-            # take the overall MED
-            med = feature['med']
-        else:
-            # get best match among the potential MEDs
-            med = None
-            for s in feature['sources']:
-                if s['year'] < ctx['year']:
-                    med = s
-                    break
+        med = feature['med']
+        eicon = icon = self.get_icon(med['doctype'] if med else None)
+        if feature['extinct']:
+            eicon = self.get_icon(med['doctype'] if med else None, extinct_mode=True)
+        red_eicon = red_icon = self.icon_map['red']
+        if feature['extinct']:
+            red_eicon = self.icon_map['black']
         return {
-            'icon': self.get_icon(med['doctype'] if med else None),
+            'icon': icon,
+            'eicon': eicon,
+            'med': med['id'] if med else None,
             'info_query': {'source': med['id']} if med else {},
-            'red_icon': self.icon_map['red'],
+            'red_icon': red_icon,
+            'red_eicon': red_eicon,
             'sources': feature['sources']}
 
     def get_language(self, ctx, req, feature):
-        return Language(0, feature['name'], feature['longitude'], feature['latitude'], feature['id'])
+        return Language(
+            0, feature['name'], feature['longitude'], feature['latitude'], feature['id'])
 
     def get_coordinates(self, language):
         return pacific_centered_coordinates(language)
@@ -188,20 +190,30 @@ class DescStatsMap(Map):
             DescStatsGeoJson(self.ctx).render(self.ctx, self.req, dump=False))
 
     def get_options(self):
-        return {'icon_size': 20, 'hash': True}
+        return {
+            'icon_size': 20,
+            'hash': True,
+            'on_init': JS('GLOTTOLOG3.descStatsUpdateIcons'),
+            'no_showlabels': True}
 
     def get_legends(self):
-        values = []
-        for color, desc in COLOR_MAP.values():
-            values.append(HTML.label(
-                HTML.img(
-                    src=self.req.static_url('glottolog3:static/icons/c%s.png' % color),
-                    height='20',
-                    width='20'),
-                literal(desc),
-                style='margin-left: 1em; margin-right: 1em;'))
+        def img(color):
+            return HTML.img(
+                src=self.req.static_url(
+                    'glottolog3:static/icons/c%s.png' % COLOR_MAP[color][0]),
+                height='20',
+                width='20',
+                style='margin-left: 0.5em;')
 
+        def desc(color, text=None):
+            return HTML.span(
+                text or COLOR_MAP[color][1], style='margin-left: 0.5em; margin-right: 0.5em;')
+
+        values = [
+            desc(None, 'Most extensive description is ...'),
+            (img('green'), img('dark green'), desc('green')),
+            (img('orange'), img('light gray'), desc('orange')),
+            (img('orange red'), img('slate gray'), desc('orange red')),
+            (img('red'), img('black'), desc('red')),
+        ]
         yield Legend(self, 'values', values, label='Legend')
-
-        for legend in Map.get_legends(self):
-            yield legend

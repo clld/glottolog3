@@ -201,14 +201,10 @@ def redirect_reference_xhtml(req):
 
 def desc_stats(req):
     macroarea = req.params.get('macroarea')
-    year = req.params.get('year')
     with open(path(glottolog3.__file__).dirname().joinpath('static', 'meds.json')) as fp:
         data = json.load(fp)
-    ctx = {'year': int(year) if year else None}
+    ctx = {}
     for k, v in data.items():
         if not macroarea or macroarea in v['macroareas']:
             ctx[k] = v
-    return {
-        'year': ctx['year'],
-        'map': DescStatsMap(ctx, req),
-    }
+    return {'map': DescStatsMap(ctx, req)}

@@ -15,6 +15,7 @@ from pylab import figure, axes, pie, savefig
 from clld.scripts.util import parsed_args
 from clld.db.models.common import Language
 from clld.db.meta import DBSession
+from clld.lib import dsv
 
 import glottolog3
 from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus
@@ -78,6 +79,8 @@ class Source(object):
 
 
 def main(args):  # pragma: no cover
+    extinct = dict(list(dsv.rows(args.data_file('extinct.tab'))))
+
     icons_dir = path(glottolog3.__file__).dirname().joinpath('static', 'icons')
     for color, desc in COLOR_MAP.values():
         figure(figsize=(0.3, 0.3))
@@ -121,6 +124,7 @@ def main(args):  # pragma: no cover
 
             meds[l.id] = {
                 'id': l.id,
+                'extinct': l.hid in extinct,
                 'name': l.name,
                 'latitude': l.latitude,
                 'longitude': l.longitude,
@@ -134,10 +138,11 @@ def main(args):  # pragma: no cover
                 print i, '--', now - start
                 start = now
 
-    print len(meds), 'languages'
-
     with open('meds.json', 'w') as fp:
         json.dump(meds, fp)
+
+    print len(meds), 'languages'
+    print len([m for m in meds.values() if m['extinct']]), 'extinct languages'
 
 
 if __name__ == '__main__':
