@@ -240,7 +240,7 @@ def desc_stats_languages(req):
             continue
         if req.matchdict['subtype'] == 'extinct' and not lang['extinct']:
             continue
-        if macroarea and macroarea not in v['macroareas']:
+        if macroarea and macroarea not in lang['macroareas']:
             continue
 
         med = None

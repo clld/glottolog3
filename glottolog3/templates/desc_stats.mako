@@ -1,6 +1,10 @@
 <%inherit file="home_comp.mako"/>
 
-<h3>Language Documentation Status <span id="year">${request.params.get('year', '')}</span></h3>
+<h3>
+    Language Documentation Status
+    <span id="year">${request.params.get('year', '')}</span>
+    <span id="macroarea">${request.params.get('macroarea', '')}</span>
+</h3>
 
 <form class="form-inline">
 1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-min="1500" data-slider-max="2014" data-slider-step="1" data-slider-value="${request.params.get('year', '2014')}" data-slider-selection="after" data-slider-tooltip="hide">&nbsp;&nbsp;&nbsp;2014

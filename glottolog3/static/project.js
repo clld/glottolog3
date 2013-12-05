@@ -82,5 +82,5 @@ GLOTTOLOG3.descStatsUpdateIcons = function(map) {
     }
 };
 GLOTTOLOG3.descStatsLoadLanguages = function(type) {
-    $("#languages" ).load("desc_stats/" + type + "?year=" + $("#year").text());
+    $("#languages" ).load("desc_stats/" + type + "?year=" + $("#year").text() + "&macroarea=" + $("#macroarea").text());
 };
