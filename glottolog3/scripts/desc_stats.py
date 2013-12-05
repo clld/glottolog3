@@ -63,9 +63,10 @@ class Source(object):
 
         self.year = source.year_int
         self.id = source.id
+        self.name = source.name
 
     def __json__(self):
-        return dict(doctype=self.doctype, year=self.year, pages=self.pages, id=self.id)
+        return {k: getattr(self, k) for k in 'doctype year pages id name'.split()}
 
     def __cmp__(self, other):
         """This is the algorithm:
@@ -138,7 +139,7 @@ def main(args):  # pragma: no cover
                 print i, '--', now - start
                 start = now
 
-    with open('meds.json', 'w') as fp:
+    with open(args.module_dir.joinpath('static', 'meds.json'), 'w') as fp:
         json.dump(meds, fp)
 
     print len(meds), 'languages'

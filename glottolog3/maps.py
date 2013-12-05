@@ -150,7 +150,7 @@ class DescStatsGeoJson(GeoJson):
             self.icon_map = {}
             for name, spec in COLOR_MAP.items():
                 color, desc = spec
-                self.icon_map[name] = req.static_url('glottolog3:static/icons/c%s.png' % color)
+                self.icon_map[name] = color #req.static_url('glottolog3:static/icons/c%s.png' % color)
 
         # augment the source dicts
         for s in feature['sources']:
@@ -166,6 +166,7 @@ class DescStatsGeoJson(GeoJson):
         if feature['extinct']:
             red_eicon = self.icon_map['black']
         return {
+            'extinct': feature['extinct'],
             'icon': icon,
             'eicon': eicon,
             'med': med['id'] if med else None,

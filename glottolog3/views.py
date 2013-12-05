@@ -208,3 +208,62 @@ def desc_stats(req):
         if not macroarea or macroarea in v['macroareas']:
             ctx[k] = v
     return {'map': DescStatsMap(ctx, req)}
+
+
+def desc_stats_languages(req):
+    langs = []
+    macroarea = req.params.get('macroarea')
+    year = req.params.get('year')
+
+    if req.matchdict['subtype'] in ['extinct', 'living']:
+        label = req.matchdict['subtype'].capitalize() + ' languages'
+    else:
+        label = 'Languages'
+
+    if macroarea:
+        label = label + ' from ' + macroarea
+
+    label = label + ' whose most extensive description'
+
+    if year:
+        year = int(year)
+        label = label + ' in %s' % year
+
+    label = label + ' is a ' + req.matchdict['type']
+
+    with open(path(glottolog3.__file__).dirname().joinpath('static', 'meds.json')) as fp:
+        data = json.load(fp)
+    for k, v in data.items():
+        pass
+    for lang in data.values():
+        if req.matchdict['subtype'] == 'living' and lang['extinct']:
+            continue
+        if req.matchdict['subtype'] == 'extinct' and not lang['extinct']:
+            continue
+        if macroarea and macroarea not in v['macroareas']:
+            continue
+
+        med = None
+        if year:
+            for s in lang['sources']:
+                if s['year'] <= year:
+                    med = s
+                    break
+        else:
+            med = lang['med']
+
+        doctype = med['doctype'] if med else 'other'
+        if doctype == 'grammar':
+            if req.matchdict['type'] == 'grammar':
+                langs.append((lang, med))
+        elif doctype == 'grammarsketch':
+            if req.matchdict['type'] == 'sketch':
+                langs.append((lang, med))
+        elif doctype in 'dictionary phonology specificfeature text newtestament'.split():
+            if req.matchdict['type'] == 'dictionary':
+                langs.append((lang, med))
+        else:
+            if req.matchdict['type'] == 'other':
+                langs.append((lang, med))
+
+    return {'languages': sorted(langs, key=lambda l: l[0]['name']), 'label': label}

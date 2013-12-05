@@ -10,6 +10,20 @@ GLOTTOLOG3.formatLanguoid = function (obj) {
 }
 GLOTTOLOG3.descStatsUpdateIcons = function(map) {
     var extinct_mode = $('#extinct_mode').prop('checked'),
+        stats = {
+            'grammar': [0, 0],
+            'sketch': [0, 0],
+            'dictionary': [0, 0],
+            'other': [0, 0]},
+        color_map = {
+            '006400': 'grammar',
+            '00ff00': 'grammar',
+            'd3d3d3': 'sketch',
+            'ff8040': 'sketch',
+            '708a90': 'dictionary',
+            'ff4500': 'dictionary',
+            '000000': 'other',
+            'ff0000': 'other'},
         year = $("#year").text();
     if (year) {
         year = parseInt(year);
@@ -48,6 +62,25 @@ GLOTTOLOG3.descStatsUpdateIcons = function(map) {
                 marker.feature.properties.info_query = {'source': marker.feature.properties.med};
             }
         }
-        marker.setIcon(map.icon(marker.feature, 20, url));
+
+        try {
+            stats[color_map[url]][marker.feature.properties.extinct ? 1 : 0] += 1;
+        } catch (e) {
+            alert(url);
+        }
+
+        //alert(CLLD.url('/static/icons/c000000.png'));
+        marker.setIcon(map.icon(marker.feature, 20, CLLD.url('/static/icons/c' + url + '.png')));
     });
+
+    for (type in stats) {
+        if (stats.hasOwnProperty(type)) {
+            $('#' + type + '-living').text(stats[type][0]);
+            $('#' + type + '-extinct').text(stats[type][1]);
+            $('#' + type + '-total').text(stats[type][0] + stats[type][1]);
+        }
+    }
+};
+GLOTTOLOG3.descStatsLoadLanguages = function(type) {
+    $("#languages" ).load("desc_stats/" + type + "?year=" + $("#year").text());
 };
