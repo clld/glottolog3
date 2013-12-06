@@ -63,6 +63,8 @@ def main(global_config, **settings):
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(adapters.Redirect, IProvider)
     config.register_adapter(adapters.Bigmap, ILanguage)
+    config.register_adapter(adapters.PhyloXML, ILanguage)
+    config.register_adapter(adapters.Treeview, ILanguage)
     config.register_adapter(adapter_factory('provider/index_html.mako', base=Index), IProvider)
     config.register_datatable('providers', datatables.Providers)
 
