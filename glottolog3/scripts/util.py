@@ -1,6 +1,7 @@
 import re
 import json
 
+import transaction
 from sqlalchemy import sql, desc, not_
 from sqlalchemy.orm import joinedload
 
@@ -194,6 +195,8 @@ def update_justifications(args):
                 name = name.replace('_', ' ') if not name.startswith('NOCODE') else name
                 l = langs_by_hname.get(name, langs_by_hid.get(name, langs_by_name.get(name)))
                 if not l:
+                    args.log.warn('ignoring %s' % name)
+                    continue
                     raise ValueError(name)
 
                 _r = 3 if type_ == 'family' else 2
@@ -280,6 +283,9 @@ UPDATE languoid SET child_%(level)s_count = (
 
 
 def update_providers(args):
+    if not args.data_file(args.version, 'provider.txt').exists():
+        return
+
     with open(args.data_file(args.version, 'provider.txt')) as fp:
         content = fp.read().decode('latin1')
 

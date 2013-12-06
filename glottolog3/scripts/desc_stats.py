@@ -18,28 +18,8 @@ from clld.db.meta import DBSession
 from clld.lib import dsv
 
 import glottolog3
-from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus
-from glottolog3.maps import COLOR_MAP
-
-
-DOCTYPES = [
-    'grammar',
-    'grammarsketch',
-    'dictionary',
-    'specificfeature',
-    'phonology',
-    'text',
-    'newtestament',
-    'wordlist',
-    'comparative',
-    'minimal',
-    'socling',
-    'socling',
-    'dialectology',
-    'overview',
-    'ethnographic',
-    'bibliographical',
-    'unknown']
+from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus, DOCTYPES
+from glottolog3.desc_stats import SIMPLIFIED_DOCTYPES
 
 
 class Source(object):
@@ -83,12 +63,13 @@ def main(args):  # pragma: no cover
     extinct = dict(list(dsv.rows(args.data_file('extinct.tab'))))
 
     icons_dir = path(glottolog3.__file__).dirname().joinpath('static', 'icons')
-    for color, desc in COLOR_MAP.values():
-        figure(figsize=(0.3, 0.3))
-        axes([0.1, 0.1, 0.8, 0.8])
-        coll = pie((100,), colors=('#' + color,))
-        coll[0][0].set_linewidth(0.5)
-        savefig(icons_dir.joinpath('c%s.png' % color), transparent=True)
+    for doctype in SIMPLIFIED_DOCTYPES:
+        for color in [doctype.color, doctype.color_extinct]:
+            figure(figsize=(0.3, 0.3))
+            axes([0.1, 0.1, 0.8, 0.8])
+            coll = pie((100,), colors=('#' + color,))
+            coll[0][0].set_linewidth(0.5)
+            savefig(icons_dir.joinpath('c%s.png' % color), transparent=True)
 
     meds = {}
     start = time.time()
@@ -125,6 +106,8 @@ def main(args):  # pragma: no cover
 
             meds[l.id] = {
                 'id': l.id,
+                'iso': l.hid,
+                'family': l.family.id if l.family else None,
                 'extinct': l.hid in extinct,
                 'name': l.name,
                 'latitude': l.latitude,

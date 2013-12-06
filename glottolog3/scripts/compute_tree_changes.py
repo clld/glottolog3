@@ -1,29 +1,53 @@
 """
 compare Harald's classification provided as files lff.txt and lof.txt with the current
 classification in the glottolog database.
+
+ Binanderean       | 2 bina1276 -> Greater Binanderean
+ Morokodo-Beli     | 2 moro1282 -> Baka-Beli
+ Mondzish          | 2 mond1268 -> Nuclear Mondzish
+ Kowan             | 2 kowa1246 -> Unclassified Madang
+ Oirat-Khalkha     | 2 oira1260 -> Eastern Mongolic
+ Northern Sangiric | 2 nort2871 -> Sangil-Sangir
+ Nuclear Oromo     | 2 nucl1701 -> Oromoid
+ Yukpan            | 2 yukp1242 -> Opon-Yukpan
+ Tangu-Igom        | 2 tang1354 -> Ataitan
+ Jeh-Halang        | 2 jehh1244 -> Kayong-Jeh-Halang
+ Etulo-Idoma       | 2 etul1244 -> Akweya
+ Munic             | 2 muni1256 -> Munan
+ Tamil-Kodagu      | 2 tami1294 -> Tamil-Irula
+ Southern Batak    | 2 sout2849 -> Tobaic
+ Port Vato-Dakaka  | 2 port1292 -> Orkon-Port Vato-Dakaka
+ Western Tucanoan  | 2 west2647 -> Maijiki-Siona
+ Angal-Kewa        | 2 anga1291 -> Sau-Angal-Kewa
+ Duka              | 2 duka1247 -> Northwestern Kainji
+ Kelabitic         | 2 kela1257 -> Dayic
+ Hatuhaha          | 2 hatu1244 -> Saparuan
+ Dida              | 2 dida1244 -> Neyo-Dida
+ Bugis             | 2 bugi1243 -> Tamanic-Bugis
+ Chamic            | 2 cham1327 -> Aceh-Chamic
+ Coatec            | 2 coat1242 -> Coatlan-Loxicha Zapotec
+ Oboloic           | 2 obol1242 -> Lower Cross
+
 """
-import sys
 from copy import copy
 import codecs
 import json
 import re
 from collections import OrderedDict
 
-from clld.util import slug
 from clld.lib import dsv
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 
 from glottolog3.lib.bibtex import unescape
 from glottolog3.lib.util import glottocode
-import glottolog3
 
 
 def data_file(args, name):
     return args.data_file(args.version, name)
 
 
-NOCODE_PATTERN = re.compile('NOCODE\_[a-zA-Z\-\_]+$')
+NOCODE_PATTERN = re.compile('NOCODE\_[a-zA-Z0-9\-\_]+$')
 
 
 def split_families(fp):
@@ -48,8 +72,8 @@ def split_families(fp):
                 'established' if branch[0] != 'Unattested' else 'unattested',
                 ', '.join(branch[1:]))
 
+        comment = ''
         if branch[0] in ['Spurious', 'Speech Register', 'Unattested']:
-            comment = ''
             if branch[0] == 'Speech Register':
                 status = 'established'
                 comment = 'speech register'
@@ -66,18 +90,25 @@ def split_families(fp):
                 branch = branch[1:]
             return branch, status, ''
 
-        return branch, 'established', ''
+        return branch, 'established', comment
 
     family = None
     for line in fp.read().split('\n'):
         if not line.strip():
+            continue
+        if line.strip().endswith('TODO'):
+            print 'ignoring:', line
             continue
         if line.startswith('  '):
             name, code = line.strip().split('[')
             code = code.split(']')[0].replace('\\', '').replace('"', '').replace("'", '')
             code = code.replace('NOCODE-', 'NOCODE_')
             assert code
-            assert len(code) == 3 or NOCODE_PATTERN.match(code)
+            try:
+                assert len(code) == 3 or NOCODE_PATTERN.match(code)
+            except:
+                print code
+                raise
             family[1][code] = unescape(name.strip().replace('_', ' '))
         else:
             if family:
@@ -156,6 +187,15 @@ def match_nodes(leafs, nodes, rnodes, urnodes, leafsets, names):
         for node in nodes[1:]:
             todo.append(Migration(node[0], None, pointer=rnodes[leafs]))
         return todo
+
+    # then look at names:
+    if len(nodes) == 1:
+        node = nodes[0]
+        if node[2] not in ['Ellicean']:
+            # look for the name:
+            if node[2] in names and len(names[node[2]]) == 1:
+                # unique family name, good enough for a match!
+                return [Migration(node[0], names[node[2]][0])]
 
     # we have to determine a possible counterpart in the new classification by
     # comparing leaf sets and names
@@ -281,15 +321,22 @@ def main(args):
         #leafs = families[family]
         assert family[0] not in ['Speech Register', 'Spurious']
         leafs = tuple(sorted(code for code in families[family].keys() if code in codes))
-        assert leafs
+        try:
+            assert leafs
+        except:
+            print family
+            raise
         if leafs in rnodes:
+            # so we have already seen this exact set of leaves.
+            #
             # special case: there may be additional "Unclassified something" nodes in
-            # branch without any changes in the set of leafs.
+            # branch without any changes in the set of leafs ...
             try:
                 assert [n for n in family if n.startswith('Unclassified')]
             except:
-                #print family
-                #print leafs
+                print family
+                print leafs
+                # ... or the full leafset contains new languages
                 assert [code for code in families[family[:-1]].keys() if code in ncodes]
             fset, rset = set(family), set(rnodes[leafs])
             assert rset.issubset(fset)
@@ -351,8 +398,15 @@ def main(args):
     branch_to_pk = {}
     for m in todo:
         if m.hid:
-            assert m.hid not in branch_to_pk
-            branch_to_pk[m.hid] = m.pk
+            if m.hid in branch_to_pk:
+                if branch_to_pk[m.hid] != m.pk:
+                    print m.hid
+                    print branch_to_pk[m.hid]
+                    print m.pk
+                    raise ValueError
+            else:
+                #assert m.hid not in branch_to_pk
+                branch_to_pk[m.hid] = m.pk
 
     new = 0
     for hnode in sorted(families.keys(), key=lambda b: (len(b), b)):
@@ -361,7 +415,14 @@ def main(args):
             t = tuple(sorted(families[hnode].keys()))
             if t in rglnodes:
                 # the "Unclassified subfamily" special case from above:
-                assert [n for n in hnode if n.startswith('Unclassified')]
+                try:
+                    assert [n for n in hnode if n.startswith('Unclassified')]
+                except:
+                    # or the "new language inserted higher up" case!
+                    assert [code for code in families[hnode[:-1]].keys() if code in ncodes]
+                    #print hnode
+                    #print t
+                    #raise
                 # make sure, the existing glottolog family for the set of leafs is mapped
                 # to some other node in the new classification:
                 assert rglnodes[t][0][0] in [m.pk for m in todo if m.hid]

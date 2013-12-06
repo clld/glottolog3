@@ -94,7 +94,8 @@ def main(args):  # pragma: no cover
                 DBSession.flush()
 
         recreate_treeclosure()
-        update_justifications(args)
+        # can only be done after updating refs!
+        #update_justifications(args)
         update_macroareas(args)
         update_coordinates(args)
 

@@ -10,6 +10,7 @@
         database every other month.
     </p>
 
+<!--
     <div class="alert alert-block alert-success">
         <p>
                    Dear Glottolog maintainers,
@@ -1028,4 +1029,4 @@ Linguasphere has an equally redundant/spurious entry under 76-CAA-a. Qiang + Dzo
 
             <a class='errorreport' href="mailto:glottolog@eva.mpg.de?subject=Erratum Glottolog&amp;body=Dear Glottolog maintainers,%0D%0A%0D%0AI%20found%20an%20error%20in%20Glottolog
                 ">report erratum</a>
-
+-->

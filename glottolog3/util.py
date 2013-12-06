@@ -2,6 +2,7 @@ from json import dumps
 import re
 from itertools import cycle
 
+from path import path
 import colander
 from sqlalchemy import or_, not_, desc
 from sqlalchemy.orm import joinedload, joinedload_all
@@ -19,6 +20,7 @@ from clld.web.util.htmllib import HTML
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
 
+import glottolog3
 from glottolog3.models import (
     Country, Languoid, Languoidcountry, Refprovider, Provider, Ref,
     Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
@@ -305,8 +307,17 @@ def get_icon_map(request, context):
     return icon_map
 
 
+def get_treefile_url(request, languoid):
+    filename = 'tree-%s-newick.txt' % languoid.id
+    tree_dir = path(glottolog3.__file__).dirname().joinpath('static', 'trees')
+    if tree_dir.joinpath(filename).exists():
+        return request.static_url('glottolog3:static/trees/' + filename)
+
+
 def language_detail_html(request=None, context=None, **kw):
-    return dict(icon_map=get_icon_map(request, context))
+    return dict(
+        icon_map=get_icon_map(request, context),
+        treefile=get_treefile_url(request, context))
 
 
 def language_bigmap_html(request=None, context=None, **kw):

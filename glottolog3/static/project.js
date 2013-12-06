@@ -8,30 +8,18 @@ GLOTTOLOG3.filterMarkers = function(ctrl) {
 GLOTTOLOG3.formatLanguoid = function (obj) {
     return '<span class="level-' + obj.level + '">' + obj.text + '</span>';
 }
-GLOTTOLOG3.descStatsUpdateIcons = function(map) {
+GLOTTOLOG3.descStatsUpdate = function(map) {
     var extinct_mode = $('#extinct_mode').prop('checked'),
-        stats = {
-            'grammar': [0, 0],
-            'sketch': [0, 0],
-            'dictionary': [0, 0],
-            'other': [0, 0]},
-        color_map = {
-            '006400': 'grammar',
-            '00ff00': 'grammar',
-            'd3d3d3': 'sketch',
-            'ff8040': 'sketch',
-            '708a90': 'dictionary',
-            'ff4500': 'dictionary',
-            '000000': 'other',
-            'ff0000': 'other'},
-        year = $("#year").text();
+        stats = [[0, 0], [0, 0], [0, 0], [0, 0]],
+        year = $("#year").text(),
+        j;
     if (year) {
         year = parseInt(year);
     }
     map = map === undefined ? CLLD.Maps['map'] : map;
     map.eachMarker(function(marker){
         // update marker icon and source id used for info query
-        var i, source, url;
+        var i, source, url, sdt = 3;
 
         if (year) {
             // set the defaults:
@@ -48,6 +36,7 @@ GLOTTOLOG3.descStatsUpdateIcons = function(map) {
                     if (source.year <= year) {
                         url = extinct_mode ? source.eicon : source.icon;
                         marker.feature.properties.info_query = {'source': source.id};
+                        sdt = source.sdt;
                         break;
                     }
                 }
@@ -55,6 +44,7 @@ GLOTTOLOG3.descStatsUpdateIcons = function(map) {
         } else {
             // no year given, base properties on the global MED
             url = marker.feature.properties.icon;
+            sdt = marker.feature.properties.sdt;
             if (extinct_mode) {
                 url = marker.feature.properties.eicon;
             }
@@ -63,24 +53,21 @@ GLOTTOLOG3.descStatsUpdateIcons = function(map) {
             }
         }
 
-        try {
-            stats[color_map[url]][marker.feature.properties.extinct ? 1 : 0] += 1;
-        } catch (e) {
-            alert(url);
-        }
-
+        stats[sdt][marker.feature.properties.extinct ? 1 : 0] += 1;
         //alert(CLLD.url('/static/icons/c000000.png'));
         marker.setIcon(map.icon(marker.feature, 20, CLLD.url('/static/icons/c' + url + '.png')));
     });
 
-    for (type in stats) {
-        if (stats.hasOwnProperty(type)) {
-            $('#' + type + '-living').text(stats[type][0]);
-            $('#' + type + '-extinct').text(stats[type][1]);
-            $('#' + type + '-total').text(stats[type][0] + stats[type][1]);
-        }
+    for (j = 0; j < stats.length; j++) {
+        $('#living-' + j).text(stats[j][0]);
+        $('#extinct-' + j).text(stats[j][1]);
+        $('#total-' + j).text(stats[j][0] + stats[j][1]);
     }
 };
-GLOTTOLOG3.descStatsLoadLanguages = function(type) {
-    $("#languages" ).load("desc_stats/" + type + "?year=" + $("#year").text() + "&macroarea=" + $("#macroarea").text());
+GLOTTOLOG3.descStatsLoadLanguages = function(type, index) {
+    var url = CLLD.route_url(
+        'desc_stats_languages',
+        {'type': type, 'index': index},
+        {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#family').text()});
+    $("#languages").load(url);
 };

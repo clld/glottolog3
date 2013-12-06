@@ -61,6 +61,13 @@
         % if ctx.active:
         <div class="treeview well well-small">
             ${nodes(list(reversed([ctx] + list(ctx.get_ancestors()))), 0)}
+            % if treefile:
+            <p>
+                You may download the
+                <a href="${treefile}" title="download family tree in Newick format">Family tree</a> in
+                ${h.external_link('http://en.wikipedia.org/wiki/Newick_format', label='Newick format')}
+            </p>
+            % endif
         </div>
         <script>
         $(document).ready(function() {

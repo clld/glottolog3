@@ -1,8 +1,6 @@
 from datetime import date
 import re
-import json
 
-from path import path
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
@@ -10,23 +8,21 @@ from sqlalchemy import or_, desc
 from sqlalchemy.sql.expression import func
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    Language, Source, LanguageSource, LanguageIdentifier, Identifier, IdentifierType,
+    Language, Source, LanguageIdentifier, Identifier, IdentifierType,
 )
 from clld.db.util import icontains
-from clld.web.util.helpers import JS, get_adapter
+from clld.web.util.helpers import JS
 from clld.web.util.multiselect import MultiSelect
 from clld.lib import bibtex
 from clld.interfaces import IRepresentation
 
-import glottolog3
 from glottolog3.models import (
-    Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider, Provider,
-    TreeClosureTable, Ref, Refmacroarea, Refdoctype,
+    Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider,
+    TreeClosureTable,
 )
 from glottolog3.config import CFG
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
-from glottolog3.maps import DescStatsMap
 
 
 YEAR_PATTERN = re.compile('[0-9]{4}$')
@@ -109,7 +105,8 @@ def childnodes(request):
         if request.params.get('q'):
             query = query.filter(Language.name.contains(request.params.get('q')))
 
-    query = query.group_by(Languoid.pk,
+    query = query.group_by(
+        Languoid.pk,
         Languoid.id,
         Languoid.name,
         Languoid.level).order_by(Language.name)
@@ -197,73 +194,3 @@ def redirect_languoid_xhtml(req):
 
 def redirect_reference_xhtml(req):
     return HTTPMovedPermanently(location=req.route_url('source', id=req.matchdict['id']))
-
-
-def desc_stats(req):
-    macroarea = req.params.get('macroarea')
-    with open(path(glottolog3.__file__).dirname().joinpath('static', 'meds.json')) as fp:
-        data = json.load(fp)
-    ctx = {}
-    for k, v in data.items():
-        if not macroarea or macroarea in v['macroareas']:
-            ctx[k] = v
-    return {'map': DescStatsMap(ctx, req)}
-
-
-def desc_stats_languages(req):
-    langs = []
-    macroarea = req.params.get('macroarea')
-    year = req.params.get('year')
-
-    if req.matchdict['subtype'] in ['extinct', 'living']:
-        label = req.matchdict['subtype'].capitalize() + ' languages'
-    else:
-        label = 'Languages'
-
-    if macroarea:
-        label = label + ' from ' + macroarea
-
-    label = label + ' whose most extensive description'
-
-    if year:
-        year = int(year)
-        label = label + ' in %s' % year
-
-    label = label + ' is a ' + req.matchdict['type']
-
-    with open(path(glottolog3.__file__).dirname().joinpath('static', 'meds.json')) as fp:
-        data = json.load(fp)
-    for k, v in data.items():
-        pass
-    for lang in data.values():
-        if req.matchdict['subtype'] == 'living' and lang['extinct']:
-            continue
-        if req.matchdict['subtype'] == 'extinct' and not lang['extinct']:
-            continue
-        if macroarea and macroarea not in lang['macroareas']:
-            continue
-
-        med = None
-        if year:
-            for s in lang['sources']:
-                if s['year'] <= year:
-                    med = s
-                    break
-        else:
-            med = lang['med']
-
-        doctype = med['doctype'] if med else 'other'
-        if doctype == 'grammar':
-            if req.matchdict['type'] == 'grammar':
-                langs.append((lang, med))
-        elif doctype == 'grammarsketch':
-            if req.matchdict['type'] == 'sketch':
-                langs.append((lang, med))
-        elif doctype in 'dictionary phonology specificfeature text newtestament'.split():
-            if req.matchdict['type'] == 'dictionary':
-                langs.append((lang, med))
-        else:
-            if req.matchdict['type'] == 'other':
-                langs.append((lang, med))
-
-    return {'languages': sorted(langs, key=lambda l: l[0]['name']), 'label': label}

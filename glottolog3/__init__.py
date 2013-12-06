@@ -18,6 +18,7 @@ from glottolog3 import adapters
 from glottolog3 import datatables
 from glottolog3.config import CFG
 from glottolog3.interfaces import IProvider
+from glottolog3 import desc_stats
 
 
 class GLCtxFactoryQuery(CtxFactoryQuery):
@@ -106,12 +107,12 @@ def main(global_config, **settings):
     config.add_route_and_view(
         'desc_stats',
         '/desc_stats',
-        views.desc_stats,
+        desc_stats.desc_stats,
         renderer='desc_stats.mako')
     config.add_route_and_view(
         'desc_stats_languages',
-        '/desc_stats/{type:[a-z]+}-{subtype:[a-z]+}',
-        views.desc_stats_languages,
+        '/desc_stats/{type:[a-z]+}-{index:[0-9]}',
+        desc_stats.desc_stats_languages,
         renderer='desc_stats_languages.mako')
 
     for name in 'credits glossary cite downloads errata contact'.split():

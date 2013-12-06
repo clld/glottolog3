@@ -84,6 +84,25 @@ class Superseded(Base):
     relation = Column(Unicode)
 
 
+DOCTYPES = [
+    'grammar',
+    'grammarsketch',
+    'dictionary',
+    'specificfeature',
+    'phonology',
+    'text',
+    'newtestament',
+    'wordlist',
+    'comparative',
+    'minimal',
+    'socling',
+    'dialectology',
+    'overview',
+    'ethnographic',
+    'bibliographical',
+    'unknown']
+
+
 class Doctype(Base, IdNameDescriptionMixin):
     """
     id -> pk
@@ -95,6 +114,13 @@ class Doctype(Base, IdNameDescriptionMixin):
 
     def __unicode__(self):
         return capwords(self.name.replace('_', ' '))
+
+    @property
+    def ord(self):
+        try:
+            return DOCTYPES.index(self.id)
+        except ValueError:
+            return len(DOCTYPES)
 
 
 class Refdoctype(Base):

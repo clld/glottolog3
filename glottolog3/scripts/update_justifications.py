@@ -13,6 +13,7 @@ from clld.db.models.common import (
 from glottolog3.models import Languoid
 from glottolog3.lib.util import get_map, REF_PATTERN, PAGES_PATTERN
 from glottolog3.lib.bibtex import unescape
+from glottolog3.scripts.util import update_justifications
 
 
 WORD_PATTERN = re.compile('[a-z]+')
@@ -23,6 +24,8 @@ def main(args):  # pragma: no cover
     - text goes into ValueSet.description
     - refs go into ValueSetReference objects
     """
+    update_justifications(args)
+    return
     def normalized_pages(s):
         match = PAGES_PATTERN.match(s or '')
         if match:

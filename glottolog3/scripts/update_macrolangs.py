@@ -16,8 +16,8 @@ from glottolog3.models import Languoid, TreeClosureTable, LanguoidLevel, Languoi
 
 def get_macrolangs(codes):
     for code in iso.get_tab('macrolanguages'):
-        if code.i_id in codes:
-            yield code.m_id, code.i_id
+        if code.I_Id in codes:
+            yield code.M_Id, code.I_Id
 
 
 def main(args):  # pragma: no cover

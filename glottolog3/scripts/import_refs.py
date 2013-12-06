@@ -19,7 +19,7 @@ from glottolog3.models import (
     Ref, Provider, Refprovider, Macroarea, Doctype, Country, Languoid,
 )
 from glottolog3.lib.util import get_map
-from glottolog3.scripts.util import update_providers
+from glottolog3.scripts.util import update_providers, update_relationship, update_reflang
 
 # id
 # bibtexkey
@@ -188,6 +188,7 @@ FIELD_MAP = {
 
 CONVERTER = {'ozbib_id': int}
 
+PREF_YEAR_PATTERN = re.compile('\[(?P<year>(1|2)[0-9]{3})(\-[0-9]+)?\]')
 YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
 ROMAN = '(?P<roman>[ivxlcdmIVXLCDM]+)'
 ARABIC = '(?P<arabic>[0-9]+)'
@@ -265,9 +266,16 @@ def main(args):  # pragma: no cover
                     pass
 
             if kw.get('year'):
-                match = YEAR_PATTERN.search(kw.get('year'))
+                #
+                # prefer years in brackets over the first 4-digit number.
+                #
+                match = PREF_YEAR_PATTERN.search(kw.get('year'))
                 if match:
                     kw['year_int'] = int(match.group('year'))
+                else:
+                    match = YEAR_PATTERN.search(kw.get('year'))
+                    if match:
+                        kw['year_int'] = int(match.group('year'))
 
             if kw.get('publisher'):
                 p = kw.get('publisher')
@@ -331,49 +339,55 @@ def main(args):  # pragma: no cover
                         ref.description = ref.title
             else:
                 changed = True
-                ref = Ref(**kw)
+                ref = Ref(name='%s %s' % (kw.get('author', 'na'), kw.get('year', 'nd')), **kw)
 
             def append(attr, obj):
                 if obj and obj not in attr:
                     attr.append(obj)
                     return True
 
-            for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')])):
-                result = append(ref.macroareas, macroarea_map[name])
-                changed = changed or result
+            a, r = update_relationship(
+                ref.macroareas,
+                [macroarea_map[name] for name in
+                 set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')]))])
+            changed = changed or a or r
+            #for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')])):
+            #    result = append(ref.macroareas, macroarea_map[name])
+            #    changed = changed or result
 
             for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('src', '').split(',')])):
                 result = append(ref.providers, provider_map[slug(name)])
                 changed = changed or result
 
-            for m in DOCTYPE_PATTERN.finditer(kw['jsondata'].get('hhtype', '')):
-                result = append(ref.doctypes, doctype_map[m.group('name')])
-                changed = changed or result
+            a, r = update_relationship(
+                ref.doctypes,
+                [doctype_map[m.group('name')] for m in
+                 DOCTYPE_PATTERN.finditer(kw['jsondata'].get('hhtype', ''))])
+            changed = changed or a or r
+            #for m in DOCTYPE_PATTERN.finditer(kw['jsondata'].get('hhtype', '')):
+            #    result = append(ref.doctypes, doctype_map[m.group('name')])
+            #    changed = changed or result
 
             if len(kw['jsondata'].get('lgcode', '')) == 3:
                 kw['jsondata']['lgcode'] = '[%s]' % kw['jsondata']['lgcode']
 
-            for m in CODE_PATTERN.finditer(kw['jsondata'].get('lgcode', '')):
-                for code in set(m.group('code').split(',')):
-                    if code not in languoid_map:
-                        if code not in ['NOCODE_Payagua', 'emx']:
-                            print '--> unknown code:', code.encode('utf8')
-                    else:
-                        result = append(ref.languages, languoid_map[code])
-                        changed = changed or result
+            #for m in CODE_PATTERN.finditer(kw['jsondata'].get('lgcode', '')):
+            #    for code in set(m.group('code').split(',')):
+            #        if code not in languoid_map:
+            #            if code not in ['NOCODE_Payagua', 'emx']:
+            #                print '--> unknown code:', code.encode('utf8')
+            #        else:
+            #            result = append(ref.languages, languoid_map[code])
+            #            changed = changed or result
 
-            for glottocode in filter(None, kw['jsondata'].get('alnumcodes', '').split(';')):
-                if glottocode not in languoid_map:
-                    print '--> unknown glottocode:', glottocode.encode('utf8')
-                else:
-                    result = append(ref.languages, languoid_map[glottocode])
-                    changed = changed or result
+            #for glottocode in filter(None, kw['jsondata'].get('alnumcodes', '').split(';')):
+            #    if glottocode not in languoid_map:
+            #        print '--> unknown glottocode:', glottocode.encode('utf8')
+            #    else:
+            #        result = append(ref.languages, languoid_map[glottocode])
+            #        changed = changed or result
 
             if not update:
-                #pass
-                #
-                # TODO!
-                #
                 DBSession.add(ref)
 
             if changed:
@@ -386,6 +400,7 @@ def main(args):  # pragma: no cover
 
         print count, 'records updated or imported'
         print skipped, 'records skipped because of lack of information'
+        update_reflang(args)
 
     return changes
 

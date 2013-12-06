@@ -2,6 +2,9 @@
 
 <h3>${h.link(request, ctx)}</h3>
 % if source:
+% if source.doctypes:
+<p>Descriptive status: ${sorted(source.doctypes, key=lambda d: d.ord)[0].name}</p>
+% endif
 % if ctx.family and ctx.father:
 <h4>Classification</h4>
 <p>

@@ -1,24 +1,46 @@
 <%inherit file="home_comp.mako"/>
 
-<h3>
-    Language Documentation Status
-    <span id="year">${request.params.get('year', '')}</span>
-    <span id="macroarea">${request.params.get('macroarea', '')}</span>
-</h3>
+<% year, macroarea = [request.params.get(n, '') for n in 'year macroarea'.split()] %>
 
+<div class="row-fluid">
+    <div class="span8">
+<h3>Language Documentation Status</h3>
 <form class="form-inline">
-1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-min="1500" data-slider-max="2014" data-slider-step="1" data-slider-value="${request.params.get('year', '2014')}" data-slider-selection="after" data-slider-tooltip="hide">&nbsp;&nbsp;&nbsp;2014
+1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-min="1500" data-slider-max="2014" data-slider-step="1" data-slider-value="${request.params.get('year', '2014') or '2014'}" data-slider-selection="after" data-slider-tooltip="hide">&nbsp;&nbsp;&nbsp;2014
 <label style="margin-left: 2em;"><input type="checkbox" id="extinct_mode" /> Mark extinct languages</label>
 </form>
+    </div>
+    <div class="span4 well well-small">
+        <table class="table">
+            <tr><td>Year:</td><td><span id="year">${year}</span></td></tr>
+            <tr>
+                <td>Macroarea:</td>
+                <td>
+                    <select id="macroarea">
+                        <option value=""${' selected="selected"' if not macroarea else ''}>any</option>
+                        % for ma in macroareas:
+                        <option value="${ma.name}"${' selected="selected"' if macroarea == ma.name else ''}>${ma.name}</option>
+                        % endfor
+                    </select>
+                </td>
+            </tr>
+            <tr><td>Family:</td><td>${h.link(request, family) if family else ''} <span style="display: none;" id="family">${family.id if family else ''}</span></td></tr>
+        </table>
+    </div>
+</div>
 
+<div class="row-fluid">
+    <div class="span12">
 ${map.render()}
+    </div>
+</div>
 
 <div class="row-fluid">
     <div class="span5">
         <table class="table table-nonfluid">
             <thead>
                 <tr>
-                    <th>Most extensive description is ...</th>
+                    <th>Most extensive description is a ...</th>
                     <th colspan="3" style="text-align: center;">Languages</th>
                 </tr>
                 <tr>
@@ -29,12 +51,15 @@ ${map.render()}
                 </tr>
             </thead>
             <tbody>
-        % for label, type in [('grammar', 'grammar'), ('sketch', 'sketch'), ('dictionary', 'dictionary'), ('other', 'other')]:
+        % for i, sdt in enumerate(doctypes):
                 <tr>
-                    <th>a ${label}</th>
-                    % for subtype in ['living', 'extinct', 'total']:
-                    <% _type = '-'.join([type, subtype]) %>
-                    <td><a title="click to open list of languages" onclick="GLOTTOLOG3.descStatsLoadLanguages('${_type}')" id="${_type}"> </a></td>
+                    <th>${sdt.name}</th>
+                    % for type in ['living', 'extinct', 'total']:
+                    <td>
+                        <a style="cursor: pointer;"
+                           title="click to open list of languages"
+                           onclick="GLOTTOLOG3.descStatsLoadLanguages('${type}', ${i})" id="${type}-${i}"> </a>
+                    </td>
                     % endfor
                 </tr>
         % endfor
@@ -49,10 +74,14 @@ ${map.render()}
     $(document).ready(function() {
         $("#ys").slider().on("slideStop", function(e) {
             $('#year').text(e.value);
-            GLOTTOLOG3.descStatsUpdateIcons();
+            GLOTTOLOG3.descStatsUpdate();
         });
         $("#extinct_mode").change(function() {
-            GLOTTOLOG3.descStatsUpdateIcons();
+            GLOTTOLOG3.descStatsUpdate();
+        });
+        $("#macroarea").change(function() {
+            document.location.href = CLLD.route_url(
+                'desc_stats', {}, {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#family').text()});
         });
         % if request.params.get('extinct_mode'):
         $("#extinct_mode").prop('checked', true);
