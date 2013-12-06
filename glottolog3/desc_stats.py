@@ -10,10 +10,12 @@ from clld.web.adapters.geojson import GeoJson, pacific_centered_coordinates
 from clld.web.maps import Map, Layer, Legend
 from clld.web.util.helpers import JS
 from clld.web.util.htmllib import HTML
+from clld.web.util.multiselect import MultiSelect
 from clld.db.meta import DBSession
+from clld.db.models import common
 
 import glottolog3
-from glottolog3.models import DOCTYPES, Languoid, Macroarea
+from glottolog3.models import DOCTYPES, Languoid, Macroarea, Languoidmacroarea
 from glottolog3.maps import Language
 
 
@@ -116,31 +118,47 @@ class DescStatsMap(Map):
 
 def _desc_stats_data(req):
     macroarea = req.params.get('macroarea')
-    family = req.params.get('family')
+    family = filter(None, req.params.get('family', '').split(','))
     res = {}
     with open(path(glottolog3.__file__).dirname().joinpath('static', 'meds.json')) as fp:
         data = json.load(fp)
     for k, v in data.items():
         if (not macroarea or macroarea in v['macroareas'])\
-                and (not family or v['family'] == family):
+                and (not family or (v['family'] in family)):
             res[k] = v
     return res
 
 
-def desc_stats(req):
+def _get_families(req):
     family = req.params.get('family')
     if family:
-        family = Languoid.get(family)
+        return [Languoid.get(f) for f in family.split(',')]
+    return []
+
+
+def desc_stats(req):
+    macroarea = req.params.get('macroarea')
+    if macroarea:
+        macroarea = DBSession.query(Macroarea).filter(Macroarea.name == macroarea).one()
+    fquery = DBSession.query(Languoid)\
+        .filter(Languoid.father_pk == None)\
+        .filter(common.Language.active == True)\
+        .order_by(common.Language.name)
+    if macroarea:
+        fquery = fquery.join(Languoidmacroarea)\
+            .filter(Languoidmacroarea.macroarea_pk == macroarea.pk)
+    ms = MultiSelect(
+        req, 'families', 'msfamily', collection=fquery, selected=_get_families(req))
     return {
+        'families': ms,
         'macroareas': DBSession.query(Macroarea).all(),
-        'family': family,
         'map': DescStatsMap(_desc_stats_data(req), req), 'doctypes': SIMPLIFIED_DOCTYPES}
 
 
 def desc_stats_languages(req):
     langs = []
     macroarea = req.params.get('macroarea')
-    family = req.params.get('family')
+    family = _get_families(req)
     year = req.params.get('year')
 
     if req.matchdict['type'] in ['extinct', 'living']:
@@ -149,8 +167,7 @@ def desc_stats_languages(req):
         label = 'Languages'
 
     if family:
-        family = Languoid.get(family)
-        label = label + ' of the %s family' % family.name
+        label = label + ' of the %s families' % ', '.join(f.name for f in family)
 
     if macroarea:
         label = label + ' from ' + macroarea

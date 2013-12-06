@@ -1,5 +1,12 @@
 <%inherit file="home_comp.mako"/>
 
+<%block name="head">
+    <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">
+    <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
+    <link href="${request.static_url('clld:web/static/css/slider.css')}" rel="stylesheet">
+    <script src="${request.static_url('clld:web/static/js/bootstrap-slider.js')}"></script>
+</%block>
+
 <% year, macroarea = [request.params.get(n, '') for n in 'year macroarea'.split()] %>
 
 <div class="row-fluid">
@@ -24,7 +31,11 @@
                     </select>
                 </td>
             </tr>
-            <tr><td>Family:</td><td>${h.link(request, family) if family else ''} <span style="display: none;" id="family">${family.id if family else ''}</span></td></tr>
+            <tr>
+                <td>Family:</td>
+                <td>${families.render()}</td>
+                ##<td>${h.link(request, family) if family else ''} <span style="display: none;" id="family">${family.id if family else ''}</span></td>
+            </tr>
         </table>
     </div>
 </div>
@@ -81,15 +92,14 @@ ${map.render()}
         });
         $("#macroarea").change(function() {
             document.location.href = CLLD.route_url(
-                'desc_stats', {}, {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#family').text()});
+                'desc_stats', {}, {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#msfamily').select2('val').join()});
         });
         % if request.params.get('extinct_mode'):
         $("#extinct_mode").prop('checked', true);
         % endif
+        $("#msfamily").on("change", function(e) {
+            document.location.href = CLLD.route_url(
+                'desc_stats', {}, {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#msfamily').select2('val').join()});
+        })
     });
 </script>
-
-<%block name="head">
-    <link href="${request.static_url('clld:web/static/css/slider.css')}" rel="stylesheet">
-    <script src="${request.static_url('clld:web/static/js/bootstrap-slider.js')}"></script>
-</%block>

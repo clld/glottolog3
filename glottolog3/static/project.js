@@ -68,6 +68,6 @@ GLOTTOLOG3.descStatsLoadLanguages = function(type, index) {
     var url = CLLD.route_url(
         'desc_stats_languages',
         {'type': type, 'index': index},
-        {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#family').text()});
+        {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $("#msfamily").select2("val").join()});
     $("#languages").load(url);
 };
