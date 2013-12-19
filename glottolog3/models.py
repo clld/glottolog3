@@ -318,6 +318,15 @@ class Languoid(Language, CustomModelMixin):
         return res
 
     def __rdf__(self, request):
+        gold_type = None
+        if self.level == LanguoidLevel.family:
+            gold_type = 'LanguageSubfamily' if self.father_pk else 'LanguageFamily'
+        elif self.level == LanguoidLevel.language:
+            gold_type = 'Language'
+        elif self.level == LanguoidLevel.dialect:
+            gold_type = 'Dialect'
+        if gold_type:
+            yield 'rdf:type', 'http://purl.org/linguistics/gold/' + gold_type
         if self.father:
             yield 'skos:broader', request.resource_url(self.father)
         for child in self.children:
