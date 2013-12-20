@@ -282,8 +282,8 @@ def language_index_html(request=None, **kw):
     if not languoids and \
             (res['params']['name'] or res['params']['iso'] or res['params']['country']):
         res['message'] = 'No matching languoids found'
-    if len(languoids) == 1:
-        raise HTTPFound(request.resource_url(languoids[0]))
+    #if len(languoids) == 1:
+    #    raise HTTPFound(request.resource_url(languoids[0]))
     map_ = LanguoidsMap(languoids, request)
     layer = list(map_.get_layers())[0]
     if not layer.data['features']:

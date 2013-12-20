@@ -1,11 +1,33 @@
 from cStringIO import StringIO
 from xml.etree import cElementTree as et
 
+from sqlalchemy.orm import joinedload_all
 from pyramid.httpexceptions import HTTPFound
+from pyramid.renderers import render as pyramid_render
 
 from clld.web.adapters.base import Representation, Index
+from clld.web.adapters.download import CsvDump, N3Dump
+from clld.db.meta import DBSession
+from clld.db.models.common import Language, LanguageIdentifier
 
 from glottolog3.models import LanguoidLevel
+
+
+def _lang_query():
+    return DBSession.query(Language)\
+        .options(
+            joinedload_all(Language.languageidentifier, LanguageIdentifier.identifier))\
+        .order_by(Language.pk)
+
+
+class LanguoidCsvDump(CsvDump):
+    def query(self, req):
+        return _lang_query()
+
+
+class LanguoidN3Dump(N3Dump):
+    def query(self, req):
+        return _lang_query()
 
 
 class Redirect(Representation):
@@ -80,3 +102,27 @@ class PhyloXML(Representation):
             if child.children:
                 self.append_children(subclade, child, req, level + 1)
             clade.append(subclade)
+
+
+class Jit(Representation):
+    mimetype = 'application/vnd.clld.jit+json'
+    send_mimetype = 'application/json'
+    extension = 'jit.json'
+
+    @staticmethod
+    def node(l, depth, limit=None):
+        return {
+            'id': l.id,
+            'name': l.name,
+            'data': {'level': l.level.value},
+            'children':
+            [Jit.node(c, depth + 1, limit=limit) for c in l.children]
+            if depth < limit else []}
+
+    def render(self, root, req, dump=True):
+        depth_limit = req.params.get('depth')
+        if depth_limit:
+            depth_limit = int(depth_limit)
+
+        res = Jit.node(root, 0, limit=depth_limit or 5)
+        return pyramid_render('json', res, request=req) if dump else res

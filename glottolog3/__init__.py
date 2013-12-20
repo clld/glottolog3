@@ -64,6 +64,7 @@ def main(global_config, **settings):
     config.register_adapter(adapters.Redirect, IProvider)
     config.register_adapter(adapters.Bigmap, ILanguage)
     config.register_adapter(adapters.PhyloXML, ILanguage)
+    config.register_adapter(adapters.Jit, ILanguage)
     config.register_adapter(adapters.Treeview, ILanguage)
     config.register_adapter(adapter_factory('provider/index_html.mako', base=Index), IProvider)
     config.register_datatable('providers', datatables.Providers)
@@ -117,6 +118,14 @@ def main(global_config, **settings):
         desc_stats.desc_stats_languages,
         renderer='desc_stats_languages.mako')
 
+
+    config.add_route_and_view(
+        'relation',
+        '/glottolog/relation',
+        views.relation,
+        renderer='relation.mako')
+
+
     for name in 'credits glossary cite downloads errata contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
@@ -129,9 +138,9 @@ def main(global_config, **settings):
     config.register_datatable('languages', datatables.Families)
     config.register_datatable('sources', datatables.Refs)
 
-    config.register_download(CsvDump(
+    config.register_download(adapters.LanguoidCsvDump(
         Language, 'glottolog3', description="Languoids as CSV"))
-    config.register_download(N3Dump(
+    config.register_download(adapters.LanguoidN3Dump(
         Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
         Source, 'glottolog3', ext='bib', description="References as BibTeX"))

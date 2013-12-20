@@ -331,6 +331,12 @@ class Languoid(Language, CustomModelMixin):
             yield 'skos:broader', request.resource_url(self.father)
         for child in self.children:
             yield 'skos:narrower', request.resource_url(child)
+        for l, why in self.get_replacements():
+            yield 'dcterms:isReplacedBy', request.resource_url(l)
+        if not self.active:
+            yield 'skos:changeNote', 'obsolete'
+        if self.status:
+            yield 'skos:editorialNote', self.status.description
 
 
 @implementer(ISource)

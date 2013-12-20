@@ -194,3 +194,47 @@ def redirect_languoid_xhtml(req):
 
 def redirect_reference_xhtml(req):
     return HTTPMovedPermanently(location=req.route_url('source', id=req.matchdict['id']))
+
+
+def relation(req):
+    from glottolog3.adapters import Jit
+    l1 = Languoid.get('ngba1284')
+    l1_ancestors = list(l1.get_ancestors())
+    l2 = Languoid.get('ngba1287')
+    l2_ancestors = list(l2.get_ancestors())
+    root = None
+    i2 = None
+    for i1, l in enumerate(l1_ancestors):
+        if l in l2_ancestors:
+            root = l
+            i2 = l2_ancestors.index(l)
+            break
+    assert root
+
+    res = {}
+    current = None
+
+    for i, l in enumerate(reversed(l1_ancestors[i1 + 1:])):
+        n = Jit.node(l, 0, 0)
+        if i == 0:
+            res = n
+        else:
+            current['children'].append(n)
+        current = n
+
+    n = Jit.node(root, 0, 0)
+    if not res:
+        res = n
+    else:
+        current['children'].append(n)
+    current = n
+
+    for l, ancestors, index in [(l1, l1_ancestors, i1), (l2, l2_ancestors, i2)]:
+        for k, ll in enumerate(reversed(ancestors[:index])):
+            n = Jit.node(ll, 0, 0)
+            inner = {'id': 'x-' + l.id, 'name': '...', 'data': {'level': 'language'}, 'children': [Jit.node(l, 0, 0)]}
+            n['children'] = [inner]
+            if k > 0:
+                break
+            current['children'].append(n)
+    return {'data': res, 'center': root.id}

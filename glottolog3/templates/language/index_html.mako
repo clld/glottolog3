@@ -4,6 +4,9 @@
 <h3>Choose by property</h3>
 <div class="span4 well well-small">
     <form>
+        % if request.admin:
+        <input type="hidden" name="__admin__" value="1"/>
+        % endif
         <fieldset>
             <legend>Name</legend>
             <input type="text" name="name" id="inputName" placeholder="Name" value="${'' if message else params['name']}">
