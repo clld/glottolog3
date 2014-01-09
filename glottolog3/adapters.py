@@ -1,6 +1,8 @@
 from cStringIO import StringIO
 from xml.etree import cElementTree as et
+import codecs
 
+from path import path
 from sqlalchemy.orm import joinedload_all
 from pyramid.httpexceptions import HTTPFound
 from pyramid.renderers import render as pyramid_render
@@ -10,6 +12,7 @@ from clld.web.adapters.download import CsvDump, N3Dump
 from clld.db.meta import DBSession
 from clld.db.models.common import Language, LanguageIdentifier
 
+import glottolog3
 from glottolog3.models import LanguoidLevel
 
 
@@ -47,13 +50,40 @@ class Bigmap(Representation):
 
 
 class Treeview(Representation):
+    """Classification tree rooted at the current languoid rendered as svg graphic in an
+    HTML page.
+    """
+    name = 'SVG Classification Tree'
     mimetype = 'text/vnd.clld.treeview+html'
     send_mimetype = 'text/html'
     extension = 'treeview.html'
     template = 'language/treeview_html.mako'
 
 
+class Newick(Representation):
+    """Classification tree represented in Newick format.
+    """
+    name = 'Newick format'
+    mimetype = 'text/vnd.clld.newick+plain'
+    send_mimetype = 'text/plain'
+    extension = 'newick.txt'
+
+    def render(self, languoid, request):
+        if languoid.family:
+            languoid = languoid.family
+        filename = 'tree-%s-newick.txt' % languoid.id
+        tree_dir = path(glottolog3.__file__).dirname().joinpath('static', 'trees')
+        if tree_dir.joinpath(filename).exists():
+            with codecs.open(tree_dir.joinpath(filename), encoding='utf8') as fp:
+                content = fp.read()
+            return content
+        return ''
+
+
 class PhyloXML(Representation):
+    """Classification tree rooted at the current languoid represented in PhyloXML.
+    """
+    name = 'PhyloXML'
     mimetype = 'application/vnd.clld.phyloxml+xml'
     send_mimetype = 'application/xml'
     extension = 'phylo.xml'

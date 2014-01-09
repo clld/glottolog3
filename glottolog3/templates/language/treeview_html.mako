@@ -30,6 +30,14 @@
 % endif
 
 <div id="svgCanvas"> </div>
+<p>
+    <small class="muted">
+        This tree is rendered using jsPhyloSVG. See
+        <br>
+        Smits SA, Ouverney CC, 2010 jsPhyloSVG: A Javascript Library for Visualizing Interactive and Vector-Based Phylogenetic Trees on the Web.
+        PLoS ONE 5(8): e12267. doi:10.1371/journal.pone.0012267
+    </small>
+</p>
 <script type="text/javascript">
     $(document).ready(function(){
         Smits.PhyloCanvas.Render.Parameters.Rectangular.alignRight = true;

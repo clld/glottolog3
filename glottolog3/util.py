@@ -307,17 +307,8 @@ def get_icon_map(request, context):
     return icon_map
 
 
-def get_treefile_url(request, languoid):
-    filename = 'tree-%s-newick.txt' % languoid.id
-    tree_dir = path(glottolog3.__file__).dirname().joinpath('static', 'trees')
-    if tree_dir.joinpath(filename).exists():
-        return request.static_url('glottolog3:static/trees/' + filename)
-
-
 def language_detail_html(request=None, context=None, **kw):
-    return dict(
-        icon_map=get_icon_map(request, context),
-        treefile=get_treefile_url(request, context))
+    return dict(icon_map=get_icon_map(request, context))
 
 
 def language_bigmap_html(request=None, context=None, **kw):

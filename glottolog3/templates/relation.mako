@@ -21,21 +21,10 @@
 
 
 <div class="text">
-<h4>
-SpaceTree with on-demand nodes
-</h4>
-
-            This example shows how you can use the <b>request</b> controller method to create a SpaceTree with <b>on demand</b> nodes<br /><br />
-            The basic JSON Tree structure is cloned and appended on demand on each node to create an <b>infinite large SpaceTree</b><br /><br />
-            You can select the <b>tree orientation</b> by changing the select box in the right column.
-
+<h4>How are two languoids related?</h4>
 </div>
 
 <div id="id-list"></div>
-
-
-<div style="text-align:center;"><a href="example2.code.html">See the Example Code</a></div>
-</div>
 
 <div id="center-container">
     <div id="infovis"></div>
@@ -43,40 +32,6 @@ SpaceTree with on-demand nodes
 
 <div id="right-container">
 
-<h4>Change Tree Orientation</h4>
-<table>
-    <tr>
-        <td>
-            <label for="r-left">left </label>
-        </td>
-        <td>
-            <input type="radio" id="r-left" name="orientation" checked="checked" value="left" />
-        </td>
-    </tr>
-    <tr>
-         <td>
-            <label for="r-top">top </label>
-         </td>
-         <td>
-            <input type="radio" id="r-top" name="orientation" value="top" />
-         </td>
-    <tr>
-         <td>
-            <label for="r-bottom">bottom </label>
-          </td>
-          <td>
-            <input type="radio" id="r-bottom" name="orientation" value="bottom" />
-          </td>
-    </tr>
-    <tr>
-          <td>
-            <label for="r-right">right </label>
-          </td>
-          <td>
-           <input type="radio" id="r-right" name="orientation" value="right" />
-          </td>
-    </tr>
-</table>
 <script>
 var labelType, useGradients, nativeTextSupport, animate;
 
@@ -94,8 +49,6 @@ var labelType, useGradients, nativeTextSupport, animate;
   useGradients = nativeCanvasSupport;
   animate = !(iStuff || !nativeCanvasSupport);
 })();
-
-
 
 function init(data, center){
     //Implement a node rendering function called 'nodeline' that plots a straight line

@@ -54,6 +54,7 @@
 
 <div class="row-fluid">
     <div class="span8">
+        <div style="float: right; margin-top: 20px;">${h.alt_representations(req, ctx, doc_position='left', exclude=['bigmap.html', 'snippet.html'])|n}</div>
         <h3>${ctx} ${h.contactmail(req, ctx, title='report a problem')}</h3>
         % if request.admin:
         <a href="http://vmext24-203.gwdg.de/glottologcurator/languages/${ctx.id}" class="btn"><i class="icon icon-wrench"> </i> glottologcurator</a>
@@ -61,13 +62,6 @@
         % if ctx.active:
         <div class="treeview well well-small">
             ${nodes(list(reversed([ctx] + list(ctx.get_ancestors()))), 0)}
-            % if treefile:
-            <p>
-                You may download the
-                <a href="${treefile}" title="download family tree in Newick format">Family tree</a> in
-                ${h.external_link('http://en.wikipedia.org/wiki/Newick_format', label='Newick format')}
-            </p>
-            % endif
         </div>
         <script>
         $(document).ready(function() {
