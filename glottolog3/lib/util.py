@@ -48,7 +48,7 @@ def get_map(type_):
     elif type_ == Macroarea:
         map_ = _get_map(Macroarea)
         map_['Middle America'] = map_['North America']
-        map_['Papua'] = map_['Pacific']
+        map_['Papua'] = map_['Papunesia']
         map_['Afria'] = map_['Africa']
     elif type_ == Doctype:
         map_ = _get_map(Doctype)
