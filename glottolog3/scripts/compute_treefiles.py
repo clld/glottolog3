@@ -102,9 +102,9 @@ def main(args):  # pragma: no cover
     trees = []
 
     def label_func(lang):
-        label = '%s [%s]' % (lang.name, l.id)
-        if l.hid and len(l.hid) == 3:
-            label += '[%s]' % l.hid
+        label = '%s [%s]' % (lang.name, lang.id)
+        if lang.hid and len(lang.hid) == 3:
+            label += '[%s]' % lang.hid
         return label
 
     with transaction.manager:
