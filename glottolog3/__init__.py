@@ -55,6 +55,7 @@ def main(global_config, **settings):
         routes=[
             ('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml'),
             ('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')])
+    config.include('clldmpg')
     config.register_menu(
         ('dataset', partial(menu_item, 'dataset', label='Home')),
         ('languages', partial(menu_item, 'languages', label='Languoids')),
