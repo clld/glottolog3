@@ -228,15 +228,24 @@ class Languoid(Language, CustomModelMixin):
             .filter(Superseded.languoid_pk == self.pk)\
             .filter(Superseded.replacement_pk == Languoid.pk)
 
-    def get_ancestors(self):
+    def get_ancestors(self, session=None):
         """
         :return: Generator yielding the line of ancestors of self back to the top-level\
         family.
         """
-        languoid = self
-        while languoid.father:
-            languoid = languoid.father
-            yield languoid
+        session = session or DBSession
+        # retrieve the pks of the ancestors ordered by distance, i.e. from direct parent
+        # to top-level family:
+        pks = [
+            r[0] for r in session.query(TreeClosureTable.parent_pk)
+            .filter(TreeClosureTable.child_pk == self.pk)
+            .order_by(TreeClosureTable.depth)]
+        # store the ancestor objects keyed py pk
+        ancestors = {
+            l.pk: l for l in session.query(Languoid).filter(Languoid.pk.in_(pks))}
+        # yield the ancestors in order
+        for pk in pks:
+            yield ancestors[pk]
 
     def __json__(self, req=None):
         def ancestor(l):
