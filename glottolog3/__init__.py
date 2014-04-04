@@ -136,6 +136,9 @@ def main(global_config, **settings):
             getattr(views, name),
             renderer=name + '.mako')
 
+    config.add_route('tree', '/tree')
+    config.add_view(views.tree, route_name='tree', renderer='language/tree_html.mako')
+
     config.register_map('language', maps.LanguoidMap)
     config.register_datatable('languages', datatables.Families)
     config.register_datatable('sources', datatables.Refs)

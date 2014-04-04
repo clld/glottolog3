@@ -1,5 +1,6 @@
 from datetime import date
 import re
+import json
 
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
@@ -238,3 +239,37 @@ def relation(req):
                 break
             current['children'].append(n)
     return {'data': res, 'center': root.id}
+
+
+def tree(req):
+    tree_ = []
+    children_map = {}
+
+    for row in DBSession.execute("""\
+select
+    ll.father_pk, c.child_pk, l.id, l.name, ll.hid, ll.level, c.depth
+from
+    treeclosuretable as c, language as l, languoid as ll, language as l2
+where
+    ll.status = 'established' and l.active is true
+    and c.parent_pk = l2.pk and c.child_pk = l.pk and c.child_pk = ll.pk
+    and c.parent_pk in (select pk from languoid where father_pk is null)
+order by
+    l2.name, c.depth;"""):
+        fpk, cpk, id_, name, hid, level, depth = row
+
+        label = '%s [%s]' % (name, id_)
+        if level == 'language' and hid and len(hid) == 3:
+            label += '[%s]' % hid
+        node = {'id': id_, 'pk': cpk, 'iso': hid, 'level': level, 'label': label, 'children': []}
+        children_map[cpk] = node['children']
+
+        if not fpk:
+            tree_.append(node)
+        else:
+            if fpk not in children_map:
+                #print fpk, cpk, id, name
+                continue
+            children_map[fpk].append(node)
+
+    return {'tree': json.dumps(tree_)}

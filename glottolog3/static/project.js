@@ -71,3 +71,33 @@ GLOTTOLOG3.descStatsLoadLanguages = function(type, index) {
         {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $("#msfamily").select2("val").join()});
     $("#languages").load(url);
 };
+
+GLOTTOLOG3.Tree = (function(){
+    return {
+        open: function(nodes) {
+            var el, node, top,
+                $tree = $('#tree');
+            nodes = nodes.split(',');
+            for (var i = 0; i < nodes.length; i++) {
+                node = $tree.tree('getNodeById', nodes[i]);
+                el = $(node.element);
+                if (top) {
+                    top = Math.min(el.offset().top, top);
+                } else {
+                    top = el.offset().top;
+                }
+                el.find('span.jqtree-title').addClass('selected');
+                el.css('border-color', 'red !important');
+                while (node.parent) {
+                    $tree.tree('openNode', node.parent);
+                    node = node.parent;
+                    $(node.element).css('border-color', 'red !important');
+                    //$(node.element).find('.jqtree-title').addClass('selected');
+                }
+            }
+            if (top) {
+                $('html, body').animate({scrollTop: top}, 2000);
+            }
+        }
+    }
+})();
