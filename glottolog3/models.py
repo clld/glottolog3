@@ -244,8 +244,9 @@ class Languoid(Language, CustomModelMixin):
         ancestors = {
             l.pk: l for l in session.query(Languoid).filter(Languoid.pk.in_(pks))}
         # yield the ancestors in order
-        for pk in pks:
-            yield ancestors[pk]
+        for i, pk in enumerate(pks):
+            if i:
+                yield ancestors[pk]
 
     def __json__(self, req=None):
         def ancestor(l):
