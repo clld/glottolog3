@@ -86,7 +86,7 @@ GLOTTOLOG3.Tree = (function(){
                 } else {
                     top = el.offset().top;
                 }
-                el.find('span.jqtree-title').addClass('selected');
+                el.find('span.jqtree-title').first().addClass('selected'); // TODO: only highlight the first node!
                 el.css('border-color', 'red !important');
                 while (node.parent) {
                     $tree.tree('openNode', node.parent);
