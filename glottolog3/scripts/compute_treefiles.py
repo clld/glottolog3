@@ -102,21 +102,36 @@ def main(args):  # pragma: no cover
     trees = []
 
     def label_func(lang):
-        label = '%s [%s]' % (lang.name, lang.id)
+        # replace , and () in language names.
+        label = '%s [%s]' % (
+            lang.name.replace(',', '/').replace('(', '{').replace(')', '}'), lang.id)
         if lang.hid and len(lang.hid) == 3:
             label += '[%s]' % lang.hid
         return label
 
     with transaction.manager:
+        # loop over top-level families and isolates
         for l in DBSession.query(Languoid)\
                 .filter(Language.active)\
                 .filter(Languoid.status == LanguoidStatus.established)\
                 .filter(Languoid.father_pk == None):
-            # create tree, loop over children
-            tree = Tree(root=Clade(name=label_func(l), branch_length=1), id=l.id, name=label_func(l))
+            tree = Tree(
+                root=Clade(name=label_func(l), branch_length=1),
+                id=l.id,
+                name=label_func(l))
+
+            if l.level != LanguoidLevel.family:
+                # put isolates into a dummy family of their own!
+                subclade = Clade(branch_length=1, name=label_func(l))
+                tree.root.clades.append(subclade)
+            else:
+                subclade = tree.root
+
+            add_children(subclade, l, label_func)
+
             #phyloxml = PhyloXML(l, args.env['request'])
             #phyloxml.write(args.module_dir.joinpath('static', 'trees', 'tree-%s-phylo.xml' % l.id))
-            add_children(tree.root, l, label_func)
+
             trees.append(tree)
             newick(args, tree, l)
 
