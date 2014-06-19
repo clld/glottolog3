@@ -26,7 +26,7 @@ from glottolog3.models import (
     Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
     LanguoidStatus,
 )
-from glottolog3.maps import LanguoidsMap
+from glottolog3.maps import LanguoidsMap, LanguoidMap
 
 
 REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
@@ -182,25 +182,41 @@ def provider_index_html(request=None, **kw):
 
 
 def format_classificationcomment(req, comment):
+    """
+    We collect source ids found in comment, retrieve the corresponding source objects from
+    the database in a single query and then replace the ids with formatted source links.
+    """
     parts = []
+    sources = {}
     pos = 0
     for match in REF_PATTERN.finditer(comment):
         preceding = comment[pos:match.start()]
         parts.append(preceding)
-        preceding_words = preceding.strip().split()
-        if preceding_words and preceding_words[-1] not in ['in', 'of', 'per', 'by']:
+        add_braces = \
+            (preceding.strip().split() or ['aaa'])[-1] not in ['in', 'of', 'per', 'by']
+        if add_braces:
             parts.append('(')
-        parts.append(link(req, Source.get(match.group('id'))))
-        if preceding_words and preceding_words[-1] not in ['in', 'of', 'per', 'by']:
+        parts.append(match.group('id'))
+        sources[match.group('id')] = None
+        if add_braces:
             parts.append(')')
         pos = match.end()
     parts.append(comment[pos:])
-    return HTML.p(*parts)
+
+    for source in DBSession.query(Source).filter(Source.id.in_(sources.keys())):
+        sources[source.id] = source
+
+    return HTML.p(*[link(req, sources[p]) if p in sources else p for p in parts] )
 
 
 def format_justifications(req, refs):
+    seen = {}
     r = []
     for ref in refs:
+        key = (ref.source.pk, ref.description)
+        if key in seen:
+            continue
+        seen[key] = 1
         label = ref.source.name
         if ref.description:
             label += '[%s]' % ref.description
@@ -298,21 +314,21 @@ COLORS = [
 ]
 
 
-def get_icon_map(request, context):
+def get_map(request, context):
     icon_map = dict(
         zip([context.pk] + [l.pk for l in context.children],
             cycle([s + c for s in SHAPES for c in COLORS])))
     for key in icon_map:
         icon_map[key] = request.registry.getUtility(IIcon, icon_map[key]).url(request)
-    return icon_map
+    return dict(icon_map=icon_map, lmap=LanguoidMap(context, request, icon_map=icon_map))
 
 
 def language_detail_html(request=None, context=None, **kw):
-    return dict(icon_map=get_icon_map(request, context))
+    return get_map(request, context)
 
 
 def language_bigmap_html(request=None, context=None, **kw):
-    return dict(icon_map=get_icon_map(request, context))
+    return get_map(request, context)
 
 
 def language_snippet_html(request=None, context=None, **kw):

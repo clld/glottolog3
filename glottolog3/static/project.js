@@ -73,10 +73,65 @@ GLOTTOLOG3.descStatsLoadLanguages = function(type, index) {
 };
 
 GLOTTOLOG3.Tree = (function(){
+    var map_marker = function(node){
+        return '<img src="'+node.map_marker+'" height="20" width="20">'
+    };
+
+    var marker_toggle = function(node){
+        var html = '<label class="checkbox inline" style="padding-top: 0;" title="click to toggle markers">';
+        html += '<input style="display: none;" type="checkbox" onclick="GLOTTOLOG3.filterMarkers(this);" ';
+        html += 'class="checkbox inline" checked="checked" value="'+node.pk+'">';
+        html += map_marker(node);
+        html += '</label>';
+        return html
+    };
+
     return {
-        open: function(nodes) {
+        init: function(eid, data, nid) {
+            $('#'+eid).tree({autoOpen: false, data: data, onCreateLi: GLOTTOLOG3.Tree.node});
+            if (nid){
+                GLOTTOLOG3.Tree.open(eid, nid);
+            }
+        },
+        node: function(node, li) {
+            var title = li.find('.jqtree-title');
+            title.addClass('level-'+node.level);
+            title.html(GLOTTOLOG3.languoidLink(node));
+            if (node.map_marker){
+                if (node.child){
+                    title.after(marker_toggle(node));
+                } else {
+                    title.after(map_marker(node));
+                }
+            }
+        },
+        close: function(eid) {
+            var $tree = $('#' + eid);
+            $tree.tree('getTree').iterate(
+                function (node, level) {
+                    $tree.tree('closeNode', node);
+                    return true;
+                }
+            );
+            return;
+        },
+        open: function(eid, nodes, scroll) {
             var el, node, top,
-                $tree = $('#tree');
+                $tree = $('#'+eid);
+
+            if (!nodes) {
+                $tree.tree('getTree').iterate(
+                    function (node, level) {
+                        if (!node.hasChildren()) {
+                            $tree.tree('selectNode', node);
+                            return false;
+                        }
+                        return true;
+                    }
+                );
+                $tree.tree('selectNode', null);
+                return;
+            }
             nodes = nodes.split(',');
             for (var i = 0; i < nodes.length; i++) {
                 node = $tree.tree('getNodeById', nodes[i]);
@@ -86,18 +141,31 @@ GLOTTOLOG3.Tree = (function(){
                 } else {
                     top = el.offset().top;
                 }
-                el.find('span.jqtree-title').first().addClass('selected'); // TODO: only highlight the first node!
-                el.css('border-color', 'red !important');
+                el.find('span.jqtree-title').first().addClass('selected');
+                $tree.tree('openNode', node);
                 while (node.parent) {
                     $tree.tree('openNode', node.parent);
                     node = node.parent;
-                    $(node.element).css('border-color', 'red !important');
-                    //$(node.element).find('.jqtree-title').addClass('selected');
+                    $(node.element).find('span.jqtree-title').first().addClass('lineage');
                 }
             }
-            if (top) {
-                $('html, body').animate({scrollTop: top}, 2000);
+            if (top && scroll) {
+                $('html, body').animate({scrollTop: top}, 500);
             }
         }
     }
 })();
+
+GLOTTOLOG3.languoidLink = function(spec){
+    var cls = 'Language',
+        title = spec.name,
+        href = CLLD.route_url('language', {'id': spec.id});
+    spec = spec === undefined ? {} : spec;
+    if (spec.status) {
+        cls += ' ' + spec.status;
+        if (spec.status != 'established'){
+            title += ' - ' + spec.status;
+        }
+    }
+    return '<a href="'+href+'" class="'+cls+'" title="'+title+'">'+spec.name+'</a>';
+};

@@ -2,7 +2,6 @@
 <%namespace name="util" file="../util.mako"/>
 <%! multirow = True %>
 
-<% request.map.icon_map = icon_map %>
 <%block name="title">${ctx}</%block>
 
 <%block name="head">
@@ -17,13 +16,10 @@
     <li class="active">${h.link(request, ctx)}</li>
 </ul>
 
-<h3>${ctx} ${h.contactmail(req, ctx, title='report a problem')}</h3>
-
 <div class="codes pull-right">
-    <span class="label label-info">Glottocode: ${ctx.id}</span>
-    % if ctx.iso_code:
-    <span class="large label label-info">ISO 639-3: ${h.external_link('http://www.sil.org/iso639-3/documentation.asp?id=' + ctx.iso_code, inverted=True, label=ctx.iso_code, style="color: white;")}</span>
-    % endif
+    ${util.codes()}
 </div>
 
-${request.map.render()}
+<h3>${ctx} ${h.contactmail(req, ctx, title='report a problem')}</h3>
+
+${lmap.render()}

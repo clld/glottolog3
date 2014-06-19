@@ -245,6 +245,9 @@ def tree(req):
     tree_ = []
     children_map = {}
 
+    #
+    # TODO: trees restricted to just one top-level family!
+    #
     for row in DBSession.execute("""\
 select
     ll.father_pk, c.child_pk, l.id, l.name, ll.hid, ll.level, c.depth

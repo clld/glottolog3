@@ -27,7 +27,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from clld.interfaces import ISource, ILanguage
 from clld.db.meta import DBSession, Base, CustomModelMixin
 from clld.db.models.common import (
-    Language, Source, HasSourceMixin, IdNameDescriptionMixin, IdentifierType,
+    Language, Source, HasSourceMixin, IdNameDescriptionMixin, IdentifierType, Identifier,
 )
 from clld.web.util.htmllib import literal
 from clld.lib import bibtex
@@ -223,6 +223,14 @@ class Languoid(Language, CustomModelMixin):
         order_by='Country.name',
         backref=backref('languoids', order_by='Languoid.name, Languoid.id'))
 
+    def get_identifier_objs(self, type_):
+        if getattr(type_, 'value', type_) == IdentifierType.glottolog.value:
+            return [
+                Identifier(name=self.id, type=IdentifierType.glottolog.value)]
+        #elif type_ == IdentifierType.iso and :
+        #    return
+        return Language.get_identifier_objs(self, type_)
+
     def get_replacements(self):
         return DBSession.query(Languoid, Superseded.relation)\
             .filter(Superseded.languoid_pk == self.pk)\
@@ -309,7 +317,8 @@ class Languoid(Language, CustomModelMixin):
 
     @property
     def crefs(self):
-        return self._crefs('fc') + self.screfs
+        return sorted(
+            self._crefs('fc') + self.screfs, key=lambda r: -(r.source.year_int or 0))
 
     @property
     def screfs(self):
@@ -347,6 +356,44 @@ class Languoid(Language, CustomModelMixin):
             yield 'skos:changeNote', 'obsolete'
         if self.status:
             yield 'skos:editorialNote', self.status.description
+
+    def jqtree(self, icon_map=None):
+        tree_ = []
+        children_map = {}
+        children_of_self = [c.pk for c in self.children]
+
+        for row in DBSession.execute("""\
+select
+    ll.father_pk, c.child_pk, l.id, l.name, l.latitude, ll.hid, ll.level, ll.status, c.depth
+from
+    treeclosuretable as c, language as l, languoid as ll, language as l2
+where
+    l.active is true
+    and c.parent_pk = l2.pk and c.child_pk = l.pk and c.child_pk = ll.pk
+    and c.parent_pk = %s
+order by
+    l2.name, c.depth, l.name;""" % (self.family_pk or self.pk,)):
+            fpk, cpk, id_, name, lat, hid, level, status, depth = row
+
+            label = '%s [%s]' % (name, id_)
+            if level == 'language' and hid and len(hid) == 3:
+                label += '[%s]' % hid
+            node = {'id': id_, 'pk': cpk, 'iso': hid, 'level': level, 'status': status, 'label': label, 'children': []}
+            if icon_map and id_ == self.id and lat:
+                node['map_marker'] = icon_map[cpk]
+            if cpk in children_of_self:
+                node['child'] = True
+                if icon_map and (level == 'family' or lat):
+                    node['map_marker'] = icon_map[cpk]
+            children_map[cpk] = node['children']
+
+            if not fpk:
+                tree_.append(node)
+            else:
+                if fpk not in children_map:
+                    continue
+                children_map[fpk].append(node)
+        return tree_
 
 
 @implementer(ISource)
