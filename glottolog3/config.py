@@ -102,7 +102,7 @@ CFG = {
             'rdf': "owl:sameAs",
         },
         {
-            'name': 'SIL',
+            'name': 'ISO 639-3',
             'href': lambda l: "http://www.sil.org/iso639-3/documentation.asp?id="
             + l.iso_code,
             'condition': lambda l: l.iso_code,
@@ -125,6 +125,14 @@ CFG = {
             'logo': "wikipedia.png"
         },
         {
+            'name': 'DBpedia',
+            'href': lambda l: "http://dbpedia.org/page/ISO_639:"
+            + l.iso_code,
+            'condition': lambda l: l.iso_code,
+            'rdf': "owl:sameAs",
+            'logo': "dbpedia.png"
+        },
+        {
             'name': 'OLAC',
             'href': lambda l: "http://www.language-archives.org/language/"
             + l.iso_code,
@@ -140,14 +148,14 @@ CFG = {
             'rdf': "owl:sameAs",
             'logo': "multitree.png"
         },
-        {
-            'name': 'MultitreePrivate',
-            'href': lambda l: "http://multitree.linguistlist.org/codes/"
-            + l.get_identifier('multitree'),
-            'condition': lambda l: l.get_identifier('multitree'),
-            'rdf': "rdfs:seeAlso",
-            'logo': "multitree.png"
-        },
+        #{
+        #    'name': 'MultitreePrivate',
+        #    'href': lambda l: "http://multitree.linguistlist.org/codes/"
+        #    + l.get_identifier('multitree'),
+        #    'condition': lambda l: l.get_identifier('multitree'),
+        #    'rdf': "rdfs:seeAlso",
+        #    'logo': "multitree.png"
+        #},
         {
             'name': 'LL-Map',
             'href': lambda l: "http://www.llmap.org/maps/by-code/%s.html"
@@ -204,14 +212,13 @@ CFG = {
             'rdf': "rdfs:seeAlso",
             'condition': lambda l: l.iso_code,
         },
-        #{
-        #    'name': 'Unesco',
-        #'href': "http://www.unesco.org/culture/languages-atlas/en/atlasmap/language-id-",
-        #    'linkcode': "unescoid",
-        #    'linkpostcode': "html",
-        #    'condition': "unescoid",
-        #    'logo': "unesco.png"
-        #},
+        {
+            'name': 'UNESCO Atlas',
+            'href': lambda l: l.jsondatadict['unesco']['url'],
+            'rdf': "rdfs:seeAlso",
+            'condition': lambda l: 'unesco' in l.jsondatadict,
+            'logo': "unesco.jpg"
+        },
         #{
         #{
         #    'name': 'musico',
@@ -221,15 +228,14 @@ CFG = {
         #    'condition': "musico",
         #    'logo': "musico.png"
         #},
-        #{
-        #    'name': 'languagelandscapes',
-        #    'href': "",
-        #    'linkcode': "languagelandscapes",
-        #    'linkpostcode': "",
-        #    'condition': "languagelandscapes",
-        #    'logo': "languagelandscapes.png"
-        #},
-        #{
+        {
+            'name': 'languagelandscapes',
+            'href': lambda l: l.jsondatadict['languagelandscape'],
+            'rdf': "rdfs:seeAlso",
+            'condition': lambda l: 'languagelandscape' in l.jsondatadict,
+            'logo': "languagelandscape.png"
+        },
+        #{ # requires click-through terms-of-use
         #    'name': 'wolp',
         #    'href': "",
         #    'linkcode': "wolp",
@@ -237,7 +243,7 @@ CFG = {
         #    'condition': "wolp",
         #    'logo': "wolp.ico"
         #},
-        #{
+        #{ # coverage not really high as of now
         #    'name': 'scriptsource',
         #    'href': "http://scriptsource.org/lang/",
         #    'linkcode': "iso",
