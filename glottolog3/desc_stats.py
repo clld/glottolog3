@@ -47,34 +47,40 @@ for i, dt in enumerate(DOCTYPES):
 
 
 class DescStatsGeoJson(GeoJson):
+    _icons = {}
+
     def feature_iterator(self, ctx, req):
         return ctx.values()
 
     def featurecollection_properties(self, ctx, req):
         return {'layer': 'desc'}
 
-    def get_icon(self, type_, extinct=False):
+    def get_icon(self, req, type_, extinct=False):
         sdt = SIMPLIFIED_DOCTYPE_MAP[type_]
-        return sdt.color_extinct if extinct else sdt.color
+        color = sdt.color_extinct if extinct else sdt.color
+        if color not in self._icons:
+            self._icons[color] = req.static_url('glottolog3:static/icons/c%s.png' % color)
+        return self._icons[color]
 
     def feature_properties(self, ctx, req, feature):
         # augment the source dicts
         for s in feature['sources']:
-            s['icon'] = self.get_icon(s['doctype'])
-            s['eicon'] = self.get_icon(s['doctype'], feature['extinct'])
+            s['icon'] = self.get_icon(req, s['doctype'])
+            s['eicon'] = self.get_icon(req, s['doctype'], feature['extinct'])
             s['sdt'] = SIMPLIFIED_DOCTYPE_MAP[s['doctype']].ord
 
         med = feature['med']
         return {
             'extinct': feature['extinct'],
-            'icon': self.get_icon(med['doctype'] if med else None),
+            'icon': self.get_icon(req, med['doctype'] if med else None),
             'eicon': self.get_icon(
+                req,
                 med['doctype'] if med else None, extinct=feature['extinct']),
             'med': med['id'] if med else None,
             'sdt': SIMPLIFIED_DOCTYPE_MAP[med['doctype'] if med else None].ord,
             'info_query': {'source': med['id']} if med else {},
-            'red_icon': self.get_icon(None),
-            'red_eicon': self.get_icon(None, extinct=feature['extinct']),
+            'red_icon': self.get_icon(req, None),
+            'red_eicon': self.get_icon(req, None, extinct=feature['extinct']),
             'sources': feature['sources']}
 
     def get_language(self, ctx, req, feature):
