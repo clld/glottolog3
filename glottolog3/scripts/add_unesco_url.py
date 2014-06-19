@@ -11,7 +11,6 @@ from glottolog3.models import Languoid
 
 
 DATA_FILE = 'unesco_atlas_languages_limited_dataset.csv'
-BASE_URL = 'http://languagelandscape.org'
 """
 ID
 Name in English

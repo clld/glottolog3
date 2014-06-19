@@ -2,7 +2,7 @@ import re
 import json
 
 import transaction
-from sqlalchemy import sql, desc, not_
+from sqlalchemy import sql, desc, not_, or_
 from sqlalchemy.orm import joinedload
 
 from clld.db.meta import DBSession
@@ -67,33 +67,62 @@ def get_obsolete_refs(args):
 def match_obsolete_refs(args):
     with open(args.data_file(args.version, 'obsolete_refs.json')) as fp:
         refs = json.load(fp)
+    matched = args.data_file(args.version, 'obsolete_refs_matched.json')
+    if matched.exists():
+        with open(matched) as fp:
+            matched = json.load(fp)
+    else:
+        matched = {}
 
+    #
+    # TODO: optionally re-evaluate known-unmatched refs!
+    #
+
+    count = 0
     f, m = 0, 0
     for id_ in refs:
+        if id_ in matched:
+            continue
+        count += 1
+        if count > 1000:
+            print '1000 obsolete refs processed!'
+            break
         ref = Ref.get(id_)
         found = False
-        for match in DBSession.query(Ref)\
-            .filter(not_(Source.id.in_(refs)))\
-            .filter(Source.description.contains(ref.description)):
-            if (match.author == ref.author) or (match.year == ref.year):
+        if ref.description and len(ref.description) > 5:
+            for match in DBSession.query(Ref)\
+                    .filter(not_(Source.id.in_(refs)))\
+                    .filter(Source.description.contains(ref.description))\
+                    .filter(or_(Source.author == ref.author, Source.year == ref.year))\
+                    .limit(10):
                 print '++', ref.id, '->', match.id, '++', ref.author, '->', match.author, '++', ref.year, '->', match.year
+                matched[ref.id] = match.id
                 found = True
                 break
-        if not found:
-            for match in DBSession.query(Ref)\
-                .filter(not_(Source.id.in_(refs)))\
-                .filter(Source.name == ref.name):
-                if match.description and ref.description and slug(match.description) == slug(ref.description):
-                    print '++', ref.id, '->', match.id, '++', ref.description, '->', match.description
-                    found = True
-                    break
+            if not found and ref.name and len(ref.name) > 5:
+                for match in DBSession.query(Ref)\
+                        .filter(not_(Source.id.in_(refs)))\
+                        .filter(Source.name == ref.name)\
+                        .limit(10):
+                    try:
+                        if match.description and ref.description and slug(match.description) == slug(ref.description):
+                            print '++', ref.id, '->', match.id, '++', ref.description, '->', match.description
+                            matched[ref.id] = match.id
+                            found = True
+                            break
+                    except AssertionError:
+                        continue
         if not found:
             m += 1
             print '--', ref.id, ref.name, ref.description
+            matched[ref.id] = None
         else:
             f += 1
     print f, 'found'
     print m, 'missed'
+
+    with open(args.data_file(args.version, 'obsolete_refs_matched.json'), 'w') as fp:
+        json.dump(matched, fp)
 
 
 def get_lgcodes(ref):

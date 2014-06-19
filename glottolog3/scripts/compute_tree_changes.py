@@ -246,7 +246,7 @@ def match_nodes(leafs, nodes, rnodes, urnodes, leafsets, names):
 
 def main(args):
     active_only = not args.all
-    coords = dict((r[0], r[1:]) for r in dsv.rows(data_file(args, 'coordinates.tab')))
+    coords = dict((r[0], r[1:]) for r in dsv.reader(data_file(args, 'coordinates.tab')))
     codes = dict((row[0], row[1]) for row in
                  DBSession.execute("select ll.hid, l.pk from languoid as ll, language as l where ll.pk = l.pk and ll.hid is not null"))
 
@@ -324,8 +324,10 @@ def main(args):
         try:
             assert leafs
         except:
+            print 'Family with only new languages!!'
             print family
-            raise
+            continue
+            #raise
         if leafs in rnodes:
             # so we have already seen this exact set of leaves.
             #
@@ -400,10 +402,20 @@ def main(args):
         if m.hid:
             if m.hid in branch_to_pk:
                 if branch_to_pk[m.hid] != m.pk:
-                    print m.hid
-                    print branch_to_pk[m.hid]
-                    print m.pk
-                    raise ValueError
+                    # compare names:
+                    if lnames[m.pk] == m.hid[-1]:
+                        print '#### type1'
+                        branch_to_pk[m.hid] = m.pk
+                    elif lnames[branch_to_pk[m.hid]] == m.hid[-1]:
+                        print '#### type2'
+                        pass
+                    else:
+                        print m.hid
+                        print m.hid[-1]
+                        print lnames[m.pk]
+                        print branch_to_pk[m.hid]
+                        print m.pk
+                        raise ValueError
             else:
                 #assert m.hid not in branch_to_pk
                 branch_to_pk[m.hid] = m.pk
