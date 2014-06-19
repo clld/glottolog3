@@ -3,12 +3,13 @@ from json import load
 
 from pyramid.response import Response
 from pyramid.httpexceptions import HTTPGone
+from sqlalchemy.orm import joinedload, joinedload_all
 from path import path
 from clld.interfaces import IMenuItems, ILanguage, ICtxFactoryQuery
 from clld.web.app import menu_item, get_configurator, CtxFactoryQuery
 from clld.web.adapters.base import adapter_factory, Index
 from clld.web.adapters.download import CsvDump, N3Dump, Download, RdfXmlDump
-from clld.db.models.common import Language, Source
+from clld.db.models.common import Language, Source, ValueSet, ValueSetReference
 
 import glottolog3
 from glottolog3 import views
@@ -22,6 +23,17 @@ from glottolog3 import desc_stats
 
 
 class GLCtxFactoryQuery(CtxFactoryQuery):
+    def refined_query(self, query, model, req):
+        if model == Language:
+            query = query.options(
+                joinedload(models.Languoid.family),
+                joinedload(models.Languoid.children),
+                #joinedload_all(Language.valuesets, ValueSet.parameter),
+                joinedload_all(
+                    Language.valuesets, ValueSet.references, ValueSetReference.source)
+            )
+        return query
+
     def __call__(self, model, req):
         if model == Language:
             # responses for no longer supported legacy codes
