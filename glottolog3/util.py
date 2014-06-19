@@ -236,7 +236,7 @@ def getLanguoids(name=False,
         return []
 
     query = DBSession.query(Languoid)\
-        .options(joinedload(Language.sources), joinedload(Languoid.family))\
+        .options(joinedload(Languoid.family))\
         .order_by(Languoid.name)
 
     if not inactive:

@@ -70,7 +70,6 @@
             ##<th>Type</th>
             ##<th>Status</th>
             <th>Family</th>
-            <th># refs</th>
         </%def>
         <td>${h.link(request, item, label=item.id)}</td>
         <td class="level-${item.level.value}">${h.link(request, item)}</td>
@@ -78,7 +77,6 @@
         ##<td>${item.status or ''}</td>
         <td>${u.languoid_link(request, item.family) if item.family else ''}</td>
         ##<td>${', '.join(n.name for n in item.identifiers if n.type == 'iso639-3')}</td>
-        <td class="right">${len(item.sources)}</td>
     </%util:table>
     % endif
 </div>

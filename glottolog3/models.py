@@ -256,16 +256,17 @@ class Languoid(Language, CustomModelMixin):
             if i:
                 yield ancestors[pk]
 
-    def __json__(self, req=None):
+    def __json__(self, req=None, core=False):
         def ancestor(l):
             r = {"name": l.name, "id": l.id}
             if req:
                 r['url'] = req.resource_url(l)
             return r
         res = super(Languoid, self).__json__(req)
-        res['classification'] = [ancestor(l) for l in reversed(list(self.get_ancestors()))]
-        if self.iso_code:
-            res[IdentifierType.iso.value] = self.iso_code
+        if not core:
+            res['classification'] = [ancestor(l) for l in reversed(list(self.get_ancestors()))]
+            if self.iso_code:
+                res[IdentifierType.iso.value] = self.iso_code
         return res
 
     def get_geocoords(self):
@@ -364,7 +365,7 @@ class Languoid(Language, CustomModelMixin):
 
         for row in DBSession.execute("""\
 select
-    ll.father_pk, c.child_pk, l.id, l.name, l.latitude, ll.hid, ll.level, ll.status, c.depth
+    ll.father_pk, c.child_pk, l.id, l.name, l.latitude, ll.hid, ll.level, ll.status, ll.child_language_count, c.depth
 from
     treeclosuretable as c, language as l, languoid as ll, language as l2
 where
@@ -373,11 +374,14 @@ where
     and c.parent_pk = %s
 order by
     l2.name, c.depth, l.name;""" % (self.family_pk or self.pk,)):
-            fpk, cpk, id_, name, lat, hid, level, status, depth = row
+            fpk, cpk, id_, name, lat, hid, level, status, clc, depth = row
 
-            label = '%s [%s]' % (name, id_)
-            if level == 'language' and hid and len(hid) == 3:
-                label += '[%s]' % hid
+            label = name
+            if clc:
+                label += ' (%s)' % clc
+            #label = '%s [%s]' % (name, id_)
+            #if level == 'language' and hid and len(hid) == 3:
+            #    label += '[%s]' % hid
             node = {'id': id_, 'pk': cpk, 'iso': hid, 'level': level, 'status': status, 'label': label, 'children': []}
             if icon_map and id_ == self.id and lat:
                 node['map_marker'] = icon_map[cpk]

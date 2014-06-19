@@ -1,19 +1,24 @@
 from cStringIO import StringIO
 from xml.etree import cElementTree as et
 import codecs
+from itertools import cycle
 
 from path import path
 from sqlalchemy.orm import joinedload_all
 from pyramid.httpexceptions import HTTPFound
-from pyramid.renderers import render as pyramid_render
 
+from clld.interfaces import ILanguage, IIndex
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump
+from clld.web.adapters.geojson import pacific_centered_coordinates
+from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.meta import DBSession
 from clld.db.models.common import Language, LanguageIdentifier
+from clld.web.icon import ORDERED_ICONS
 
 import glottolog3
-from glottolog3.models import LanguoidLevel
+from glottolog3.models import LanguoidLevel, Languoid
+from glottolog3.interfaces import IProvider
 
 
 def _lang_query():
@@ -134,25 +139,52 @@ class PhyloXML(Representation):
             clade.append(subclade)
 
 
-class Jit(Representation):
-    mimetype = 'application/vnd.clld.jit+json'
-    send_mimetype = 'application/json'
-    extension = 'jit.json'
+class _GeoJsonSelectedLanguages(GeoJsonSelectedLanguages):
+    def get_coordinates(self, language):
+        return pacific_centered_coordinates(language)
 
-    @staticmethod
-    def node(l, depth, limit=None):
+    def _feature_properties(self, ctx, req, feature, language):
+        res = {
+            'icon': ctx[language.family_pk],
+            'language': language.__json__(req, core=True),
+        }
+        res.update(self.feature_properties(ctx, req, feature) or {})
+        return res
+
+
+class _SelectedLanguagesMap(SelectedLanguagesMap):
+    def __init__(self, req, languages, icon_map):
+        SelectedLanguagesMap.__init__(
+            self, icon_map, req, languages, geojson_impl=_GeoJsonSelectedLanguages)
+
+
+class MapView(Index):
+    extension = str('map.html')
+    mimetype = str('text/vnd.clld.map+html')
+    send_mimetype = str('text/html')
+    template = 'language/map_html.mako'
+
+    def template_context(self, ctx, req):
+        languages = list(ctx.get_query(limit=8000))
+        icon_map = {}
+        family_map = {}
+        icons = cycle(ORDERED_ICONS)
+        for l in languages:
+            if l.family_pk not in icon_map:
+                icon_map[l.family_pk] = icons.next().url(req)
+                family_map[l.family_pk] = l.family
         return {
-            'id': l.id,
-            'name': l.name,
-            'data': {'level': l.level.value},
-            'children':
-            [Jit.node(c, depth + 1, limit=limit) for c in l.children]
-            if depth < limit else []}
+            'map': _SelectedLanguagesMap(req, languages, icon_map),
+            'icon_map': icon_map,
+            'family_map': family_map,
+            'languages': languages}
 
-    def render(self, root, req, dump=True):
-        depth_limit = req.params.get('depth')
-        if depth_limit:
-            depth_limit = int(depth_limit)
 
-        res = Jit.node(root, 0, limit=depth_limit or 5)
-        return pyramid_render('json', res, request=req) if dump else res
+def includeme(config):
+    config.register_adapter(Redirect, IProvider)
+    config.register_adapter(Bigmap, ILanguage)
+    config.register_adapter(PhyloXML, ILanguage)
+    config.register_adapter(Newick, ILanguage)
+    config.register_adapter(Treeview, ILanguage)
+
+    config.register_adapter(MapView, ILanguage, IIndex)

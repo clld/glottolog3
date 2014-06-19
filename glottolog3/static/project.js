@@ -122,6 +122,9 @@ GLOTTOLOG3.Tree = (function(){
             if (!nodes) {
                 $tree.tree('getTree').iterate(
                     function (node, level) {
+                        if (node.level == 'dialect') {
+                            return true;
+                        }
                         if (!node.hasChildren()) {
                             $tree.tree('selectNode', node);
                             return false;

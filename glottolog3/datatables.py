@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
 
 from sqlalchemy import or_, and_, desc
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import aliased, joinedload, joinedload_all
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
-from clld.db.models.common import Language, LanguageSource, Source
-from clld.web.datatables.base import DataTable, Col
+from clld.db.models.common import Language, LanguageSource, Source, LanguageIdentifier, Identifier
+from clld.web.datatables.base import DataTable, Col, DetailsRowLinkCol, LinkCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.source import Sources
 
@@ -142,7 +142,7 @@ class Families(Languages):
             .outerjoin(Languoidmacroarea)\
             .outerjoin(self.top_level_family, self.top_level_family.pk == Languoid.family_pk)\
             .distinct()\
-            .options(joinedload(Languoid.macroareas))
+            .options(joinedload(Languoid.macroareas), joinedload(Languoid.family))
 
         if self.type == 'families':
             return query.filter(
@@ -156,24 +156,22 @@ class Families(Languages):
         if self.type == 'families':
             return [
                 NameCol(self, 'name'),
-                #StatusCol(self, 'status'),
                 LevelCol(self, 'level'),
                 MacroareaCol(self, 'macro-area'),
                 Col(self, 'child_family_count', model_col=Languoid.child_family_count, sTitle='Sub-families'),
                 Col(self, 'child_language_count', model_col=Languoid.child_language_count, sTitle='Child languages'),
-                #Col(self, 'child_dialect_count', sTitle='Child dialects'),
                 FamilyCol(self, 'top-level family'),
             ]
-        else:
-            return [
-                Col(self, 'id', sTitle='Glottocode'),
-                NameCol(self, 'name'),
-                FamilyCol(self, 'top-level family'),
-                IsoCol(self, 'iso', sTitle='ISO-639-3'),
-                #StatusCol(self, 'status'),
-                MacroareaCol(self, 'macro-area'),
-                Col(self, 'child_dialect_count', sTitle='Child dialects'),
-            ]
+        return [
+            Col(self, 'id', sTitle='Glottocode'),
+            NameCol(self, 'name'),
+            FamilyCol(self, 'top-level family'),
+            IsoCol(self, 'iso', sTitle='ISO-639-3'),
+            MacroareaCol(self, 'macro-area'),
+            Col(self, 'child_dialect_count', sTitle='Child dialects', sClass='right'),
+            Col(self, 'latitude'),
+            Col(self, 'longitude'),
+        ]
 
     def get_options(self):
         opts = super(Families, self).get_options()
@@ -243,11 +241,15 @@ class Refs(Sources):
         return desc(Source.updated)
 
     def col_defs(self):
-        cols = super(Refs, self).col_defs()
-        if self.complexquery:
-            cols = cols[:3]
-        else:
-            cols = cols[:-1]
+        cols = [
+            DetailsRowLinkCol(self, 'd'),
+            LinkCol(self, 'name'),
+            Col(self, 'description', sTitle='Title'),
+        ]
+
+        if not self.complexquery:
+            cols.append(Col(self, 'year', model_col=Source.year_int))
+            cols.append(Col(self, 'pages', model_col=Source.pages_int))
 
         cols.append(DoctypeCol(self, 'doctype'))
         cols.append(ProviderCol(self, 'provider'))
