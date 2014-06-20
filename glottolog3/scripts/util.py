@@ -24,6 +24,35 @@ from glottolog3.models import (
 WORD_PATTERN = re.compile('[a-z]+')
 SQUARE_BRACKET_PATTERN = re.compile('\[(?P<content>[^\]]+)\]')
 CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_[A-Za-z\-]+)$')
+PAGES_PATTERN = re.compile('(?P<start>[0-9]+)\s*\-\-?\s*(?P<end>[0-9]+)')
+
+
+def compute_pages(pages):
+    start = None
+    end = None
+    number = None
+    match = None
+
+    for match in PAGES_PATTERN.finditer(pages):
+        s_start, s_end = match.group('start'), match.group('end')
+        if len(s_end) < len(s_start):
+            # the case 516-32:
+            s_end = s_start[:-len(s_end)] + s_end
+        if int(s_end) < int(s_start):
+            # the case 532-516:
+            s_end, s_start = s_start, s_end
+        if start is None:
+            start = int(s_start)
+        end = int(s_end)
+        number = (number or 0) + (end - int(s_start) + 1)
+
+    if not match:
+        try:
+            start = int(pages)
+        except ValueError:
+            pass
+
+    return (start, end, number)
 
 
 def update_relationship(col, new, log=None, log_only=False):

@@ -19,7 +19,7 @@ from glottolog3.models import (
     Ref, Provider, Refprovider, Macroarea, Doctype, Country, Languoid,
 )
 from glottolog3.lib.util import get_map
-from glottolog3.scripts.util import update_providers, update_relationship, update_reflang
+from glottolog3.scripts.util import update_providers, update_relationship, update_reflang, compute_pages
 
 # id
 # bibtexkey
@@ -194,7 +194,6 @@ ROMAN = '(?P<roman>[ivxlcdmIVXLCDM]+)'
 ARABIC = '(?P<arabic>[0-9]+)'
 ROMANPAGESPATTERNra = re.compile(u'%s\+%s' % (ROMAN, ARABIC))
 ROMANPAGESPATTERNar = re.compile(u'%s\+%s' % (ARABIC, ROMAN))
-PAGES_PATTERN = re.compile('(?P<start>[0-9]+)\s*\-\-?\s*(?P<end>[0-9]+)')
 DOCTYPE_PATTERN = re.compile('(?P<name>[a-z\_]+)\s*(\((?P<comment>[^\)]+)\))?\s*(\;|$)')
 CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
 
@@ -294,25 +293,13 @@ def main(args):  # pragma: no cover
                         kw['pages_int'] = roman_to_int(match.group('roman')) \
                             + int(match.group('arabic'))
                 else:
-                    start = None
-                    number = None
-                    match = None
-
-                    for match in PAGES_PATTERN.finditer(pages):
-                        if start is None:
-                            start = int(match.group('start'))
-                        number = (number or 0) \
-                            + (int(match.group('end')) - int(match.group('start')) + 1)
-
-                    if match:
-                        kw['endpage_int'] = int(match.group('end'))
+                    start, end, number = compute_pages(pages)
+                    if start is not None:
                         kw['startpage_int'] = start
-                        kw.setdefault('pages_int', number)
-                    else:
-                        try:
-                            kw['startpage_int'] = int(pages)
-                        except ValueError:
-                            pass
+                    if end is not None:
+                        kw['endpage_int'] = end
+                    if number is not None:
+                        kw['pages_int'] = number
 
             if update:
                 for k in kw.keys():
