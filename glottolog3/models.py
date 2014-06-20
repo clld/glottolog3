@@ -375,6 +375,8 @@ where
 order by
     l2.name, c.depth, l.name;""" % (self.family_pk or self.pk,)):
             fpk, cpk, id_, name, lat, hid, level, status, clc, depth = row
+            if hid and len(hid) != 3:
+                hid = None
 
             label = name
             if clc:

@@ -1,14 +1,13 @@
 from functools import partial
 from json import load
 
-from pyramid.response import Response
 from pyramid.httpexceptions import HTTPGone
 from sqlalchemy.orm import joinedload, joinedload_all
 from path import path
-from clld.interfaces import IMenuItems, ILanguage, ICtxFactoryQuery
+from clld.interfaces import ICtxFactoryQuery
 from clld.web.app import menu_item, get_configurator, CtxFactoryQuery
 from clld.web.adapters.base import adapter_factory, Index
-from clld.web.adapters.download import CsvDump, N3Dump, Download, RdfXmlDump
+from clld.web.adapters.download import N3Dump, Download
 from clld.db.models.common import Language, Source, ValueSet, ValueSetReference
 
 import glottolog3
@@ -16,7 +15,6 @@ from glottolog3 import views
 from glottolog3 import models
 from glottolog3 import maps
 from glottolog3 import adapters
-from glottolog3 import datatables
 from glottolog3.config import CFG
 from glottolog3.interfaces import IProvider
 from glottolog3 import desc_stats
@@ -28,7 +26,6 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
             query = query.options(
                 joinedload(models.Languoid.family),
                 joinedload(models.Languoid.children),
-                #joinedload_all(Language.valuesets, ValueSet.parameter),
                 joinedload_all(
                     Language.valuesets, ValueSet.references, ValueSetReference.source)
             )
@@ -52,7 +49,7 @@ def main(global_config, **settings):
     settings.update(CFG)
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
-        'languages': '/glottolog',
+        'languages': '/glottolog/language',
         'language': '/resource/languoid/id/{id:[^/\.]+}',
         'source': '/resource/reference/id/{id:[^/\.]+}',
         'sources': '/langdoc',
@@ -74,9 +71,10 @@ def main(global_config, **settings):
         ('sources', partial(menu_item, 'sources', label='Langdoc')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
-    config.register_adapter(adapter_factory('provider/index_html.mako', base=Index), IProvider)
-    config.register_datatable('providers', datatables.Providers)
+    config.register_adapter(
+        adapter_factory('provider/index_html.mako', base=Index), IProvider)
 
+    config.include('glottolog3.datatables')
     config.include('glottolog3.adapters')
     config.add_view(views.redirect_languoid_xhtml, route_name='languoid.xhtml')
     config.add_view(views.redirect_reference_xhtml, route_name='reference.xhtml')
@@ -100,9 +98,9 @@ def main(global_config, **settings):
 
     config.add_route_and_view(
         'glottolog.languages',
-        '/glottolog/language',
+        '/glottolog',
         views.languages,
-        renderer='languages.mako')
+        renderer='language/search_html.mako')
 
     config.add_route_and_view(
         'glottolog.childnodes',
@@ -127,13 +125,11 @@ def main(global_config, **settings):
         desc_stats.desc_stats_languages,
         renderer='desc_stats_languages.mako')
 
-
     config.add_route_and_view(
         'relation',
         '/glottolog/relation',
         views.relation,
         renderer='relation.mako')
-
 
     for name in 'credits glossary cite downloads errata contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
@@ -143,12 +139,7 @@ def main(global_config, **settings):
             getattr(views, name),
             renderer=name + '.mako')
 
-    config.add_route('tree', '/tree')
-    config.add_view(views.tree, route_name='tree', renderer='language/tree_html.mako')
-
     config.register_map('language', maps.LanguoidMap)
-    config.register_datatable('languages', datatables.Families)
-    config.register_datatable('sources', datatables.Refs)
 
     config.register_download(adapters.LanguoidCsvDump(
         Language, 'glottolog3', description="Languoids as CSV"))

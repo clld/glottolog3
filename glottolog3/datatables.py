@@ -1,11 +1,11 @@
 from __future__ import unicode_literals
 
 from sqlalchemy import or_, and_, desc
-from sqlalchemy.orm import aliased, joinedload, joinedload_all
+from sqlalchemy.orm import aliased, joinedload
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
-from clld.db.models.common import Language, LanguageSource, Source, LanguageIdentifier, Identifier
+from clld.db.models.common import Language, LanguageSource, Source
 from clld.web.datatables.base import DataTable, Col, DetailsRowLinkCol, LinkCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.source import Sources
@@ -129,7 +129,7 @@ class FamilyCol(Col):
 
 class Families(Languages):
     def __init__(self, req, model, **kw):
-        self.type = kw.pop('type', req.params.get('type', 'families'))
+        self.type = kw.pop('type', req.params.get('type', 'languages'))
         self.top_level_family = aliased(Language)
         super(Families, self).__init__(req, model, **kw)
 
@@ -258,7 +258,8 @@ class Refs(Sources):
     def base_query(self, query):
         if self.language:
             query = query.join(LanguageSource)\
-                .join(TreeClosureTable, TreeClosureTable.child_pk == LanguageSource.language_pk)\
+                .join(TreeClosureTable,
+                      TreeClosureTable.child_pk == LanguageSource.language_pk)\
                 .filter(TreeClosureTable.parent_pk == self.language.pk)\
                 .distinct()
         elif self.complexquery:
@@ -271,3 +272,9 @@ class Refs(Sources):
             query['cq'] = '1'
             query.update(self.complexquery[1])
         return query
+
+
+def includeme(config):
+    config.register_datatable('providers', Providers)
+    config.register_datatable('languages', Families)
+    config.register_datatable('sources', Refs)

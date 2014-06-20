@@ -2,17 +2,10 @@ from json import dumps
 import re
 from itertools import cycle
 
-from path import path
 import colander
-from sqlalchemy import or_, not_, desc
-from sqlalchemy.orm import joinedload, joinedload_all
-from sqlalchemy.sql.expression import func
-from pyramid.httpexceptions import HTTPFound
 
 from clld.db.meta import DBSession
-from clld.db.models.common import (
-    Identifier, LanguageIdentifier, IdentifierType, Language, Source, LanguageSource,
-)
+from clld.db.models.common import Language, Source, LanguageSource
 from clld.db.util import icontains
 from clld.web.adapters.download import download_dir, download_asset_spec
 from clld.web.util.helpers import link, icon
@@ -20,13 +13,12 @@ from clld.web.util.htmllib import HTML
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
 
-import glottolog3
 from glottolog3.models import (
-    Country, Languoid, Languoidcountry, Refprovider, Provider, Ref,
+    Languoid, Provider, Ref,
     Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
     LanguoidStatus,
 )
-from glottolog3.maps import LanguoidsMap, LanguoidMap
+from glottolog3.maps import LanguoidMap
 
 
 REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
@@ -108,13 +100,15 @@ def get_params(params, **kw):
     biblio = colander.SchemaNode(colander.Mapping(), name='biblio', missing={})
     for name in cstruct['biblio']:
         biblio.add(
-            colander.SchemaNode(colander.String(), name=name, missing='', title=name.capitalize()))
+            colander.SchemaNode(
+                colander.String(), name=name, missing='', title=name.capitalize()))
         cstruct['biblio'][name] = params.get(name, '')
         if cstruct['biblio'][name]:
             reqparams[name] = cstruct['biblio'][name]
 
     schema = colander.SchemaNode(colander.Mapping())
-    for name, cls in dict(languoid=Languoid, doctype=Doctype, macroarea=Macroarea).items():
+    for name, cls in dict(
+            languoid=Languoid, doctype=Doctype, macroarea=Macroarea).items():
         plural = name + 's'
         _kw = dict(collection=kw.get(plural))
         if name == 'languoid':
@@ -126,7 +120,8 @@ def get_params(params, **kw):
                 missing=[],
                 name=plural))
         if plural != 'languoids':
-            cstruct[plural] = params.getall(plural) if hasattr(params, 'getall') else params.get(plural, [])
+            cstruct[plural] = params.getall(plural) if hasattr(params, 'getall') \
+                else params.get(plural, [])
             if cstruct[plural]:
                 reqparams[plural] = cstruct[plural]
         else:
@@ -222,90 +217,6 @@ def format_justifications(req, refs):
             label += '[%s]' % ref.description
         r.append(HTML.li(link(req, ref.source, label=label)))
     return HTML.ul(*r)
-
-
-def getLanguoids(name=False,
-                 iso=False,
-                 namequerytype='part',
-                 country=False,
-                 multilingual=False,
-                 inactive=False):
-    """return an array of languoids responding to the specified criterion.
-    """
-    if not (name or iso or country):
-        return []
-
-    query = DBSession.query(Languoid)\
-        .options(joinedload(Languoid.family))\
-        .order_by(Languoid.name)
-
-    if not inactive:
-        query = query.filter(Language.active == True)
-
-    if name:
-        namequeryfilter = {
-            "regex": func.lower(Identifier.name).like(name.lower()),
-            "part": func.lower(Identifier.name).contains(name.lower()),
-            "whole": func.lower(Identifier.name) == name.lower(),
-        }[namequerytype if namequerytype in ('regex', 'whole') else 'part']
-
-        query = query.join(LanguageIdentifier, Identifier)\
-            .filter(Identifier.type == 'name')\
-            .filter(namequeryfilter)
-        if not multilingual:
-            query = query.filter(or_(
-                Identifier.lang.in_((u'', u'eng', u'en')), Identifier.lang == None))
-    elif country:
-        try:
-            alpha2 = country.split('(')[1].split(')')[0] \
-                if len(country) > 2 else country.upper()
-        except IndexError:
-            return []
-        query = query.join(Languoidcountry).join(Country)\
-            .filter(Country.id == alpha2)
-    else:
-        query = query.join(LanguageIdentifier, Identifier)\
-            .filter(Identifier.name.contains(iso.lower()))\
-            .filter(Identifier.type == IdentifierType.iso.value)
-
-    return query
-
-
-def language_index_html(request=None, **kw):
-    res = dict(
-        countries=dumps([
-            '%s (%s)' % (c.name, c.id) for c in
-            DBSession.query(Country).order_by(Country.description)]),
-        params={
-            'name': '',
-            'iso': '',
-            'namequerytype': 'part',
-            'country': ''},
-        message=None)
-
-    for param, default in res['params'].items():
-        res['params'][param] = request.params.get(param, default).strip()
-
-    res['params']['multilingual'] = 'multilingual' in request.params
-
-    if request.params.get('alnum'):
-        l = Languoid.get(request.params.get('alnum'), default=None)
-        if l:
-            raise HTTPFound(location=request.resource_url(l))
-        res['message'] = 'No matching languoids found'
-
-    languoids = list(getLanguoids(**res['params']))
-    if not languoids and \
-            (res['params']['name'] or res['params']['iso'] or res['params']['country']):
-        res['message'] = 'No matching languoids found'
-    #if len(languoids) == 1:
-    #    raise HTTPFound(request.resource_url(languoids[0]))
-    map_ = LanguoidsMap(languoids, request)
-    layer = list(map_.get_layers())[0]
-    if not layer.data['features']:
-        map_ = None
-    res.update(map=map_, languoids=languoids)
-    return res
 
 
 COLORS = [

@@ -7,6 +7,7 @@ from pyramid.httpexceptions import (
 )
 from sqlalchemy import or_, desc
 from sqlalchemy.sql.expression import func
+from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
 from clld.db.models.common import (
     Language, Source, LanguageIdentifier, Identifier, IdentifierType,
@@ -24,6 +25,8 @@ from glottolog3.models import (
 from glottolog3.config import CFG
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
+from glottolog3.models import Country, Languoidcountry
+from glottolog3.maps import LanguoidsMap
 
 
 YEAR_PATTERN = re.compile('[0-9]{4}$')
@@ -152,8 +155,88 @@ def families(request):
     return {'dt': request.get_datatable('languages', Language, type='families')}
 
 
+def getLanguoids(name=False,
+                 iso=False,
+                 namequerytype='part',
+                 country=False,
+                 multilingual=False,
+                 inactive=False):
+    """return an array of languoids responding to the specified criterion.
+    """
+    if not (name or iso or country):
+        return []
+
+    query = DBSession.query(Languoid)\
+        .options(joinedload(Languoid.family))\
+        .order_by(Languoid.name)
+
+    if not inactive:
+        query = query.filter(Language.active == True)
+
+    if name:
+        namequeryfilter = {
+            "regex": func.lower(Identifier.name).like(name.lower()),
+            "part": func.lower(Identifier.name).contains(name.lower()),
+            "whole": func.lower(Identifier.name) == name.lower(),
+        }[namequerytype if namequerytype in ('regex', 'whole') else 'part']
+
+        query = query.join(LanguageIdentifier, Identifier)\
+            .filter(Identifier.type == 'name')\
+            .filter(namequeryfilter)
+        if not multilingual:
+            query = query.filter(or_(
+                Identifier.lang.in_((u'', u'eng', u'en')), Identifier.lang == None))
+    elif country:
+        try:
+            alpha2 = country.split('(')[1].split(')')[0] \
+                if len(country) > 2 else country.upper()
+        except IndexError:
+            return []
+        query = query.join(Languoidcountry).join(Country)\
+            .filter(Country.id == alpha2)
+    else:
+        query = query.join(LanguageIdentifier, Identifier)\
+            .filter(Identifier.name.contains(iso.lower()))\
+            .filter(Identifier.type == IdentifierType.iso.value)
+
+    return query
+
+
 def languages(request):
-    return {'dt': request.get_datatable('languages', Language, type='languages')}
+    res = dict(
+        countries=json.dumps([
+            '%s (%s)' % (c.name, c.id) for c in
+            DBSession.query(Country).order_by(Country.description)]),
+        params={
+            'name': '',
+            'iso': '',
+            'namequerytype': 'part',
+            'country': ''},
+        message=None)
+
+    for param, default in res['params'].items():
+        res['params'][param] = request.params.get(param, default).strip()
+
+    res['params']['multilingual'] = 'multilingual' in request.params
+
+    if request.params.get('alnum'):
+        l = Languoid.get(request.params.get('alnum'), default=None)
+        if l:
+            raise HTTPFound(location=request.resource_url(l))
+        res['message'] = 'No matching languoids found'
+
+    languoids = list(getLanguoids(**res['params']))
+    if not languoids and \
+            (res['params']['name'] or res['params']['iso'] or res['params']['country']):
+        res['message'] = 'No matching languoids found'
+    #if len(languoids) == 1:
+    #    raise HTTPFound(request.resource_url(languoids[0]))
+    map_ = LanguoidsMap(languoids, request)
+    layer = list(map_.get_layers())[0]
+    if not layer.data['features']:
+        map_ = None
+    res.update(map=map_, languoids=languoids)
+    return res
 
 
 def langdoccomplexquery(request):
@@ -239,40 +322,3 @@ def relation(req):
                 break
             current['children'].append(n)
     return {'data': res, 'center': root.id}
-
-
-def tree(req):
-    tree_ = []
-    children_map = {}
-
-    #
-    # TODO: trees restricted to just one top-level family!
-    #
-    for row in DBSession.execute("""\
-select
-    ll.father_pk, c.child_pk, l.id, l.name, ll.hid, ll.level, c.depth
-from
-    treeclosuretable as c, language as l, languoid as ll, language as l2
-where
-    ll.status = 'established' and l.active is true
-    and c.parent_pk = l2.pk and c.child_pk = l.pk and c.child_pk = ll.pk
-    and c.parent_pk in (select pk from languoid where father_pk is null)
-order by
-    l2.name, c.depth;"""):
-        fpk, cpk, id_, name, hid, level, depth = row
-
-        label = '%s [%s]' % (name, id_)
-        if level == 'language' and hid and len(hid) == 3:
-            label += '[%s]' % hid
-        node = {'id': id_, 'pk': cpk, 'iso': hid, 'level': level, 'label': label, 'children': []}
-        children_map[cpk] = node['children']
-
-        if not fpk:
-            tree_.append(node)
-        else:
-            if fpk not in children_map:
-                #print fpk, cpk, id, name
-                continue
-            children_map[fpk].append(node)
-
-    return {'tree': json.dumps(tree_)}

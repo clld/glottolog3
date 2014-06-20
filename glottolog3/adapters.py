@@ -17,7 +17,7 @@ from clld.db.models.common import Language, LanguageIdentifier
 from clld.web.icon import ORDERED_ICONS
 
 import glottolog3
-from glottolog3.models import LanguoidLevel, Languoid
+from glottolog3.models import LanguoidLevel
 from glottolog3.interfaces import IProvider
 
 
@@ -122,7 +122,8 @@ class PhyloXML(Representation):
         if lang.level == LanguoidLevel.language or level == self.depth_limit:
             e.append(self.element('name', lang.name))
             ann = self.element('annotation')
-            ann.append(self.element('desc', ' > '.join(reversed([l.name for l in lang.get_ancestors()]))))
+            ann.append(self.element(
+                'desc', ' > '.join(reversed([l.name for l in lang.get_ancestors()]))))
             ann.append(self.element('uri', req.resource_url(lang)))
             e.append(ann)
         return e
@@ -186,5 +187,4 @@ def includeme(config):
     config.register_adapter(PhyloXML, ILanguage)
     config.register_adapter(Newick, ILanguage)
     config.register_adapter(Treeview, ILanguage)
-
     config.register_adapter(MapView, ILanguage, IIndex)

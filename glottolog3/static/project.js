@@ -160,10 +160,13 @@ GLOTTOLOG3.Tree = (function(){
 })();
 
 GLOTTOLOG3.languoidLink = function(spec){
-    var cls = 'Language',
-        title = spec.name,
-        href = CLLD.route_url('language', {'id': spec.id});
     spec = spec === undefined ? {} : spec;
+    var cls = 'Language',
+        title = spec.name + ' [Glottocode: ' + spec.id + ']',
+        href = CLLD.route_url('language', {'id': spec.id});
+    if (spec.level == 'language' && spec.iso) {
+        title += '[ISO 639-3: ' + spec.iso + ']';
+    }
     if (spec.status) {
         cls += ' ' + spec.status;
         if (spec.status != 'established'){
