@@ -1,38 +1,21 @@
-import sys
 import re
 import json
-import random
 
 import transaction
 
-from sqlalchemy import desc, or_
-from sqlalchemy.orm import joinedload
-from clld.lib.bibtex import Database, EntryType
-from clld.util import UnicodeMixin, slug
+from clld.lib.bibtex import Database
+from clld.util import slug
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 from clld.db.models.common import Source
 
 from glottolog3.lib.util import roman_to_int
 from glottolog3.lib.bibtex import unescape
-from glottolog3.models import (
-    Ref, Provider, Refprovider, Macroarea, Doctype, Country, Languoid,
-)
+from glottolog3.models import Ref, Provider, Macroarea, Doctype, Languoid
 from glottolog3.lib.util import get_map
-from glottolog3.scripts.util import update_providers, update_relationship, update_reflang, compute_pages
-
-# id
-# bibtexkey
-# type
-# startpage              | integer           |
-# endpage                | integer           |
-# numberofpages          | integer           |
-
-# bibtexkey              | text              | not null
-# type                   | text              | not null
-# inlg_code              | text              |
-# year                   | integer           |
-# jsondata               | character varying |
+from glottolog3.scripts.util import (
+    update_providers, update_relationship, update_reflang, compute_pages,
+)
 
 FIELD_MAP = {
     'abstract': '',
@@ -44,7 +27,7 @@ FIELD_MAP = {
     'aiatsis_callnumber': '',
     'aiatsis_code': '',
     'aiatsis_reference_language': '',
-    'alnumcodes': '',
+    'alnumcodes': None,
     'anlanote': '',
     'anlclanguage': '',
     'anlctype': '',
@@ -104,15 +87,15 @@ FIELD_MAP = {
     'keywords': '',
     'langcode': '',
     'langnote': '',
-    'languoidbase_ids': '',
+    'languoidbase_ids': None,
     'lapollanote': '',
     'last_changed': '',
     'lccn': '',
-    'lcode': '',
-    'lgcde': '',
-    'lgcode': '',
-    'lgcoe': '',
-    'lgcosw': '',
+    'lcode': 'language_note',
+    'lgcde': 'language_note',
+    'lgcode': 'language_note',
+    'lgcoe': 'language_note',
+    'lgcosw': 'language_note',
     'lgfamily': '',
     'macro_area': '',
     'modified': '',
@@ -196,19 +179,25 @@ ROMANPAGESPATTERNra = re.compile(u'%s\+%s' % (ROMAN, ARABIC))
 ROMANPAGESPATTERNar = re.compile(u'%s\+%s' % (ARABIC, ROMAN))
 DOCTYPE_PATTERN = re.compile('(?P<name>[a-z\_]+)\s*(\((?P<comment>[^\)]+)\))?\s*(\;|$)')
 CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
+CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
+
+
+def ca_trigger(s):
+    """
+    :return: pair (trigger, updated s) or None.
+    """
+    m = CA_PATTERN.search(s)
+    if m:
+        return m.group('trigger'), (s[:m.start()] + s[m.end():]).strip()
 
 
 #
 # TODO: implement three modes: compare, import, update
 #
-
 def main(args):  # pragma: no cover
     bib = Database.from_file(args.data_file(args.version, 'refs.bib'), encoding='utf8')
-    mode = args.mode
-
     count = 0
     skipped = 0
-
     changes = {}
 
     with transaction.manager:
@@ -227,16 +216,18 @@ def main(args):  # pragma: no cover
             languoid_map[l.id] = l
 
         for i, rec in enumerate(bib):
+            if i and i % 1000 == 0:
+                print i, 'records done', count, 'changed'
+
             if len(rec.keys()) < 6:
+                # not enough information!
                 skipped += 1
-                #print '---> skip', rec.id
-                #print rec
                 continue
 
             changed = False
             assert rec.get('glottolog_ref_id')
             id_ = int(rec.get('glottolog_ref_id'))
-            if mode != 'update' and id_ in known_ids:
+            if args.mode != 'update' and id_ in known_ids:
                 continue
             ref = DBSession.query(Source).get(id_)
             update = True if ref else False
@@ -249,6 +240,8 @@ def main(args):  # pragma: no cover
             }
 
             for source, target in FIELD_MAP.items():
+                if target is None:
+                    continue
                 value = rec.get(source)
                 if value:
                     value = unescape(value)
@@ -256,6 +249,19 @@ def main(args):  # pragma: no cover
                         kw[target] = CONVERTER.get(source, lambda x: x)(value)
                     else:
                         kw['jsondata'][source] = value
+
+            if kw.get('language_note'):
+                if len(kw['language_note']) == 3:
+                    kw['language_note'] = '[%s]' % kw['language_note']
+
+                trigger = ca_trigger(kw['language_note'])
+                if trigger:
+                    kw['ca_language_trigger'], kw['language_note'] = trigger
+
+            if kw['jsondata'].get('hhtype'):
+                trigger = ca_trigger(kw['jsondata']['hhtype'])
+                if trigger:
+                    kw['ca_doctype_trigger'], kw['jsondata']['hhtype'] = trigger
 
             # try to extract numeric year, startpage, endpage, numberofpages, ...
             if rec.get('numberofpages'):
@@ -265,9 +271,7 @@ def main(args):  # pragma: no cover
                     pass
 
             if kw.get('year'):
-                #
                 # prefer years in brackets over the first 4-digit number.
-                #
                 match = PREF_YEAR_PATTERN.search(kw.get('year'))
                 if match:
                     kw['year_int'] = int(match.group('year'))
@@ -305,14 +309,15 @@ def main(args):  # pragma: no cover
                 for k in kw.keys():
                     if k == 'pk':
                         continue
-                    #if k == 'title':
-                    #    v = ref.title or ref.description
-                    #else:
-                    if 1:
-                        v = getattr(ref, k)
+                    v = getattr(ref, k)
                     if kw[k] != v:
                         if k == 'jsondata':
-                            ref.update_jsondata(**kw[k])
+                            d = ref.jsondata or {}
+                            d.update(**kw[k])
+                            for s, t in FIELD_MAP.items():
+                                if t is None and s in d:
+                                    del d[s]
+                            ref.jsondata = d
                         else:
                             print k, '--', v
                             print k, '++', kw[k]
@@ -322,8 +327,8 @@ def main(args):  # pragma: no cover
                                 changes[ref.id][k] = ('%s' % v, '%s' % kw[k])
                             else:
                                 changes[ref.id] = {k: ('%s' % v, '%s' % kw[k])}
-                    if ref.title:
-                        ref.description = ref.title
+                ref.description = ref.title or ref.booktitle
+                ref.name = '%s %s' % (ref.author or 'na', ref.year or 'nd')
             else:
                 changed = True
                 ref = Ref(name='%s %s' % (kw.get('author', 'na'), kw.get('year', 'nd')), **kw)
@@ -338,9 +343,6 @@ def main(args):  # pragma: no cover
                 [macroarea_map[name] for name in
                  set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')]))])
             changed = changed or a or r
-            #for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')])):
-            #    result = append(ref.macroareas, macroarea_map[name])
-            #    changed = changed or result
 
             for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('src', '').split(',')])):
                 result = append(ref.providers, provider_map[slug(name)])
@@ -351,28 +353,6 @@ def main(args):  # pragma: no cover
                 [doctype_map[m.group('name')] for m in
                  DOCTYPE_PATTERN.finditer(kw['jsondata'].get('hhtype', ''))])
             changed = changed or a or r
-            #for m in DOCTYPE_PATTERN.finditer(kw['jsondata'].get('hhtype', '')):
-            #    result = append(ref.doctypes, doctype_map[m.group('name')])
-            #    changed = changed or result
-
-            if len(kw['jsondata'].get('lgcode', '')) == 3:
-                kw['jsondata']['lgcode'] = '[%s]' % kw['jsondata']['lgcode']
-
-            #for m in CODE_PATTERN.finditer(kw['jsondata'].get('lgcode', '')):
-            #    for code in set(m.group('code').split(',')):
-            #        if code not in languoid_map:
-            #            if code not in ['NOCODE_Payagua', 'emx']:
-            #                print '--> unknown code:', code.encode('utf8')
-            #        else:
-            #            result = append(ref.languages, languoid_map[code])
-            #            changed = changed or result
-
-            #for glottocode in filter(None, kw['jsondata'].get('alnumcodes', '').split(';')):
-            #    if glottocode not in languoid_map:
-            #        print '--> unknown glottocode:', glottocode.encode('utf8')
-            #    else:
-            #        result = append(ref.languages, languoid_map[glottocode])
-            #        changed = changed or result
 
             if not update:
                 DBSession.add(ref)
@@ -382,12 +362,23 @@ def main(args):  # pragma: no cover
                 ref.doctypes_str = ', '.join(o.id for o in ref.doctypes)
                 ref.providers_str = ', '.join(o.id for o in ref.providers)
 
-            if i % 1000 == 0:
-                print i, 'records done', count, 'changed'
-
         print count, 'records updated or imported'
         print skipped, 'records skipped because of lack of information'
-        update_reflang(args)
+
+    DBSession.execute("update source set description = title where description is null and title is not null;")
+    DBSession.execute("update source set description = booktitle where description is null and booktitle is not null;")
+
+    for row in list(DBSession.execute(
+            "select pk, pages, pages_int, startpage_int from source where pages_int < 0")):
+        pk, pages, number, start = row
+        _start, _end, _number = compute_pages(pages)
+        if _number > 0 and _number != number:
+            DBSession.execute(
+                "update source set pages_int = %s, startpage_int = %s where pk = %s",
+                (_number, _start, pk))
+            DBSession.execute(
+                "update ref set endpage_int = %s where pk = %s",
+                (_end, pk))
 
     return changes
 

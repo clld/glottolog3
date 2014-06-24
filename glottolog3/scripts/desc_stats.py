@@ -13,12 +13,14 @@ from path import path
 from pylab import figure, axes, pie, savefig
 
 from clld.scripts.util import parsed_args
-from clld.db.models.common import Language
+from clld.db.models.common import Language, LanguageSource
 from clld.db.meta import DBSession
 from clld.lib import dsv
 
 import glottolog3
-from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus, DOCTYPES
+from glottolog3.models import (
+    Languoid, LanguoidLevel, LanguoidStatus, DOCTYPES, Ref, Refprovider, Provider,
+)
 from glottolog3.desc_stats import SIMPLIFIED_DOCTYPES
 
 
@@ -60,7 +62,7 @@ class Source(object):
 
 
 def main(args):  # pragma: no cover
-    extinct = dict(list(dsv.rows(args.data_file('extinct.tab'))))
+    extinct = dict(list(dsv.reader(args.data_file('extinct.tab'))))
 
     icons_dir = path(glottolog3.__file__).dirname().joinpath('static', 'icons')
     for doctype in SIMPLIFIED_DOCTYPES:
@@ -84,7 +86,13 @@ def main(args):  # pragma: no cover
             .filter(Languoid.level == LanguoidLevel.language)
         ):
             # let's collect the relevant sources in a way that allows computation of med.
-            sources = sorted(map(Source, l.sources))
+            # Note: we limit refs to the ones without computerized assignments.
+            sources = DBSession.query(Ref).join(LanguageSource)\
+                .filter(LanguageSource.language_pk == l.pk) \
+                .filter(Ref.ca_doctype_trigger == None)\
+                .filter(Ref.ca_language_trigger == None)\
+                .options(joinedload(Ref.doctypes))
+            sources = sorted(map(Source, sources))
 
             # keep the overall med
             # note: this source may not be included in the potential meds computed below,

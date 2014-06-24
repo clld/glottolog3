@@ -95,8 +95,7 @@ CFG = {
     'PARTNERSITES': [
         {
             'name': 'Ethnologue',
-            'href': lambda l: "http://www.ethnologue.com/show_language.asp?code="
-            + l.iso_code,
+            'href': lambda l: "http://www.ethnologue.com/language/" + l.iso_code,
             'condition': lambda l: l.iso_code,
             'logo': "ethnologue.png",
             'rdf': "owl:sameAs",
@@ -118,17 +117,17 @@ CFG = {
         },
         {
             'name': 'Wikipedia',
-            'href': lambda l: "http://en.wikipedia.org/wiki/ISO_639:"
-            + l.iso_code,
-            'condition': lambda l: l.iso_code,
+            'href': lambda l: "http://en.wikipedia.org/wiki/"
+            + l.jsondatadict.get('wikipedia', 'ISO_639:' + str(l.iso_code)),
+            'condition': lambda l: l.jsondatadict.get('wikipedia') or l.iso_code,
             'rdf': "owl:sameAs",
             'logo': "wikipedia.png"
         },
         {
             'name': 'DBpedia',
-            'href': lambda l: "http://dbpedia.org/page/ISO_639:"
-            + l.iso_code,
-            'condition': lambda l: l.iso_code,
+            'href': lambda l: "http://dbpedia.org/page/"
+            + l.jsondatadict.get('wikipedia', 'ISO_639:' + str(l.iso_code)),
+            'condition': lambda l: l.jsondatadict.get('wikipedia') or l.iso_code,
             'rdf': "owl:sameAs",
             'logo': "dbpedia.png"
         },
@@ -143,8 +142,8 @@ CFG = {
         {
             'name': 'Multitree',
             'href': lambda l: "http://multitree.org/codes/"
-            + l.iso_code,
-            'condition': lambda l: l.iso_code,
+            + (l.iso_code or l.get_identifier('multitree')),
+            'condition': lambda l: l.iso_code or l.get_identifier('multitree'),
             'rdf': "owl:sameAs",
             'logo': "multitree.png"
         },
@@ -217,7 +216,7 @@ CFG = {
             'href': lambda l: l.jsondatadict['unesco']['url'],
             'rdf': "rdfs:seeAlso",
             'condition': lambda l: 'unesco' in l.jsondatadict,
-            'logo': "unesco.jpg"
+            #'logo': "unesco.jpg"  # not allowed without explicit permission!
         },
         #{
         #{

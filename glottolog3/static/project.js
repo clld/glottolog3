@@ -55,7 +55,7 @@ GLOTTOLOG3.descStatsUpdate = function(map) {
 
         stats[sdt][marker.feature.properties.extinct ? 1 : 0] += 1;
         //alert(CLLD.url('/static/icons/c000000.png'));
-        marker.setIcon(map.icon(marker.feature, 20, CLLD.url('/static/icons/c' + url + '.png')));
+        marker.setIcon(map.icon(marker.feature, 20, url));
     });
 
     for (j = 0; j < stats.length; j++) {

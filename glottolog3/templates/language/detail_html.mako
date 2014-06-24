@@ -23,18 +23,34 @@
                 <li>${h.button(h.icon('resize-full', inverted=True), 'expand all', title="expand all nodes", onclick="GLOTTOLOG3.Tree.open('tree')", class_='btn-info btn-mini')}</li>
                 <li>${h.button(h.icon('resize-small', inverted=True), 'collapse all', title="collapse all nodes", onclick="GLOTTOLOG3.Tree.close('tree')", class_='btn-info btn-mini')}</li>
             </ul>
+            <h4 style="margin-top: 0;">
+                Classification
+                <a href="${request.route_url('glottolog.meta', _anchor='classification')}">${h.icon('question-sign')}</a>
+            </h4>
             <div id="tree">
             </div>
+
+            % if ctx._crefs('fc'):
+                <h5 title="The references cited contain or further point down to arguments for including exactly the set of languages here deemed to belong to the family.">
+                    Family membership references
+                </h5>
+                ${u.format_justifications(request, ctx._crefs('fc'))}
+            % endif
             % if ctx.fc:
-            <p>${u.format_classificationcomment(request, ctx.fc.description)}</p>
+                <h5>Comments on family membership</h5>
+                <p>${u.format_classificationcomment(request, ctx.fc.description)}</p>
+            % endif
+            % if ctx.screfs:
+                <h5 title="${'The references cited contain arguments for the placement of the node {0} with respect to its parents or the subclassification of the daughters of {0}.'.format(ctx.name)}">
+                    Subclassification references
+                </h5>
+                ${u.format_justifications(request, ctx.screfs)}
             % endif
             % if ctx.sc:
-            <p>${u.format_classificationcomment(request, ctx.sc.description)}</p>
+                <h5>Comments on subclassification</h5>
+                <p>${u.format_classificationcomment(request, ctx.sc.description)}</p>
             % endif
-            % if ctx.crefs:
-            <h5>Classification references</h5>
-            ${u.format_justifications(request, ctx.crefs)}
-            % endif
+
         </div>
         <script>
     $(document).ready(function() {
@@ -61,7 +77,13 @@
 
         % if ctx.status and ctx.status != u.LanguoidStatus.established:
         <div class="alert">
+            % if ctx.status.value == 'spurious':
+            This entry is spurious. This means either that the language denoted cannot be asserted
+            to be/have been a language distinct from all others, or, that the language denoted is
+            covered in another entry.
+            % else:
             This language is ${ctx.status}.
+            % endif
         </div>
         % endif
     </div>
@@ -75,6 +97,19 @@
                 ${lmap.render()}
                 ${h.button('show big map', href=request.resource_url(ctx, ext='bigmap.html'))}
             </%util:accordion_group>
+            % if ctx.countries:
+            <%util:accordion_group eid="acc-countries" parent="sidebar-accordion" title="Countries">
+                <ul class="nav nav-tabs nav-stacked">
+                    % for country in ctx.countries:
+                        <li>
+                            <a href="${request.route_url('glottolog.languages', _query=dict(country=country.id))}">
+                                ${country} [${country.id}]
+                            </a>
+                        </li>
+                    % endfor
+                </ul>
+            </%util:accordion_group>
+            % endif
             <% sites = filter(lambda s: s['condition'](ctx), request.registry.settings.get('PARTNERSITES', [])) %>
             % if sites:
             <%util:accordion_group eid="acc-partner" parent="sidebar-accordion" title="Links" open="${map is None}">

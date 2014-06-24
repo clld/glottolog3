@@ -31,7 +31,6 @@ update source set description = {0} where description is null and {0} is not nul
         pk, pages, number, start = row
         _start, _end, _number = compute_pages(pages)
         if _number > 0 and _number != number:
-            print number, '-->', _number
             conn.execute(
                 "update source set pages_int = %s, startpage_int = %s where pk = %s",
                 (_number, _start, pk))

@@ -7,6 +7,12 @@
 ##<abbr class="unapi-id" title="${h.urlescape(request.resource_url(ctx))}"></abbr>
 ${ctx.coins(request)|n}
 
+% if ctx.jsondatadict.get('thanks'):
+<div class="alert alert-info">
+    This record was contributed by ${ctx.jsondatadict['thanks']}.
+</div>
+% endif
+
 <div class="tabbable">
     <ul class="nav nav-tabs">
         <li class="active"><a href="#tab1" data-toggle="tab">Text</a></li>
@@ -33,24 +39,35 @@ ${ctx.coins(request)|n}
 
 <%def name="sidebar()">
 % if ctx.doctypes:
-<%util:well title="${_('Document type')}">
-    <ul class="nav nav-pills nav-stacked">
+<%util:well>
+    <h3>Document types${u.format_ca_icon(req, ctx, 'doctype')}</h3>
+    <ul class="inline">
     % for dt in ctx.doctypes:
         <li>
-            <a title="${dt.description}"
-               href="${request.route_url('home.glossary', _anchor='doctype-' + dt.id)}">${dt.name}</a>
+            ${u.format_label_link(request.route_url('home.glossary', _anchor='doctype-' + dt.id), dt.name.capitalize().replace('_', ' '), title=dt.description)}
         </li>
     % endfor
     </ul>
 </%util:well>
 % endif
 % if ctx.languages:
-<%util:well title="${_('Languages')}">
-    <ul class="nav nav-pills nav-stacked">
-    % for language in ctx.languages:
-        <li>${h.link(request, language)}</li>
+<%util:well>
+    ${u.format_language_header(request, ctx, level=3)}
+    <ul class="unstyled">
+    % for li in u.format_languages(request, ctx):
+    ${li}
     % endfor
     </ul>
 </%util:well>
 % endif
+<%util:well>
+    <h3>Providers</h3>
+    <ul class="inline">
+    % for p in ctx.providers:
+        <li>
+            ${u.format_label_link(request.resource_url(p), p.name, title=p.description)}
+        </li>
+    % endfor
+    </ul>
+</%util:well>
 </%def>

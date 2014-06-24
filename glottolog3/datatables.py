@@ -9,12 +9,13 @@ from clld.db.models.common import Language, LanguageSource, Source
 from clld.web.datatables.base import DataTable, Col, DetailsRowLinkCol, LinkCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.source import Sources
+from clld.web.util.helpers import icon
 
 from glottolog3.models import (
     Macroarea, Languoidmacroarea, Languoid, TreeClosureTable,
     LanguoidLevel, LanguoidStatus, Provider, Refprovider, Doctype, Ref,
 )
-from glottolog3.util import getRefs, get_params, languoid_link
+from glottolog3.util import getRefs, get_params, languoid_link, format_ca_icon
 
 
 class RefCountCol(Col):
@@ -227,6 +228,21 @@ class ProviderCol(_CollectionCol):
     route = 'providers'
 
 
+class CaCol(Col):
+    def __init__(self, dt, name, **kw):
+        kw['bSearchable'] = False
+        kw['sTitle'] = 'ca'
+        kw['sDescription'] = 'computerized assignment of ' + name[3:]
+        self.attr = '%s_trigger' % name
+        super(CaCol, self).__init__(dt, name, **kw)
+
+    def order(self):
+        return getattr(Ref, self.attr)
+
+    def format(self, item):
+        return format_ca_icon(self.dt.req, item, self.attr.split('_')[1])
+
+
 class Refs(Sources):
     def __init__(self, req, *args, **kw):
         if 'cq' in kw:
@@ -245,6 +261,7 @@ class Refs(Sources):
             DetailsRowLinkCol(self, 'd'),
             LinkCol(self, 'name'),
             Col(self, 'description', sTitle='Title'),
+            CaCol(self, 'ca_language'),
         ]
 
         if not self.complexquery:
@@ -252,6 +269,7 @@ class Refs(Sources):
             cols.append(Col(self, 'pages', model_col=Source.pages_int))
 
         cols.append(DoctypeCol(self, 'doctype'))
+        cols.append(CaCol(self, 'ca_doctype'))
         cols.append(ProviderCol(self, 'provider'))
         return cols
 

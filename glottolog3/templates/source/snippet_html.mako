@@ -18,9 +18,11 @@ $(document).ready(function() {
     $("#md-${ctx.pk}").focus();
 });
 </script>
-<h4>Languages</h4>
-<ul class="inline">
-    % for lang in ctx.languages:
-    <li>${h.link(request, lang)}</li>
+% if ctx.languages:
+    ${u.format_language_header(request, ctx, level=4)}
+    <ul class="inline">
+    % for li in u.format_languages(request, ctx):
+    ${li}
     % endfor
-</ul>
+    </ul>
+% endif

@@ -435,6 +435,13 @@ class Ref(Source, CustomModelMixin):
     normalizedauthorstring = Column(Unicode)
     normalizededitorstring = Column(Unicode)
     ozbib_id = Column(Integer)
+    language_note = Column(Unicode)
+
+    #: store the trigger for computerized assignment of languages
+    ca_language_trigger = Column(Unicode)
+
+    #: store the trigger for computerized assignment of doctype
+    ca_doctype_trigger = Column(Unicode)
 
     doctypes_str = Column(Unicode)
     providers_str = Column(Unicode)

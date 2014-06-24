@@ -23,7 +23,7 @@ from glottolog3.models import (
 
 WORD_PATTERN = re.compile('[a-z]+')
 SQUARE_BRACKET_PATTERN = re.compile('\[(?P<content>[^\]]+)\]')
-CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_[A-Za-z\-]+)$')
+CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_\w+)$')
 PAGES_PATTERN = re.compile('(?P<start>[0-9]+)\s*\-\-?\s*(?P<end>[0-9]+)')
 
 
@@ -52,7 +52,7 @@ def compute_pages(pages):
         except ValueError:
             pass
 
-    return (start, end, number)
+    return (start, end, number if number > 0 else None)
 
 
 def update_relationship(col, new, log=None, log_only=False):
@@ -182,29 +182,50 @@ def get_lgcodes(ref):
 
 def update_reflang(args):
     changes = {}
-    known_ids = {}
-    with_lgcode = 0
-    bib = get_obsolete_refs(args)
-    for rec in bib:
-        known_ids[rec['glottolog_ref_id']] = 1
-        if rec.get('lgcode'):
-            with_lgcode += 1
+    get_obsolete_refs(args)
+    with open(args.data_file(args.version, 'obsolete_refs.json')) as fp:
+        obsolete_refs = {k: 1 for k in json.load(fp)}
+
+    with open(args.data_file('brugmann_noderefs.json')) as fp:
+        brugmann_noderefs = json.load(fp)
 
     added, removed, unknown = 0, 0, {}
     languoid_map = {}
     for l in DBSession.query(Languoid).filter(Languoid.hid != None):
         languoid_map[l.hid] = l
+        languoid_map[l.pk] = l
 
     for ref in page_query(DBSession.query(Ref).order_by(Source.pk), verbose=True):
-        if not ref.id in known_ids:
-            continue
-        langs = [l for l in ref.languages if l.level != LanguoidLevel.language or not l.active]
+        if ref.id in obsolete_refs:
+            # remove all language relations!
+            ref.update_jsondata(lgcode='')
+        # keep relations to non-language languoids:
+        remove = brugmann_noderefs['delete'].get(str(ref.pk), [])
+        langs = [
+            l for l in ref.languages if
+            (l.level != LanguoidLevel.language or not l.active) and l.pk not in remove]
+        langs_pk = [l.pk for l in langs]
+        for lpk in brugmann_noderefs['create'].get(str(ref.pk), []):
+            if lpk not in langs_pk:
+                l = languoid_map.get(lpk, Languoid.get(lpk, default=None))
+                if l:
+                    #print 'relation added according to brugmann data'
+                    langs.append(l)
+                else:
+                    print 'brugmann relation for non-existing languoid'
+
         for code in get_lgcodes(ref):
             if code not in languoid_map:
                 unknown[code] = 1
             else:
-                langs.append(languoid_map[code])
-        a, r = update_relationship(ref.languages, langs, log=args.log)
+                l = languoid_map[code]
+                if l.pk not in remove:
+                    langs.append(l)
+                else:
+                    print ref.name, ref.id, '--', l.name, l.id
+                    print 'relation removed according to brugmann data'
+
+        a, r = update_relationship(ref.languages, langs)
         if a or r:
             changes[ref.id] = ([l.id for l in ref.languages], [l.id for l in langs])
         added += a
@@ -213,7 +234,6 @@ def update_reflang(args):
     with open(args.data_file(args.version, 'reflang_changes.json'), 'w') as fp:
         json.dump(changes, fp)
 
-    print len(known_ids), 'refs in bib', with_lgcode, 'with lgcode'
     print added, 'added'
     print removed, 'removed'
     print 'unknown codes', unknown.keys()
@@ -248,8 +268,8 @@ def update_justifications(args):
             langs_by_name[l.name] = l
 
         for id_, type_ in [('fc', 'family'), ('sc', 'subclassification')]:
-            for i, row in enumerate(dsv.rows(args.data_file(args.version, '%s_justifications.tab' % type_))):
-                name = row[0].decode('utf8')
+            for i, row in enumerate(dsv.reader(args.data_file(args.version, '%s_justifications.tab' % type_))):
+                name = row[0]
                 name = name.replace('_', ' ') if not name.startswith('NOCODE') else name
                 l = langs_by_hname.get(name, langs_by_hid.get(name, langs_by_name.get(name)))
                 if not l:
@@ -258,7 +278,7 @@ def update_justifications(args):
                     raise ValueError(name)
 
                 _r = 3 if type_ == 'family' else 2
-                comment = (row[_r].decode('utf8').strip() or None) if len(row) > _r else None
+                comment = (row[_r].strip() or None) if len(row) > _r else None
                 if comment and not WORD_PATTERN.search(comment):
                     comment = None
 
@@ -368,7 +388,7 @@ def update_providers(args):
 
 
 def update_macroareas(args):
-    hlang_to_ma = dict(list(dsv.rows(args.data_file(args.version, 'macroareas.tab'))))
+    hlang_to_ma = dict(list(dsv.reader(args.data_file(args.version, 'macroareas.tab'))))
     ma_map = get_map(Macroarea)
 
     # we store references to languages to make computation of cumulated macroareas for
@@ -402,7 +422,7 @@ def update_coordinates(args):
 
     hlang_to_coord = {
         row[0]: (float(row[1]), float(row[2]))
-        for row in dsv.rows(args.data_file(args.version, 'coordinates.tab'))}
+        for row in dsv.reader(args.data_file(args.version, 'coordinates.tab'))}
 
     for language in DBSession.query(Languoid)\
             .filter(Language.active == True)\

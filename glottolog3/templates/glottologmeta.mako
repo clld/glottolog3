@@ -1,9 +1,11 @@
 <%inherit file="glottolog_comp.mako"/>
+<%namespace name="util" file="util.mako"/>
 <%! multirow = True %>
 
 <div class="row-fluid">
     <div class="span10 offset1">
-        <h3>Languoids Information</h3>
+        <%util:section title="Languoids Information" prefix="">
+        </%util:section>
     </div>
 </div>
 
@@ -95,7 +97,7 @@
         be provided.
     </p>
 
-    <h3 class="clearfix">Principles</h3>
+    <%util:section title="Principles" prefix="">
     <p>
         Every putative language is considered according to the decision procedure in
         <a href="#x1-10011">Figure 1</a>.
@@ -109,6 +111,7 @@
         There are extensive lists of sign languages (<a href="${request.route_url('source', id=45973)}">Taylor, Allan R. 1996</a>, <a href="${request.route_url('source', id=314571)}">J. Albert Bickford 2005</a>, <a href="${request.route_url('source', id=114593)}">Kamei, Nobutaka 2004</a>, <a href="${request.route_url('source', id=314546)}">Ulrike Zeshan 2006</a>, <a href="${request.route_url('source', id=314580)}">Roger Blench and Andy Warren 2003</a>, <a href="${request.route_url('source', id=161311)}">Anonymous 2007</a>),
         whistled languages (<a href="${request.route_url('source', id=108497)}">Julien Meyer 2005</a>) and artificial languages (<a href="${request.route_url('source', id=314581)}">P. O. Bartlett 2006</a>).
      <!--l. 86--></p>
+    </%util:section>
 
     <div class="well well-small">
         <a id="x1-10011"></a>
@@ -121,7 +124,7 @@
         </caption>
     </div>
 
-    <h4><a id="x1-2000"></a>Inclusion/Exclusion of Languages</h4>
+            <%util:section title="Inclusion/Exclusion of Languages" prefix="" level="4">
     <h5><a id="x1-3000"></a>1. Is the putative language assertably distinct from all other known languages?</h5>
     <p>
         For any alleged language to be considered in the classification we must first determine whether it was
@@ -200,7 +203,8 @@
         sound-values encoded in the Linear A script can be gauged, but little, if any, meaning can be inferred
         (<a href="${request.route_url('source', id=18847)}">Yves Duhoux 1998</a>, <a href="${request.route_url('source', id=145800)}">Best, Jan 1989</a>, <a href="${request.route_url('source', id=10744)}">K. Aartun 1997</a>), rendering the data insufficient for classification.
     </p>
-    <h4><a id="x1-8000"></a>Classification</h4>
+            </%util:section>
+            <%util:section title="Classification" prefix="" level="4">
     <h5>
         <a id="x1-9000"></a>
         6. Are the form-meaning similarities to at least one other language best explained by inheritance from a common ancestor?
@@ -267,7 +271,8 @@
         subgrouping while the latter lists a subgrouping without pointing to any evidence at all. The lexicostatistical
         evidence is preferrable to no evidence at all, and is therefore followed.
     </p>
-    <h4><a id="x1-13000"></a>Accountability</h4>
+            </%util:section>
+            <%util:section title="Accountability" prefix="" level="4">
     <p>
         The outcome classification is presented in the glottolog tree. Detailed evidence that the presented classification
         actually conforms to the principles above is provided in the form of references to work containing or subsuming
@@ -288,7 +293,8 @@
         In such cases, the justificational value of the reference is on the (lack of) evidence and/or arguments found
         in the reference, not necessarily the interpretation of this state given in that reference.
     </p>
-    <h3><a id="x1-14000"></a>Names of Families and Subfamilies</h3>
+            </%util:section>
+            <%util:section title="Names of Families and Subfamilies" prefix="">
     <p>
         Whenever possible, current from the literature names of families and subfamilies are taken over. This is
         considered possible when there is no name clash (with another language or (sub-)family in the world) and
@@ -303,7 +309,8 @@
         Francophone name), reflecting the fact that no particular value is attached to names beyond being unique and
         unambiguous.
     </p>
-    <h3><a id="x1-15000"></a>Example</h3>
+            </%util:section>
+            <%util:section title="Example" prefix="">
     <p>
         For example, <a href="${request.route_url('language', id='tuca1253')}">Tucanoan</a> is a
         South American language family. <a href="${request.route_url('source', id=310719)}">Chacon, Thiago C. (2012)</a> contains a subgrouping based on
@@ -323,7 +330,8 @@
         There is no implication that Arapaso and Miriti would form a subgroup in the
         sense of having a common ancestor unique only to them.
     </p>
-    <h3><a id="x1-16000"></a>Acknowledgements</h3>
+            </%util:section>
+    <%util:section title="Acknowledgements" prefix="">
     <p>Thanks </p>
     <ul class="itemize1">
         <li class="itemize">To Tim Usher for many points of dicussion re Papuan languages </li>
@@ -337,4 +345,5 @@
         <li class="itemize">To 25 libraries for access and services </li>
         <li class="itemize">To over 250 individuals who provided confirming and/or clarificatory information</li>
     </ul>
+    </%util:section>
 </div>

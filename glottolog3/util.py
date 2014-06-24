@@ -22,6 +22,7 @@ from glottolog3.maps import LanguoidMap
 
 
 REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
+LANG_PATTERN = re.compile('\[(?P<id>[^\]]+)\]')
 
 
 def languoid_link(req, languoid, active=True, classification=False):
@@ -184,6 +185,7 @@ def format_classificationcomment(req, comment):
     parts = []
     sources = {}
     pos = 0
+    comment = comment.replace('~', ' ')
     for match in REF_PATTERN.finditer(comment):
         preceding = comment[pos:match.start()]
         parts.append(preceding)
@@ -223,6 +225,81 @@ COLORS = [
     #            red     yellow
     "00ff00", "ff0000", "ffff00", "0000ff", "ff00ff", "00ffff", "000000",
 ]
+
+
+def normalize_language_explanation(chunk):
+    """
+    i) X [aaa]
+    ii) L [aaa] = "X"
+    iii) X = L [aaa]
+
+    :return: X [aaa]
+    """
+    chunk = chunk.strip()
+    if '=' not in chunk:
+        return chunk
+    chunks = chunk.split('=')
+    left = '='.join(chunks[:-1]).strip()
+    right = chunks[-1].strip()
+    if right.startswith('"') and right.endswith('=') and '[' not in right and '[' in left:
+        # case ii)
+        return right[1:-1].strip() + ' [' + left.split('[', 1)[1]
+    if '[' in right and '[' not in left:
+        # case iii)
+        return left + ' [' + right.split('[', 1)[1]
+    return chunk
+
+
+def format_languages(req, ref):
+    ldict = {l.hid: l for l in ref.languages}
+    in_note = {}
+    lnotes = map(normalize_language_explanation, (ref.language_note or '').split(','))
+
+    for lnote in lnotes:
+        note = []
+        start = 0
+        m = None
+        for m in LANG_PATTERN.finditer(lnote):
+            note.append(lnote[start:m.start()])
+            note.append('[')
+            if m.group('id') in ldict:
+                in_note[m.group('id')] = 1
+                lang = ldict[m.group('id')]
+                note.append(link(req, lang, label=lang.id, title=lang.name))
+            else:
+                note.append(m.group('id'))
+            note.append(']')
+            start = m.end()
+        if m:
+            note.append(lnote[m.end():])
+        yield HTML.li(*note)
+
+    for lang in ldict.values():
+        if lang.hid not in in_note:
+            yield HTML.li(
+                lang.name + ' [', link(req, lang, label=lang.id, title=lang.name), ']')
+
+
+def format_label_link(href, label, title=None):
+    return HTML.span(
+        HTML.a(label, href=href, title=title or label, style='color: white;'),
+        class_='label')
+
+
+def format_language_header(req, ref, level=3):
+    content = ['Languages']
+    if ref.ca_language_trigger:
+        content.append(format_ca_icon(req, ref, 'language'))
+    return getattr(HTML, 'h' + str(level))(*content)
+
+
+def format_ca_icon(req, ref, type_):
+    trigger = getattr(ref, 'ca_' + type_ + '_trigger')
+    if not trigger:
+        return ''
+    return icon(
+        'warning-sign',
+        title='computerized assignment of %ss from "%s"' % (type_, trigger))
 
 
 def get_map(request, context):

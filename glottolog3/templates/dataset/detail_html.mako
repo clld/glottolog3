@@ -29,11 +29,11 @@
         section. The
         <a href="${request.route_url('sources')}" title="langdoc"> Langdoc</a>
         section contains bibliographical information.
-        You can query the bibliographical database with  in the
+        You can query the bibliographical database with
         <a href="${request.route_url('sources')}" title="bibliographical query">a normal query</a>
-        or a
-        ##<a href="${request.route_url('langdoc.complexquery')}" title="complex query">complex query</a>
-        ##involving genealogical affiliation, document type, and macro-area.
+        or
+        <a href="${request.route_url('langdoc.complexquery')}" title="complex query">a complex query</a>
+        involving genealogical affiliation, document type, and macro-area.
     </p>
     </div>
 </div>

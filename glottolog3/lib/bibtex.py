@@ -199,4 +199,5 @@ def unescape(string):
     if '\\' not in res:
         res = res.replace('{', '')
         res = res.replace('}', '')
+    res = res.replace('\\\\&{} ', '& ')
     return res
