@@ -95,8 +95,8 @@ CFG = {
     'PARTNERSITES': [
         {
             'name': 'Ethnologue',
-            'href': lambda l: "http://www.ethnologue.com/language/" + l.iso_code,
-            'condition': lambda l: l.iso_code,
+            'href': lambda l: l.jsondatadict['ethnologue'],
+            'condition': lambda l: l.jsondatadict.get('ethnologue'),
             'logo': "ethnologue.png",
             'rdf': "owl:sameAs",
         },
@@ -147,14 +147,6 @@ CFG = {
             'rdf': "owl:sameAs",
             'logo': "multitree.png"
         },
-        #{
-        #    'name': 'MultitreePrivate',
-        #    'href': lambda l: "http://multitree.linguistlist.org/codes/"
-        #    + l.get_identifier('multitree'),
-        #    'condition': lambda l: l.get_identifier('multitree'),
-        #    'rdf': "rdfs:seeAlso",
-        #    'logo': "multitree.png"
-        #},
         {
             'name': 'LL-Map',
             'href': lambda l: "http://www.llmap.org/maps/by-code/%s.html"
