@@ -98,7 +98,7 @@ CFG = {
             'href': lambda l: l.jsondatadict['ethnologue'],
             'condition': lambda l: l.jsondatadict.get('ethnologue'),
             'logo': "ethnologue.png",
-            'rdf': "owl:sameAs",
+            'rdf': "rdfs:seeAlso",
         },
         {
             'name': 'ISO 639-3',

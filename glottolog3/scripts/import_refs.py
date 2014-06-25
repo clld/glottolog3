@@ -328,7 +328,7 @@ def main(args):  # pragma: no cover
                             else:
                                 changes[ref.id] = {k: ('%s' % v, '%s' % kw[k])}
                 ref.description = ref.title or ref.booktitle
-                ref.name = '%s %s' % (ref.author or 'na', ref.year or 'nd')
+                ref.name = '%s %s' % (ref.author or 'n.a.', ref.year or 'n.d.')
             else:
                 changed = True
                 ref = Ref(name='%s %s' % (kw.get('author', 'na'), kw.get('year', 'nd')), **kw)

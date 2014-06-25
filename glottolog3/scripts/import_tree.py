@@ -7,14 +7,11 @@ from sqlalchemy import desc
 from clld.scripts.util import parsed_args
 from clld.db.models.common import Identifier, LanguageIdentifier, IdentifierType
 from clld.db.meta import DBSession
-from clld.util import EnumSymbol
 
 from glottolog3.models import (
     Languoid, Macroarea, Superseded, LanguoidLevel, LanguoidStatus,
 )
-from glottolog3.scripts.util import (
-    recreate_treeclosure, update_justifications, update_macroareas, update_coordinates,
-)
+from glottolog3.scripts.util import recreate_treeclosure
 from glottolog3.lib.util import get_map
 
 
@@ -94,8 +91,6 @@ def main(args):  # pragma: no cover
                 DBSession.flush()
 
         recreate_treeclosure()
-        update_macroareas(args)
-        update_coordinates(args)
 
 
 if __name__ == '__main__':

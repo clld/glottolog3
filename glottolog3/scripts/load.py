@@ -29,4 +29,7 @@ if __name__ == '__main__':  # pragma: no cover
             args.json = json.load(fp)
 
     with transaction.manager:
-        getattr(mod, args.command)(args)
+        res = getattr(mod, args.command)(args)
+    if res is not None and args.command == 'download' and getattr(mod, 'JSON', None):
+        with open(args.data_file(mod.JSON), 'w') as fp:
+            json.dump(res, fp)

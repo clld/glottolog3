@@ -70,9 +70,7 @@ def macrolanguages(args):
 
 
 def download(args):
-    res = dict(changerequests=changerequests(args), macrolanguages=macrolanguages(args))
-    with open(args.data_file(JSON), 'w') as fp:
-        json.dump(res, fp)
+    return dict(changerequests=changerequests(args), macrolanguages=macrolanguages(args))
 
 
 def update(args):

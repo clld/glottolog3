@@ -25,7 +25,6 @@ For each matching languoid we add
 """
 from __future__ import unicode_literals
 import re
-import json
 from collections import defaultdict
 
 import requests
@@ -58,8 +57,7 @@ def download(args):
             data['wikipedia'][item.Glottolog.strip()] = item.Wiki.strip()
             for code in ll_codes(item):
                 data['multitree'][item.Glottolog.strip()].append(code)
-    with open(args.data_file(JSON), 'w') as fp:
-        json.dump(data, fp)
+    return data
 
 
 def update(args):
