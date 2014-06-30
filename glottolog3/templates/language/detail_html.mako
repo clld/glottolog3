@@ -79,7 +79,7 @@
         <div class="alert">
             % if ctx.status.value == 'spurious':
             This entry is spurious. This means either that the language denoted cannot be asserted
-            to be/have been a language distinct from all others, or, that the language denoted is
+            to be/have been a language distinct from all others, or that the language denoted is
             covered in another entry.
             % else:
             This language is ${ctx.status}.
@@ -128,8 +128,11 @@
             </%util:accordion_group>
             % endif
             <% altnames = filter(lambda i: i.type == 'name' and i.description != 'Glottolog', ctx.identifiers) %>
-            % if altnames:
+            % if altnames or ('name_comment' in ctx.datadict()):
             <%util:accordion_group eid="acc-names" parent="sidebar-accordion" title="Alternative names">
+                % if 'name_comment' in ctx.datadict():
+                <p>${u.format_comment(request, ctx.datadict()['name_comment'])}</p>
+                % endif
                 <dl>
                 % for provider, names in h.groupby(sorted(altnames, key=lambda n: n.description), lambda j: j.description):
                     <dt>${provider}:</dt>

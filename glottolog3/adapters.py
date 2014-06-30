@@ -10,14 +10,14 @@ from pyramid.httpexceptions import HTTPFound
 from clld.interfaces import ILanguage, IIndex
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump
-from clld.web.adapters.geojson import pacific_centered_coordinates
+from clld.web.adapters.geojson import pacific_centered_coordinates, GeoJsonLanguages
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.meta import DBSession
 from clld.db.models.common import Language, LanguageIdentifier
 from clld.web.icon import ORDERED_ICONS
 
 import glottolog3
-from glottolog3.models import LanguoidLevel
+from glottolog3.models import LanguoidLevel, Country
 from glottolog3.interfaces import IProvider
 
 
@@ -140,6 +140,13 @@ class PhyloXML(Representation):
             clade.append(subclade)
 
 
+class GlottologGeoJsonLanguages(GeoJsonLanguages):
+    def _feature_properties(self, ctx, req, feature, language):
+        res = {'language': language.__json__(req, core=True)}
+        res.update(self.feature_properties(ctx, req, feature) or {})
+        return res
+
+
 class _GeoJsonSelectedLanguages(GeoJsonSelectedLanguages):
     def get_coordinates(self, language):
         return pacific_centered_coordinates(language)
@@ -158,6 +165,22 @@ class _SelectedLanguagesMap(SelectedLanguagesMap):
         SelectedLanguagesMap.__init__(
             self, icon_map, req, languages, geojson_impl=_GeoJsonSelectedLanguages)
 
+    def get_options(self):
+        opts = SelectedLanguagesMap.get_options(self)
+        opts['max_zoom'] = 12
+        return opts
+
+
+def get_selected_languages_map(req, languages):
+    icon_map = {}
+    family_map = {}
+    icons = cycle(ORDERED_ICONS)
+    for l in languages:
+        if l.family_pk not in icon_map:
+            icon_map[l.family_pk] = icons.next().url(req)
+            family_map[l.family_pk] = l.family
+    return _SelectedLanguagesMap(req, languages, icon_map), icon_map, family_map
+
 
 class MapView(Index):
     extension = str('map.html')
@@ -166,16 +189,19 @@ class MapView(Index):
     template = 'language/map_html.mako'
 
     def template_context(self, ctx, req):
-        languages = list(ctx.get_query(limit=8000))
-        icon_map = {}
-        family_map = {}
-        icons = cycle(ORDERED_ICONS)
-        for l in languages:
-            if l.family_pk not in icon_map:
-                icon_map[l.family_pk] = icons.next().url(req)
-                family_map[l.family_pk] = l.family
+        if 'country' in req.params:
+            country = Country.get(req.params['country'], default=None)
+        else:
+            country = None
+
+        if country:
+            languages = country.languoids
+        else:
+            languages = list(ctx.get_query(limit=8000))
+        map_, icon_map, family_map = get_selected_languages_map(req, languages)
         return {
-            'map': _SelectedLanguagesMap(req, languages, icon_map),
+            'map': map_,
+            'country': country,
             'icon_map': icon_map,
             'family_map': family_map,
             'languages': languages}
@@ -187,4 +213,5 @@ def includeme(config):
     config.register_adapter(PhyloXML, ILanguage)
     config.register_adapter(Newick, ILanguage)
     config.register_adapter(Treeview, ILanguage)
+    config.register_adapter(GlottologGeoJsonLanguages, ILanguage, IIndex)
     config.register_adapter(MapView, ILanguage, IIndex)

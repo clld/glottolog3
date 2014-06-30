@@ -93,18 +93,3 @@ class LanguoidMap(Map):
 
         for legend in super(LanguoidMap, self).get_legends():
             yield legend
-
-
-class LanguoidsGeoJson(LanguoidGeoJson):
-    def feature_iterator(self, ctx, req):
-        return [
-            (l.pk, l.name, l.longitude, l.latitude, l.id)
-            for l in ctx if l.latitude]
-
-
-class LanguoidsMap(LanguoidMap):
-    def get_layers(self):
-        yield Layer(
-            'languoids',
-            'Languoids',
-            LanguoidsGeoJson(self.ctx).render(self.ctx, self.req, dump=False))

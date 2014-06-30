@@ -81,7 +81,7 @@ FIELD_MAP = {
     'isbn': '',
     'issn': '',
     'issue': '',
-    'jfmnote': '',
+    'jfmnote': None,
     'journal': 'journal',
     'key': '',
     'keywords': '',
@@ -173,10 +173,6 @@ CONVERTER = {'ozbib_id': int}
 
 PREF_YEAR_PATTERN = re.compile('\[(?P<year>(1|2)[0-9]{3})(\-[0-9]+)?\]')
 YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
-ROMAN = '(?P<roman>[ivxlcdmIVXLCDM]+)'
-ARABIC = '(?P<arabic>[0-9]+)'
-ROMANPAGESPATTERNra = re.compile(u'%s\+%s' % (ROMAN, ARABIC))
-ROMANPAGESPATTERNar = re.compile(u'%s\+%s' % (ARABIC, ROMAN))
 DOCTYPE_PATTERN = re.compile('(?P<name>[a-z\_]+)\s*(\((?P<comment>[^\)]+)\))?\s*(\;|$)')
 CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
 CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
@@ -264,12 +260,6 @@ def main(args):  # pragma: no cover
                     kw['ca_doctype_trigger'], kw['jsondata']['hhtype'] = trigger
 
             # try to extract numeric year, startpage, endpage, numberofpages, ...
-            if rec.get('numberofpages'):
-                try:
-                    kw['pages_int'] = int(rec.get('numberofpages').strip())
-                except ValueError:
-                    pass
-
             if kw.get('year'):
                 # prefer years in brackets over the first 4-digit number.
                 match = PREF_YEAR_PATTERN.search(kw.get('year'))
@@ -287,23 +277,20 @@ def main(args):  # pragma: no cover
                     if not 'address' in kw or kw['address'] == address:
                         kw['address'], kw['publisher'] = address, publisher
 
+            if rec.get('numberofpages'):
+                try:
+                    kw['pages_int'] = int(rec.get('numberofpages').strip())
+                except ValueError:
+                    pass
+
             if kw.get('pages'):
-                pages = kw.get('pages')
-                match = ROMANPAGESPATTERNra.search(pages)
-                if not match:
-                    match = ROMANPAGESPATTERNar.search(pages)
-                if match:
-                    if 'pages_int' not in kw:
-                        kw['pages_int'] = roman_to_int(match.group('roman')) \
-                            + int(match.group('arabic'))
-                else:
-                    start, end, number = compute_pages(pages)
-                    if start is not None:
-                        kw['startpage_int'] = start
-                    if end is not None:
-                        kw['endpage_int'] = end
-                    if number is not None:
-                        kw['pages_int'] = number
+                start, end, number = compute_pages(kw['pages'])
+                if start is not None:
+                    kw['startpage_int'] = start
+                if end is not None:
+                    kw['endpage_int'] = end
+                if number is not None and 'pages_int' not in kw:
+                    kw['pages_int'] = number
 
             if update:
                 for k in kw.keys():

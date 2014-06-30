@@ -6,8 +6,6 @@ and exported to csv from LibreOffice
 """
 from __future__ import unicode_literals
 
-import transaction
-from clld.scripts.util import Data
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.lib.dsv import reader
@@ -34,7 +32,6 @@ def download(args):
 
 def update(args):
     pid, cid = 'vitality', 'unesco'
-    data = Data()
     count = 0
     notfound = {}
     contrib = common.Contribution.get(cid, default=None)
@@ -69,7 +66,7 @@ def update(args):
                     count += 1
                     item['url'] = 'http://www.unesco.org/culture/languages-atlas/en/atlasmap/language-iso-%s.html' % code
                     lang.update_jsondata(unesco=item)
-                    de = data['DomainElement'][item['Degree of endangerment']]
+                    de = domain[item['Degree of endangerment']]
                     vsid = '%s-%s' % (pid, lang.id)
                     vs = valuesets.get(vsid)
                     if not vs:
@@ -79,6 +76,7 @@ def update(args):
                             contribution=contrib,
                             language=lang)
                         DBSession.add(common.Value(valueset=vs, name=de.name, domainelement=de))
+                        valuesets[vsid] = vs
                     else:
                         vs.values[0].domainelement = de
                 else:

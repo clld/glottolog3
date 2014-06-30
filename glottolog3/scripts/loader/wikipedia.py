@@ -66,6 +66,8 @@ def update(args):
 
     iid = int(DBSession.execute(
         "select max(cast(id as integer)) from identifier").fetchone()[0]) + 1
+    pk = DBSession.execute(
+        "select max(pk) from identifier").fetchone()[0] + 1
 
     langs = {}
     for gid, name in args.json['wikipedia'].items():
@@ -85,8 +87,9 @@ def update(args):
                     .first()
                 if not identifier:
                     identifier = common.Identifier(
-                        id=str(iid), name=code, type='multitree')
+                        pk=pk, id=str(iid), name=code, type='multitree')
                     iid += 1
+                    pk += 1
                 count += 1
                 DBSession.add(
                     common.LanguageIdentifier(language=l, identifier=identifier))

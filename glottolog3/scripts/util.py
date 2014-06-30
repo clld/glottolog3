@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import re
 import json
 
@@ -6,10 +7,10 @@ from sqlalchemy import sql, desc, not_, or_
 from clld.db.meta import DBSession
 from clld.util import slug
 from clld.lib.bibtex import Database
-from clld.db.models.common import Source
+from clld.db.models.common import Source, Language_data
 from clld.db.util import page_query
 
-from glottolog3.lib.util import get_map
+from glottolog3.lib.util import get_map, roman_to_int
 from glottolog3.lib.bibtex import unescape
 from glottolog3.models import Ref, Languoid, TreeClosureTable, Provider, LanguoidLevel
 
@@ -17,33 +18,82 @@ from glottolog3.models import Ref, Languoid, TreeClosureTable, Provider, Languoi
 WORD_PATTERN = re.compile('[a-z]+')
 SQUARE_BRACKET_PATTERN = re.compile('\[(?P<content>[^\]]+)\]')
 CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_\w+)$')
-PAGES_PATTERN = re.compile('(?P<start>[0-9]+)\s*\-\-?\s*(?P<end>[0-9]+)')
+ROMAN = '[ivxlcdmIVXLCDM]+'
+ROMANPATTERN = re.compile(ROMAN + '$')
+ARABIC = '[0-9]+'
+ARABICPATTERN = re.compile(ARABIC + '$')
+SEPPAGESPATTERN = re.compile(
+    '(?P<n1>{0}|{1})\s*(,|\.|\+)\s*(?P<n2>{0}|{1})'.format(ROMAN, ARABIC))
+PAGES_PATTERN = re.compile(
+    '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
+
+
+def get_int(s):
+    s = s.strip()
+    try:
+        return int(s)
+    except ValueError:
+        if ROMANPATTERN.match(s):
+            return roman_to_int(s)
 
 
 def compute_pages(pages):
+    """
+    >>> compute_pages('x+23')
+    (None, None, 33)
+    >>> compute_pages('x + 23')
+    (None, None, 33)
+    >>> compute_pages('x. 23')
+    (None, None, 33)
+    >>> compute_pages('23,xi')
+    (None, None, 34)
+    >>> compute_pages('23,ix')
+    (None, None, 32)
+    >>> compute_pages('ix')
+    (1, 9, 9)
+    >>> compute_pages('12-45')
+    (12, 45, 34)
+    >>> compute_pages('125-9')
+    (125, 129, 5)
+    >>> compute_pages('7-3')
+    (3, 7, 5)
+    """
+    pages = pages.strip()
+    if pages.endswith('.'):
+        pages = pages[:-1]
+    if pages.endswith('pp'):
+        pages = pages[:-2]
+
+    # trivial case: just one number:
+    n = get_int(pages)
+    if n:
+        return (1, n, n)
+
+    # next case: ,|.|+ separated numbers:
+    m = SEPPAGESPATTERN.match(pages)
+    if m:
+        return (None, None, sum(map(get_int, [m.group('n1'), m.group('n2')])))
+
+    # next case: ranges:
     start = None
     end = None
     number = None
-    match = None
 
     for match in PAGES_PATTERN.finditer(pages):
         s_start, s_end = match.group('start'), match.group('end')
-        if len(s_end) < len(s_start):
+        s, e = get_int(s_start), get_int(s_end)
+        if ARABICPATTERN.match(s_end) and ARABICPATTERN.match(s_start) \
+                and len(s_end) < len(s_start):
             # the case 516-32:
             s_end = s_start[:-len(s_end)] + s_end
-        if int(s_end) < int(s_start):
+            e = get_int(s_end)
+        if s > e:
             # the case 532-516:
-            s_end, s_start = s_start, s_end
+            e, s = s, e
         if start is None:
-            start = int(s_start)
-        end = int(s_end)
-        number = (number or 0) + (end - int(s_start) + 1)
-
-    if not match:
-        try:
-            start = int(pages)
-        except ValueError:
-            pass
+            start = s
+        end = e
+        number = (number or 0) + (end - s + 1)
 
     return (start, end, number if number > 0 else None)
 
@@ -301,3 +351,8 @@ def update_refnames(args):
         if name != ref.name:
             args.log.info('%s: %s -> %s' % (ref.id, ref.name, name))
             ref.name = name
+
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()

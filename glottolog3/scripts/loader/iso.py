@@ -87,6 +87,7 @@ def update(args):
             description="Change requests submitted to the ISO 639-3 registration authority.")
     iid = max(int(DBSession.execute(
         "select max(cast(id as integer)) from source").fetchone()[0]), 500000)
+    pk = int(DBSession.execute("select max(pk) from source").fetchone()[0])
     for crno, affected in args.json['changerequests'].items():
         year, serial = crno.split('-')
         title = 'Change Request Number %s' % crno
@@ -94,7 +95,9 @@ def update(args):
         if ref:
             continue
         iid += 1
+        pk += 1
         ref = Ref(
+            pk=pk,
             id=str(iid),
             name='%s %s' % (author, year),
             bibtex_type=EntryType.misc,

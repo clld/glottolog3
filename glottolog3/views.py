@@ -25,8 +25,8 @@ from glottolog3.models import (
 from glottolog3.config import CFG
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
-from glottolog3.models import Country, Languoidcountry
-from glottolog3.maps import LanguoidsMap
+from glottolog3.models import Country
+from glottolog3.adapters import get_selected_languages_map
 
 
 YEAR_PATTERN = re.compile('[0-9]{4}$')
@@ -143,6 +143,10 @@ def downloads(request):
     return {}
 
 
+def news(request):
+    return {}
+
+
 def errata(request):
     return {}
 
@@ -187,13 +191,7 @@ def getLanguoids(name=False,
             query = query.filter(or_(
                 Identifier.lang.in_((u'', u'eng', u'en')), Identifier.lang == None))
     elif country:
-        try:
-            alpha2 = country.split('(')[1].split(')')[0] \
-                if len(country) > 2 else country.upper()
-        except IndexError:
-            return []
-        query = query.join(Languoidcountry).join(Country)\
-            .filter(Country.id == alpha2)
+        return []  # pragma: no cover
     else:
         query = query.join(LanguageIdentifier, Identifier)\
             .filter(Identifier.name.contains(iso.lower()))\
@@ -217,6 +215,16 @@ def languages(request):
     for param, default in res['params'].items():
         res['params'][param] = request.params.get(param, default).strip()
 
+    if res['params']['country']:
+        country = res['params']['country']
+        try:
+            alpha2 = country.split('(')[1].split(')')[0] \
+                if len(country) > 2 else country.upper()
+            raise HTTPFound(location=request.route_url(
+                'languages_alt', ext='map.html', _query=dict(country=alpha2)))
+        except IndexError:
+            pass
+
     res['params']['multilingual'] = 'multilingual' in request.params
 
     if request.params.get('alnum'):
@@ -231,7 +239,9 @@ def languages(request):
         res['message'] = 'No matching languoids found'
     #if len(languoids) == 1:
     #    raise HTTPFound(request.resource_url(languoids[0]))
-    map_ = LanguoidsMap(languoids, request)
+
+    map_, icon_map, family_map = get_selected_languages_map(request, languoids)
+
     layer = list(map_.get_layers())[0]
     if not layer.data['features']:
         map_ = None
@@ -278,47 +288,3 @@ def redirect_languoid_xhtml(req):
 
 def redirect_reference_xhtml(req):
     return HTTPMovedPermanently(location=req.route_url('source', id=req.matchdict['id']))
-
-
-def relation(req):
-    from glottolog3.adapters import Jit
-    l1 = Languoid.get('ngba1284')
-    l1_ancestors = list(l1.get_ancestors())
-    l2 = Languoid.get('ngba1287')
-    l2_ancestors = list(l2.get_ancestors())
-    root = None
-    i2 = None
-    for i1, l in enumerate(l1_ancestors):
-        if l in l2_ancestors:
-            root = l
-            i2 = l2_ancestors.index(l)
-            break
-    assert root
-
-    res = {}
-    current = None
-
-    for i, l in enumerate(reversed(l1_ancestors[i1 + 1:])):
-        n = Jit.node(l, 0, 0)
-        if i == 0:
-            res = n
-        else:
-            current['children'].append(n)
-        current = n
-
-    n = Jit.node(root, 0, 0)
-    if not res:
-        res = n
-    else:
-        current['children'].append(n)
-    current = n
-
-    for l, ancestors, index in [(l1, l1_ancestors, i1), (l2, l2_ancestors, i2)]:
-        for k, ll in enumerate(reversed(ancestors[:index])):
-            n = Jit.node(ll, 0, 0)
-            inner = {'id': 'x-' + l.id, 'name': '...', 'data': {'level': 'language'}, 'children': [Jit.node(l, 0, 0)]}
-            n['children'] = [inner]
-            if k > 0:
-                break
-            current['children'].append(n)
-    return {'data': res, 'center': root.id}

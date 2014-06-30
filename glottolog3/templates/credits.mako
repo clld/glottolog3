@@ -23,7 +23,7 @@
     </p>
     <p>
         Robert Forkel programmed the second version of the web application as part of the
-        Cross Linguistic Linked Data project.
+        <a href="http://clld.org">Cross Linguistic Linked Data</a> project.
     </p>
     <p>
         Martin Haspelmath gave advice at every stage throughout the project, helped with

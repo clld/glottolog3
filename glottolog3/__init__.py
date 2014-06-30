@@ -69,6 +69,7 @@ def main(global_config, **settings):
         ('dataset', partial(menu_item, 'dataset', label='Home')),
         ('languages', partial(menu_item, 'languages', label='Languoids')),
         ('sources', partial(menu_item, 'sources', label='Langdoc')),
+        ('news', lambda ctx, req: (req.route_url('news'), 'News')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(
@@ -78,6 +79,8 @@ def main(global_config, **settings):
     config.include('glottolog3.adapters')
     config.add_view(views.redirect_languoid_xhtml, route_name='languoid.xhtml')
     config.add_view(views.redirect_reference_xhtml, route_name='reference.xhtml')
+
+    config.add_route_and_view('news', '/news', views.news, renderer='news.mako')
 
     config.add_route_and_view(
         'glottolog.meta',
@@ -124,12 +127,6 @@ def main(global_config, **settings):
         '/desc_stats/{type:[a-z]+}-{index:[0-9]}',
         desc_stats.desc_stats_languages,
         renderer='desc_stats_languages.mako')
-
-    config.add_route_and_view(
-        'relation',
-        '/glottolog/relation',
-        views.relation,
-        renderer='relation.mako')
 
     for name in 'credits glossary cite downloads errata contact'.split():
         pp = '/' if name == 'credits' else '/meta/'

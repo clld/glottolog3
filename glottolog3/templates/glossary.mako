@@ -136,3 +136,49 @@
         current version of Glottolog.
     </p>
 </%util:section>
+
+
+<%util:section title="Most Extensive Description (MED)" level="4">
+    <p>
+        The Most Extensive Description (MED) for a language is the longest
+        document of the highest ranking
+        <a href="#Doctype">document type</a>. From highest to lowest,
+        the ranking is grammar, grammar sketch, dictionary/phonology/specific
+        feature/text, wordlist, followed by the remaining document types.
+    </p>
+</%util:section>
+
+<%util:section title="Descriptive status of a language" level="4">
+    <p>
+        The descriptive status of a language is the document type of its MED.
+        For example, in the case of language for which there is a grammar
+        sketch, a phonology and a dictionary, its MED would be the grammar and
+        so the descriptive status would be 'grammar'. It does not matter if
+        there are fifty grammar for the language or just one, the descriptive
+        status would still be 'grammar'.
+    </p>
+</%util:section>
+
+<%util:section title="Computerized assignment" level="4">
+    <p>
+        A large class of the bibliographical references have been annotated
+        manually for language and document type, sometimes via a decent
+        translation of another annotation scheme than the one used on
+        Glottolog. However, a large class of references have not been manually
+        annotated. Such references are automatically tagged on the basis of words
+        that occur in the title. For example, if the title of a
+        bibliographical reference contains the name of a language, it may be
+        guessed to pertain to that language. Similarly, if it contains the
+        word 'dictionary' it is probably of the document type dictionary.
+        Which words trigger which annotations is automatically learned from
+        manually tagged training data (see Hammarström 2008 for details). The
+        automatic annotation is far from perfect, but is nevertheless applied
+        since it does more good than harm. However, assignments which are
+        triggered by words in the title in this way, as opposed to manual
+        annotations, are marked as "computerized assignment".
+    </p>
+    <blockquote>
+        Harald Hammarström. 2008. Automatic Annotation of Bibliographical References with Target Language.<br />
+        Proceedings of MMIES-2: Workshop on Multi-source, Multilingual Information Extraction and Summarization, 57-64. ACL.
+    </blockquote>
+</%util:section>

@@ -177,7 +177,7 @@ def provider_index_html(request=None, **kw):
     }
 
 
-def format_classificationcomment(req, comment):
+def format_comment(req, comment):
     """
     We collect source ids found in comment, retrieve the corresponding source objects from
     the database in a single query and then replace the ids with formatted source links.
@@ -204,6 +204,10 @@ def format_classificationcomment(req, comment):
         sources[source.id] = source
 
     return HTML.p(*[link(req, sources[p]) if p in sources else p for p in parts] )
+
+
+def format_classificationcomment(req, comment):
+    return format_comment(req, comment)
 
 
 def format_justifications(req, refs):

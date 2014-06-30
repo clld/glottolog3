@@ -15,10 +15,8 @@ from clld.db.models.common import (
 from glottolog3.models import (
     Languoid, Country, Macroarea, LanguoidLevel, TreeClosureTable,
 )
-from glottolog3.lib.util import get_map
-from glottolog3.scripts.util import (
-    update_relationship, PAGES_PATTERN, REF_PATTERN, WORD_PATTERN,
-)
+from glottolog3.lib.util import get_map, REF_PATTERN
+from glottolog3.scripts.util import update_relationship, PAGES_PATTERN, WORD_PATTERN
 
 
 def countries(args, languages):
@@ -98,9 +96,8 @@ def justifications(args, languages):
     - refs go into ValueSetReference objects
     """
     def normalized_pages(s):
-        match = PAGES_PATTERN.match(s or '')
-        if match:
-            return match.group('pages')
+        if PAGES_PATTERN.match(s or ''):
+            return s or ''
 
     #
     # create mappings to look up glottolog languoids matching names in justification files

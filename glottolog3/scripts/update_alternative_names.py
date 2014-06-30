@@ -16,6 +16,7 @@ MAX_IDENTIFIER_PK = None
 def create_name(names, l):
     global MAX_IDENTIFIER_PK
     if l.name not in names:
+        print 'create new glottolog name', l.name
         MAX_IDENTIFIER_PK += 1
         id_ = Identifier(
             pk=MAX_IDENTIFIER_PK,
@@ -28,7 +29,9 @@ def create_name(names, l):
         names[l.name] = id_
     else:
         pk = names[l.name].pk
-    DBSession.add(LanguageIdentifier(language_pk=l.pk, identifier_pk=pk))
+    if pk not in [li.identifier_pk for li in l.languageidentifier]:
+        print 'create new relation'
+        DBSession.add(LanguageIdentifier(language_pk=l.pk, identifier_pk=pk))
 
 
 def main(args):  # pragma: no cover
@@ -44,10 +47,12 @@ def main(args):  # pragma: no cover
         for l in DBSession.query(Languoid).options(joinedload_all(
             Language.languageidentifier, LanguageIdentifier.identifier
         )):
-            for lid in l.languageidentifier:
-                if lid.identifier.description == 'Glottolog 2012' or lid.identifier.description == 'Glottolog':
-                    l.languageidentifier.remove(lid)
+            #for lid in l.languageidentifier:
+            #    if lid.identifier.description == 'Glottolog 2012' or lid.identifier.description == 'Glottolog':
+            #        l.languageidentifier.remove(lid)
             create_name(gc_names, l)
+
+        transaction.abort()
 
 
 if __name__ == '__main__':

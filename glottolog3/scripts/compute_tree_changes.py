@@ -35,7 +35,6 @@ import json
 import re
 from collections import OrderedDict
 
-from clld.lib import dsv
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 
@@ -189,6 +188,9 @@ def match_nodes(leafs, nodes, rnodes, urnodes, leafsets, names):
         return todo
 
     # then look at names:
+    #
+    # TODO: must look at jsondata['hname']!
+    #
     if len(nodes) == 1:
         node = nodes[0]
         if node[2] not in ['Ellicean']:
@@ -246,7 +248,6 @@ def match_nodes(leafs, nodes, rnodes, urnodes, leafsets, names):
 
 def main(args):
     active_only = not args.all
-    coords = dict((r[0], r[1:]) for r in dsv.reader(data_file(args, 'coordinates.tab')))
     codes = dict((row[0], row[1]) for row in
                  DBSession.execute("select ll.hid, l.pk from languoid as ll, language as l where ll.pk = l.pk and ll.hid is not null"))
 
@@ -311,8 +312,6 @@ def main(args):
                 globalclassificationcomment=comment or None,
             )
             print '++', attrs
-            if coords.get(code):
-                attrs['longitude'], attrs['latitude'] = map(float, coords.get(code))
             languoids.append(attrs)
 
     urnodes = {}

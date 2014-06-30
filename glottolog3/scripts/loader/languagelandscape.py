@@ -27,7 +27,7 @@ def download(args):
     return data
 
 
-def main(args):
+def update(args):
     count = 0
     for url, glottocode in args.json.items():
         lang = Language.get(glottocode, default=None)
