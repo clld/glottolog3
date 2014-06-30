@@ -57,7 +57,7 @@ class LanguoidMap(Map):
     def get_options(self):
         if self.req.matchdict.get('ext') == 'bigmap.html':
             return {'max_zoom': 12, 'hash': True}
-        return {'sidebar': True}
+        return {'max_zoom': 12, 'sidebar': True}
 
     def get_legends(self):
         from glottolog3.util import languoid_link

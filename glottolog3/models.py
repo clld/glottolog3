@@ -299,6 +299,12 @@ class Languoid(Language, CustomModelMixin):
                 return vs
 
     @property
+    def endangerment(self):
+        for vs in self.valuesets:
+            if vs.parameter.id == 'vitality':
+                return vs.values[0].name
+
+    @property
     def fc(self):
         c = self.classification('fc')
         if c and c.description:

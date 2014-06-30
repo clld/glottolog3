@@ -20,19 +20,18 @@ from glottolog3.maps import Language
 
 
 class SimplifiedDoctype(object):
-    def __init__(self, ord_, name, color, color_extinct):
+    def __init__(self, ord_, name, color):
         self.ord = ord_
         self.name = name
         self.color = color
-        self.color_extinct = color_extinct
 
 
 SIMPLIFIED_DOCTYPES = [
     SimplifiedDoctype(i, *args) for i, args in enumerate([
-        ('grammar', '00ff00', '006400'),
-        ('grammar sketch', 'ff8040', 'd3d3d3'),
-        ('phonology/text', 'ff4500', '708a90'),
-        ('wordlist or less', 'ff0000', '000000'),
+        ('grammar', '00ff00'),
+        ('grammar sketch', 'ff6600'),
+        ('phonology/text', 'ff4400'),
+        ('wordlist or less', 'ff0000'),
     ])
 ]
 
@@ -45,6 +44,15 @@ for i, dt in enumerate(DOCTYPES):
         SIMPLIFIED_DOCTYPE_MAP[i] = SIMPLIFIED_DOCTYPES[2]
         SIMPLIFIED_DOCTYPE_MAP[dt] = SIMPLIFIED_DOCTYPES[2]
 
+ENDANGERMENTS = [
+    ('Vulnerable', 'c'),
+    ('Definitely endangered', 's'),
+    ('Severely endangered', 'd'),
+    ('Critically endangered', 't'),
+    ('Extinct', 'f'),
+]
+ENDANGERMENT_MAP = defaultdict(lambda: ENDANGERMENTS[0][1], ENDANGERMENTS)
+
 
 class DescStatsGeoJson(GeoJson):
     _icons = {}
@@ -55,32 +63,26 @@ class DescStatsGeoJson(GeoJson):
     def featurecollection_properties(self, ctx, req):
         return {'layer': 'desc'}
 
-    def get_icon(self, req, type_, extinct=False):
-        sdt = SIMPLIFIED_DOCTYPE_MAP[type_]
-        color = sdt.color_extinct if extinct else sdt.color
-        if color not in self._icons:
-            self._icons[color] = req.static_url('glottolog3:static/icons/c%s.png' % color)
-        return self._icons[color]
+    def get_icon(self, req, type_, endangerment):
+        spec = ENDANGERMENT_MAP[endangerment] + SIMPLIFIED_DOCTYPE_MAP[type_].color
+        if spec not in self._icons:
+            self._icons[spec] = req.static_url('clld:web/static/icons/%s.png' % spec)
+        return self._icons[spec]
 
     def feature_properties(self, ctx, req, feature):
         # augment the source dicts
         for s in feature['sources']:
-            s['icon'] = self.get_icon(req, s['doctype'])
-            s['eicon'] = self.get_icon(req, s['doctype'], feature['extinct'])
+            s['icon'] = self.get_icon(req, s['doctype'], feature['endangerment'])
             s['sdt'] = SIMPLIFIED_DOCTYPE_MAP[s['doctype']].ord
 
         med = feature['med']
         return {
-            'extinct': feature['extinct'],
-            'icon': self.get_icon(req, med['doctype'] if med else None),
-            'eicon': self.get_icon(
-                req,
-                med['doctype'] if med else None, extinct=feature['extinct']),
+            'endangerment': feature['endangerment'],
+            'icon': self.get_icon(req, med['doctype'] if med else None, feature['endangerment']),
             'med': med['id'] if med else None,
             'sdt': SIMPLIFIED_DOCTYPE_MAP[med['doctype'] if med else None].ord,
             'info_query': {'source': med['id']} if med else {},
-            'red_icon': self.get_icon(req, None),
-            'red_eicon': self.get_icon(req, None, extinct=feature['extinct']),
+            'red_icon': self.get_icon(req, None, feature['endangerment']),
             'sources': feature['sources']}
 
     def get_language(self, ctx, req, feature):
@@ -102,13 +104,14 @@ class DescStatsMap(Map):
         return {
             'icon_size': 20,
             'hash': True,
+            'max_zoom': 12,
             'on_init': JS('GLOTTOLOG3.descStatsUpdate'),
             'no_showlabels': True}
 
     def get_legends(self):
-        def img(color):
+        def img(spec):
             return HTML.img(
-                src=self.req.static_url('glottolog3:static/icons/c%s.png' % color),
+                src=self.req.static_url('clld:web/static/icons/%s.png' % spec),
                 height='20',
                 width='20',
                 style='margin-left: 0.5em;')
@@ -118,7 +121,10 @@ class DescStatsMap(Map):
 
         values = [desc('Most extensive description is a ...')]
         for sdt in SIMPLIFIED_DOCTYPES:
-            values.append((img(sdt.color), img(sdt.color_extinct), desc(sdt.name)))
+            values.append((img('c' + sdt.color), desc(sdt.name)))
+        values.append(desc('Language is ...'))
+        for ed in ENDANGERMENTS:
+            values.append((img(ed[1] + 'ffffff'), desc(ed[0])))
         yield Legend(self, 'values', values, label='Legend')
 
 

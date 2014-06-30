@@ -63,23 +63,13 @@ class Source(object):
 
 def main(args):  # pragma: no cover
     extinct = dict(list(dsv.reader(args.data_file('extinct.tab'))))
-
-    icons_dir = path(glottolog3.__file__).dirname().joinpath('static', 'icons')
-    for doctype in SIMPLIFIED_DOCTYPES:
-        for color in [doctype.color, doctype.color_extinct]:
-            figure(figsize=(0.3, 0.3))
-            axes([0.1, 0.1, 0.8, 0.8])
-            coll = pie((100,), colors=('#' + color,))
-            coll[0][0].set_linewidth(0.5)
-            savefig(icons_dir.joinpath('c%s.png' % color), transparent=True)
-
     meds = {}
     start = time.time()
     with transaction.manager:
         # loop over active, established languages with geo-coords
         for i, l in enumerate(
             DBSession.query(Language)
-            .options(joinedload(Languoid.macroareas))
+            .options(joinedload(Languoid.macroareas), joinedload(Language.valuesets))
             .filter(Language.active == True)
             .filter(Languoid.status == LanguoidStatus.established)
             .filter(Language.latitude != None)
@@ -116,7 +106,7 @@ def main(args):  # pragma: no cover
                 'id': l.id,
                 'iso': l.hid,
                 'family': l.family.id if l.family else None,
-                'extinct': l.hid in extinct,
+                'endangerment': 'Extinct' if l.hid in extinct else l.endangerment,
                 'name': l.name,
                 'latitude': l.latitude,
                 'longitude': l.longitude,
@@ -134,7 +124,6 @@ def main(args):  # pragma: no cover
         json.dump(meds, fp)
 
     print len(meds), 'languages'
-    print len([m for m in meds.values() if m['extinct']]), 'extinct languages'
 
 
 if __name__ == '__main__':
