@@ -41,7 +41,7 @@
                 <p>${u.format_classificationcomment(request, ctx.fc.description)}</p>
             % endif
             % if ctx.screfs:
-                <h5 title="${'The references cited contain arguments for the placement of the node {0} with respect to its parents or the subclassification of the daughters of {0}.'.format(ctx.name)}">
+                <h5 title="${u'The references cited contain arguments for the placement of the node {0} with respect to its parents or the subclassification of the daughters of {0}.'.format(ctx.name)}">
                     Subclassification references
                 </h5>
                 ${u.format_justifications(request, ctx.screfs)}
