@@ -14,7 +14,7 @@ from glottolog3.lib.bibtex import unescape
 from glottolog3.models import Ref, Provider, Macroarea, Doctype, Languoid
 from glottolog3.lib.util import get_map
 from glottolog3.scripts.util import (
-    update_providers, update_relationship, update_reflang, compute_pages,
+    update_providers, update_relationship, compute_pages, CA_PATTERN, ca_trigger,
 )
 
 FIELD_MAP = {
@@ -173,18 +173,9 @@ CONVERTER = {'ozbib_id': int}
 
 PREF_YEAR_PATTERN = re.compile('\[(?P<year>(1|2)[0-9]{3})(\-[0-9]+)?\]')
 YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
+
 DOCTYPE_PATTERN = re.compile('(?P<name>[a-z\_]+)\s*(\((?P<comment>[^\)]+)\))?\s*(\;|$)')
 CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
-CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
-
-
-def ca_trigger(s):
-    """
-    :return: pair (trigger, updated s) or None.
-    """
-    m = CA_PATTERN.search(s)
-    if m:
-        return m.group('trigger'), (s[:m.start()] + s[m.end():]).strip()
 
 
 #
@@ -245,14 +236,6 @@ def main(args):  # pragma: no cover
                         kw[target] = CONVERTER.get(source, lambda x: x)(value)
                     else:
                         kw['jsondata'][source] = value
-
-            if kw.get('language_note'):
-                if len(kw['language_note']) == 3:
-                    kw['language_note'] = '[%s]' % kw['language_note']
-
-                trigger = ca_trigger(kw['language_note'])
-                if trigger:
-                    kw['ca_language_trigger'], kw['language_note'] = trigger
 
             if kw['jsondata'].get('hhtype'):
                 trigger = ca_trigger(kw['jsondata']['hhtype'])

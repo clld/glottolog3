@@ -26,6 +26,16 @@ SEPPAGESPATTERN = re.compile(
     '(?P<n1>{0}|{1})\s*(,|\.|\+)\s*(?P<n2>{0}|{1})'.format(ROMAN, ARABIC))
 PAGES_PATTERN = re.compile(
     '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
+CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
+
+
+def ca_trigger(s):
+    """
+    :return: pair (trigger, updated s) or None.
+    """
+    m = CA_PATTERN.search(s)
+    if m:
+        return m.group('trigger'), (s[:m.start()] + s[m.end():]).strip()
 
 
 def get_int(s):
@@ -197,7 +207,7 @@ def match_obsolete_refs(args):
         json.dump(matched, fp)
 
 
-def get_lgcodes(ref):
+def get_codes(ref):
     """detect language codes in a string
 
     known formats:
@@ -206,79 +216,98 @@ def get_lgcodes(ref):
     - cul, aka
     - [cul, aka, NOCODE_Culina]
     """
-    res = []
-    lgcode = ref.jsondatadict.get('lgcode', '')
-    if not lgcode:
-        return res
-
-    if '[' not in lgcode:
-        lgcode = '[%s]' % lgcode
-
     # look at everything in square brackets
-    for match in SQUARE_BRACKET_PATTERN.finditer(lgcode):
+    for match in SQUARE_BRACKET_PATTERN.finditer(ref.language_note):
         # then split by comma, and look at the parts
         for code in [s.strip() for s in match.group('content').split(',')]:
             if CODE_PATTERN.match(code):
-                res.append(code)
-    return set(res)
+                yield code
 
 
 def update_reflang(args):
-    changes = {}
-    get_obsolete_refs(args)
-    with open(args.data_file(args.version, 'obsolete_refs.json')) as fp:
-        obsolete_refs = {k: 1 for k in json.load(fp)}
-
     with open(args.data_file('brugmann_noderefs.json')) as fp:
         brugmann_noderefs = json.load(fp)
 
-    added, removed, unknown = 0, 0, {}
+    ignored, obsolete, changed, unknown = 0, 0, 0, {}
     languoid_map = {}
     for l in DBSession.query(Languoid).filter(Languoid.hid != None):
-        languoid_map[l.hid] = l
-        languoid_map[l.pk] = l
+        languoid_map[l.hid] = l.pk
 
-    for ref in page_query(DBSession.query(Ref).order_by(Source.pk), verbose=True):
-        if ref.id in obsolete_refs:
-            # remove all language relations!
-            ref.update_jsondata(lgcode='')
-        # keep relations to non-language languoids:
+    lgcodes = {}
+    for rec in Database.from_file(
+            args.data_file(args.version, 'refs.bib'), encoding='utf8'):
+        lgcode = ''
+        for f in 'lgcode lcode lgcde lgcoe lgcosw'.split():
+            if rec.get(f):
+                lgcode = rec[f]
+                break
+        if len(lgcode) == 3 or lgcode.startswith('NOCODE_'):
+            lgcode = '[' + lgcode + ']'
+        lgcodes[rec.get('glottolog_ref_id', None)] = lgcode
+
+    #for ref in DBSession.query(Ref).order_by(desc(Source.pk)).limit(10000):
+    for ref in page_query(
+            DBSession.query(Ref).order_by(desc(Source.pk)),
+            n=10000,
+            commit=True,
+            verbose=True):
+        # disregard iso change requests:
+        if ref.description and ref.description.startswith('Change Request Number '):
+            ignored += 1
+            continue
+
+        if ref.id not in lgcodes:
+            # remove all language relations for refs no longer in bib!
+            update_relationship(ref.languages, [])
+            obsolete += 1
+            continue
+
+        language_note = lgcodes[ref.id]
+        trigger = ca_trigger(language_note)
+        if trigger:
+            ref.ca_language_trigger, ref.language_note = trigger
+        else:
+            ref.language_note = language_note
+
         remove = brugmann_noderefs['delete'].get(str(ref.pk), [])
+
+        # keep relations to non-language languoids:
         langs = [
             l for l in ref.languages if
             (l.level != LanguoidLevel.language or not l.active) and l.pk not in remove]
         langs_pk = [l.pk for l in langs]
+
+        # add relations from filemaker data:
         for lpk in brugmann_noderefs['create'].get(str(ref.pk), []):
             if lpk not in langs_pk:
-                l = languoid_map.get(lpk, Languoid.get(lpk, default=None))
+                l = Languoid.get(lpk, default=None)
                 if l:
                     #print 'relation added according to brugmann data'
                     langs.append(l)
+                    langs_pk.append(l.pk)
                 else:
                     print 'brugmann relation for non-existing languoid'
 
-        for code in get_lgcodes(ref):
+        for code in set(get_codes(ref)):
             if code not in languoid_map:
                 unknown[code] = 1
+                continue
+            lpk = languoid_map[code]
+            if lpk in remove:
+                print ref.name, ref.id, '--', l.name, l.id
+                print 'relation removed according to brugmann data'
             else:
-                l = languoid_map[code]
-                if l.pk not in remove:
-                    langs.append(l)
-                else:
-                    print ref.name, ref.id, '--', l.name, l.id
-                    print 'relation removed according to brugmann data'
+                if lpk not in langs_pk:
+                    langs.append(DBSession.query(Languoid).get(lpk))
+                    langs_pk.append(lpk)
 
         a, r = update_relationship(ref.languages, langs)
         if a or r:
-            changes[ref.id] = ([l.id for l in ref.languages], [l.id for l in langs])
-        added += a
-        removed += r
+            changed += 1
 
-    with open(args.data_file(args.version, 'reflang_changes.json'), 'w') as fp:
-        json.dump(changes, fp)
-
-    print added, 'added'
-    print removed, 'removed'
+    print ignored, 'ignored'
+    print obsolete, 'obsolete'
+    print changed, 'changed'
     print 'unknown codes', unknown.keys()
 
 

@@ -92,33 +92,35 @@ def update(args):
         year, serial = crno.split('-')
         title = 'Change Request Number %s' % crno
         ref = Ref.get(title, key='title', default=None)
-        if ref:
-            continue
-        iid += 1
-        pk += 1
-        ref = Ref(
-            pk=pk,
-            id=str(iid),
-            name='%s %s' % (author, year),
-            bibtex_type=EntryType.misc,
-            number=crno,
-            description=title,
-            year=year,
-            year_int=int(year),
-            title=title,
-            author=author,
-            address='Dallas',
-            publisher='SIL International',
-            url='http://www.sil.org/iso639-3/cr_files/%s.pdf' % crno,
-            doctypes_str=dtid,
-            providers_str=pid,
-            jsondata=dict(lgcode='', hhtype=dtid, src=pid))
-        ref.doctypes.append(dt)
-        ref.providers.append(provider)
+
+        if not ref:
+            iid += 1
+            pk += 1
+            ref = Ref(
+                pk=pk,
+                id=str(iid),
+                name='%s %s' % (author, year),
+                bibtex_type=EntryType.misc,
+                number=crno,
+                description=title,
+                year=year,
+                year_int=int(year),
+                title=title,
+                author=author,
+                address='Dallas',
+                publisher='SIL International',
+                url='http://www.sil.org/iso639-3/cr_files/%s.pdf' % crno,
+                doctypes_str=dtid,
+                providers_str=pid,
+                language_note=', '.join('%(Language Name)s [%(Affected Identifier)s]' % spec for spec in affected),
+                jsondata=dict(hhtype=dtid, src=pid))
+            ref.doctypes.append(dt)
+            ref.providers.append(provider)
+
         for spec in affected:
             lang = Languoid.get(spec['Affected Identifier'], key='hid', default=None)
-            if lang:
-                ref.languages.append(Language.get(lang.pk))
+            if lang and lang not in ref.languages:
+                ref.languages.append(lang)
         DBSession.add(ref)
 
     transaction.commit()
