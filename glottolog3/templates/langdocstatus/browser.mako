@@ -3,8 +3,8 @@
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">
     <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
-    <link href="${request.static_url('clld:web/static/css/slider.css')}" rel="stylesheet">
-    <script src="${request.static_url('clld:web/static/js/bootstrap-slider.js')}"></script>
+    <link href="${request.static_url('glottolog3:static/slider.css')}" rel="stylesheet">
+    <script src="${request.static_url('glottolog3:static/bootstrap-slider.js')}"></script>
 </%block>
 
 <% year, macroarea = [request.params.get(n, '') for n in 'year macroarea'.split()] %>
@@ -18,16 +18,47 @@
     </td>
 </%def>
 
+<%def name="increment(amount)">
+    <button href="#" onclick="GLOTTOLOG3.Slider.increment(${amount})" class="btn">${'+' if amount > 0 else ''}${amount}</button>
+</%def>
+
 <div class="row-fluid">
-    <div class="span8">
+    <div class="span6">
         <h3>Language Documentation Status Browser</h3>
-<form class="form-inline">
-1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-min="1500" data-slider-max="2014" data-slider-step="1" data-slider-value="${request.params.get('year', '2014') or '2014'}" data-slider-selection="after" data-slider-tooltip="hide">&nbsp;&nbsp;&nbsp;2014
-</form>
+        <p>
+            You can investigate the documentation status for the selected languages and year
+            on the <a class="label label-info" href="#themap">map</a> or view
+            the <a class="label label-info" href="#tally">tally</a>.
+        </p>
     </div>
-    <div class="span4 well well-small">
+    <div class="span6">
+        <div style="margin-top: 10px;" class="well well-small">
         <table class="table">
-            <tr><td>Year:</td><td><span id="year">${year}</span></td></tr>
+            <thead>
+            <tr>
+                <td>Year:</td>
+                <td>
+                    <input class="input-mini" disabled="disabled" type="text" id="year" value="${year}"/>
+                    <br/>
+                    ##<form class="form-inline">
+                        1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-step="1">&nbsp;&nbsp;&nbsp;2014
+                    ##</form>
+                    <div class="btn-toolbar">
+                        <div class="btn-group">
+                            ${increment(-100)}
+                    ${increment(-10)}
+                    ${increment(-1)}
+                        </div>
+                        <div class="btn-group">
+                            ${increment(1)}
+                    ${increment(10)}
+                    ${increment(100)}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </thead>
+            <tbody>
             <tr>
                 <td>Macroarea:</td>
                 <td>
@@ -43,19 +74,21 @@
                 <td>Family:</td>
                 <td>${families.render()}</td>
             </tr>
+            </tbody>
         </table>
+        </div>
     </div>
 </div>
 
 <div class="row-fluid">
-    <div class="span12">
+    <div id="themap" class="span12">
         ${map.render()}
     </div>
 </div>
 
 <div class="row-fluid">
     <div class="span12">
-        <table class="table table-nonfluid">
+        <table id="tally" class="table table-nonfluid">
             <thead>
                 <tr>
                     <th colspan="2"> </th>
@@ -114,10 +147,7 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $("#ys").slider().on("slideStop", function(e) {
-            $('#year').text(e.value);
-            GLOTTOLOG3.LangdocStatus.update();
-        });
+        GLOTTOLOG3.Slider.init(${request.params.get('year', 0)});
         $("#macroarea").change(GLOTTOLOG3.LangdocStatus.reload);
         $("#msfamily").on("change", GLOTTOLOG3.LangdocStatus.reload);
     });

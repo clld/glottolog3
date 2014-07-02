@@ -403,6 +403,7 @@ order by
                 tree_.append(node)
             else:
                 if fpk not in children_map:
+                    # this can be the case for dialects attached to inactive nodes
                     continue
                 children_map[fpk].append(node)
         return tree_

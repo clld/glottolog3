@@ -13,6 +13,40 @@ GLOTTOLOG3.formatLanguoid = function (obj) {
 /**
  *
  */
+GLOTTOLOG3.Slider = (function(){
+    var slider,
+        min = 1500.0,
+        max = new Date().getFullYear();
+
+    return {
+        increment: function(howmuch){
+            var value = slider.slider('getValue');
+            if (howmuch < 0) {
+                value = Math.max(value + howmuch, min);
+            } else {
+                value = Math.min(value + howmuch, max);
+            }
+            slider.slider('setValue', value, true);
+        },
+        init: function(value){
+            if (value == 0) {
+                value = max;
+            }
+            slider = $('#ys');
+            slider.slider({min: min, max: max, tooltip: 'hide'});
+            slider.slider().on("slideStop", function(e) {
+                $('#year').val(e.value);
+                GLOTTOLOG3.LangdocStatus.update();
+            });
+            slider.slider().on("slide", function(e) {
+                $('#year').val(e.value);
+                GLOTTOLOG3.LangdocStatus.update();
+            });
+            slider.slider('setValue', value, true);
+        }
+    }
+})();
+
 GLOTTOLOG3.LangdocStatus = (function(){
     return {
         toggleMarkers:  function() {
@@ -27,7 +61,7 @@ GLOTTOLOG3.LangdocStatus = (function(){
                 {'ed': ed, 'sdt': sdt},
                 {
                     'macroarea': $("#macroarea").val(),
-                    'year': $('#year').text(),
+                    'year': $('#year').val(),
                     'family': $("#msfamily").select2("val").join()
                 });
             $("#languages").focus().load(url);
@@ -38,7 +72,7 @@ GLOTTOLOG3.LangdocStatus = (function(){
                 {},
                 {
                     'macroarea': $("#macroarea").val(),
-                    'year': $('#year').text(),
+                    'year': $('#year').val(),
                     'family': $('#msfamily').select2('val').join()
                 }
             );
@@ -52,8 +86,12 @@ GLOTTOLOG3.LangdocStatus = (function(){
                     [0, 0, 0, 0, 0, 0]
                 ],
                 totals = [0, 0, 0, 0, 0, 0],
-                year = $("#year").text(),
+                year = $("#year").val(),
                 map = CLLD.Maps['map'];
+
+            if (!map) {
+                return;
+            }
 
             if (year) {
                 year = parseInt(year);
