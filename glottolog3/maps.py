@@ -55,9 +55,16 @@ class LanguoidMap(Map):
                 self.ctx, self.icon_map).render(self.ctx, self.req, dump=False))
 
     def get_options(self):
+        res = {'max_zoom': 12}
         if self.req.matchdict.get('ext') == 'bigmap.html':
-            return {'max_zoom': 12, 'hash': True}
-        return {'max_zoom': 12, 'sidebar': True}
+            res['hash'] = True
+        else:
+            res['sidebar'] = True
+        if self.ctx.level != LanguoidLevel.family:
+            res['zoom'] = 4
+        else:
+            res['zoom'] = 6
+        return res
 
     def get_legends(self):
         from glottolog3.util import languoid_link
