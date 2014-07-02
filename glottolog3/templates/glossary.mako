@@ -38,7 +38,7 @@
         </div>
     <p>
         An area of the globe of roughly continent size. The following areas
-        are distinguished in Glottolog/Langdoc:
+        are distinguished in Glottolog:
     </p>
     <dl>
         % for macroarea in macroareas:
@@ -56,6 +56,10 @@
         <li>the distance between the component parts inside each area is minimized, and</li>
         <li>the length of intersections between pairs of macro-areas is minimized.</li>
     </ol>
+    <blockquote>
+        Hammarström, Harald & Mark Donohue. (2014) Principles on Macro-Areas in Linguistic Typology. <br />
+        In Harald Hammarström & Lev Michael (eds.), Quantitative Approaches to Areal Linguistic Typology (Language Dynamics & Change Special Issue), 167-187. Leiden: Brill.
+    </blockquote>
 </%util:section>
 <%util:section title="Pseudo-families" level="4">
     <p>

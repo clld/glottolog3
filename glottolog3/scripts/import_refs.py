@@ -297,11 +297,12 @@ def main(args):  # pragma: no cover
                                 changes[ref.id][k] = ('%s' % v, '%s' % kw[k])
                             else:
                                 changes[ref.id] = {k: ('%s' % v, '%s' % kw[k])}
-                ref.description = ref.title or ref.booktitle
-                ref.name = '%s %s' % (ref.author or 'n.a.', ref.year or 'n.d.')
             else:
                 changed = True
                 ref = Ref(name='%s %s' % (kw.get('author', 'na'), kw.get('year', 'nd')), **kw)
+
+            ref.description = ref.title or ref.booktitle
+            ref.name = '%s %s' % (ref.author or 'n.a.', ref.year or 'n.d.')
 
             def append(attr, obj):
                 if obj and obj not in attr:

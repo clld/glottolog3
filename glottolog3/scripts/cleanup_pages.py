@@ -11,11 +11,14 @@ from glottolog3.models import Ref
 from glottolog3.scripts.util import compute_pages
 
 
+
 def main(args):  # pragma: no cover
     with transaction.manager:
+        #for source in DBSession.query(Ref) \
+        #        .filter(Source.pages_int == None) \
+        #        .filter(Source.pages != ''):
         for source in DBSession.query(Ref)\
-                .filter(Source.pages_int == None)\
-                .filter(Source.pages != ''):
+                .filter(Source.pages_int < 0):
             if source.pages:
                 start, end, number = compute_pages(source.pages)
                 if start is not None:
@@ -23,6 +26,7 @@ def main(args):  # pragma: no cover
                 if end is not None:
                     source.endpage_int = end
                 if number:
+                    print source.id, ':', source.pages_int, '-->', number
                     source.pages_int = number
 
 

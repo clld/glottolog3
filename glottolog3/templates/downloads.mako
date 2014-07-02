@@ -12,16 +12,28 @@
 <div class="accordion" id="downloads" style="margin-top: 1em; clear: right;">
     <%util:accordion_group eid="acc-current" parent="downloads" title="Current version" open="True">
         <p>
-            You can download the following items as zipped, utf-8 encoded archives:
+            You can download the following files (encoded in UTF-8):
         </p>
         <dl>
             % for model, dls in h.get_downloads(request):
                 <dt>${_(model)}</dt>
-            % for dl in dls:
+                % if model == 'Languages':
+                <dd>
+                    <a href="${request.static_url('glottolog3:static/trees/tree-glottolog-newick.txt')}">
+                        Classification as text file in Newick format
+                    </a>
+                </dd>
+                <dd>
+                    <a href="${request.route_url('resourcemap', _query=dict(rsc='language'))}">
+                        Mapping of Glottocodes to ISO 639-3 codes (and others) in JSON format
+                    </a>
+                </dd>
+                % endif
+                % for dl in dls:
                 <dd>
                     <a href="${dl.url(request)}">${dl.label(req)}</a>
                 </dd>
-            % endfor
+                % endfor
             % endfor
         </dl>
     </%util:accordion_group>

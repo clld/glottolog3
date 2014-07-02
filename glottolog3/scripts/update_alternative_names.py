@@ -52,8 +52,6 @@ def main(args):  # pragma: no cover
             #        l.languageidentifier.remove(lid)
             create_name(gc_names, l)
 
-        transaction.abort()
-
 
 if __name__ == '__main__':
     main(parsed_args())

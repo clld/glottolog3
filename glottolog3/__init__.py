@@ -17,7 +17,6 @@ from glottolog3 import maps
 from glottolog3 import adapters
 from glottolog3.config import CFG
 from glottolog3.interfaces import IProvider
-from glottolog3 import desc_stats
 
 
 class GLCtxFactoryQuery(CtxFactoryQuery):
@@ -117,17 +116,6 @@ def main(global_config, **settings):
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
 
-    config.add_route_and_view(
-        'desc_stats',
-        '/desc_stats',
-        desc_stats.desc_stats,
-        renderer='desc_stats.mako')
-    config.add_route_and_view(
-        'desc_stats_languages',
-        '/desc_stats/{type:[a-z]+}-{index:[0-9]}',
-        desc_stats.desc_stats_languages,
-        renderer='desc_stats_languages.mako')
-
     for name in 'credits glossary cite downloads errata contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
@@ -146,4 +134,10 @@ def main(global_config, **settings):
         Source, 'glottolog3', ext='bib', description="References as BibTeX"))
     config.register_download(N3Dump(
         Source, 'glottolog3', description="References as RDF"))
+
+    config.add_route('langdocstatus', '/langdoc/status')
+    config.add_route('langdocstatus.browser', '/langdoc/status/browser')
+    config.add_route(
+        'langdocstatus.languages', '/langdoc/status/languages-{ed:[0-9]}-{sdt:[0-9]}')
+    config.scan('glottolog3.langdocstatus')
     return config.make_wsgi_app()

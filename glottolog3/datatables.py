@@ -243,6 +243,13 @@ class CaCol(Col):
         return format_ca_icon(self.dt.req, item, self.attr.split('_')[1])
 
 
+class DirectAssignmentCol(Col):
+    def format(self, item):
+        if item.pk in self.dt.language_sources:
+            return icon('tag')
+        return ''
+
+
 class Refs(Sources):
     def __init__(self, req, *args, **kw):
         if 'cq' in kw:
@@ -252,6 +259,8 @@ class Refs(Sources):
         else:
             self.complexquery = None
         super(Refs, self).__init__(req, *args, **kw)
+        if self.language:
+            self.language_sources = [s.pk for s in self.language.sources]
 
     def default_order(self):
         return desc(Source.updated)
@@ -271,6 +280,13 @@ class Refs(Sources):
         cols.append(DoctypeCol(self, 'doctype'))
         cols.append(CaCol(self, 'ca_doctype'))
         cols.append(ProviderCol(self, 'provider'))
+        if self.language:
+            cols.append(DirectAssignmentCol(
+                self, 'd',
+                sTitle='da',
+                sDescription="Signals whether the reference is directly assigned to this languoid or inherited from daughter languoids.",
+                bSortable=False,
+                bSearchable=False))
         return cols
 
     def base_query(self, query):

@@ -95,5 +95,6 @@ class Tests(TestWithApp):
         self.app.get_html('/resource/reference/id/40223')
 
     def test_desc_stats(self):
-        self.app.get_html('/desc_stats?macroarea=Eurasia')
-        self.app.get_html('/desc_stats/living-1?macroarea=Eurasia')
+        self.app.get_html('/langdoc/status')
+        self.app.get_html('/langdoc/status/browser?macroarea=Eurasia')
+        self.app.get_html('/langdoc/status/languages-0-1?macroarea=Eurasia')

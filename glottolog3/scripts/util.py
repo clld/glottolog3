@@ -23,10 +23,11 @@ ROMANPATTERN = re.compile(ROMAN + '$')
 ARABIC = '[0-9]+'
 ARABICPATTERN = re.compile(ARABIC + '$')
 SEPPAGESPATTERN = re.compile(
-    '(?P<n1>{0}|{1})\s*(,|\.|\+)\s*(?P<n2>{0}|{1})'.format(ROMAN, ARABIC))
+    '(?P<n1>{0}|{1})\s*(,|;|\.|\+|/)\s*(?P<n2>{0}|{1})'.format(ROMAN, ARABIC))
 PAGES_PATTERN = re.compile(
     '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
 CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
+ART_NO_PATTERN = re.compile('\(art\.\s*[0-9]+\)')
 
 
 def ca_trigger(s):
@@ -68,7 +69,8 @@ def compute_pages(pages):
     >>> compute_pages('7-3')
     (3, 7, 5)
     """
-    pages = pages.strip()
+    pages = ART_NO_PATTERN.sub('', pages)
+    pages = pages.strip().replace('\u2013', '-')
     if pages.endswith('.'):
         pages = pages[:-1]
     if pages.endswith('pp'):

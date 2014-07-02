@@ -1,4 +1,4 @@
-<%inherit file="home_comp.mako"/>
+<%inherit file="../langdoc_comp.mako"/>
 
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">
@@ -9,12 +9,20 @@
 
 <% year, macroarea = [request.params.get(n, '') for n in 'year macroarea'.split()] %>
 
+<%def name="stats_cell(ed, sdt)">
+    <td class="right">
+        <a style="cursor: pointer;"
+           title="click to open list of languages"
+           onclick="GLOTTOLOG3.LangdocStatus.loadLanguages(${ed}, ${sdt})"
+           id="cell-${'total' if ed == 9 else ed}-${'total' if sdt == 9 else sdt}"> </a>
+    </td>
+</%def>
+
 <div class="row-fluid">
     <div class="span8">
-<h3>Language Documentation Status</h3>
+        <h3>Language Documentation Status Browser</h3>
 <form class="form-inline">
 1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-min="1500" data-slider-max="2014" data-slider-step="1" data-slider-value="${request.params.get('year', '2014') or '2014'}" data-slider-selection="after" data-slider-tooltip="hide">&nbsp;&nbsp;&nbsp;2014
-<label style="margin-left: 2em;"><input type="checkbox" id="extinct_mode" /> Mark extinct languages</label>
 </form>
     </div>
     <div class="span4 well well-small">
@@ -34,7 +42,6 @@
             <tr>
                 <td>Family:</td>
                 <td>${families.render()}</td>
-                ##<td>${h.link(request, family) if family else ''} <span style="display: none;" id="family">${family.id if family else ''}</span></td>
             </tr>
         </table>
     </div>
@@ -42,22 +49,35 @@
 
 <div class="row-fluid">
     <div class="span12">
-${map.render()}
+        ${map.render()}
     </div>
 </div>
 
 <div class="row-fluid">
-    <div class="span5">
+    <div class="span12">
         <table class="table table-nonfluid">
             <thead>
                 <tr>
-                    <th>Most extensive description is a ...</th>
-                    <th colspan="3" style="text-align: center;">Languages</th>
+                    <th colspan="2"> </th>
+                    <th colspan="3" style="text-align: left;">Language is ...</th>
                 </tr>
                 <tr>
                     <th> </th>
-                    <th>living</th>
-                    <th>extinct</th>
+                    <th> </th>
+                    % for ed in endangerments:
+                        <th>
+                            ${ed.name.lower()}
+                        </th>
+                    % endfor
+                    <th> </th>
+                </tr>
+                <tr>
+                    <th colspan="2">Most extensive description is a ...</th>
+                    % for ed in endangerments:
+                        <th style="text-align: right;">
+                            <img src="${icon_map[ed.shape + 'ffffff']}" height="20" width="20"/>
+                        </th>
+                    % endfor
                     <th>total</th>
                 </tr>
             </thead>
@@ -65,41 +85,40 @@ ${map.render()}
         % for i, sdt in enumerate(doctypes):
                 <tr>
                     <th>${sdt.name}</th>
-                    % for type in ['living', 'extinct', 'total']:
-                    <td>
-                        <a style="cursor: pointer;"
-                           title="click to open list of languages"
-                           onclick="GLOTTOLOG3.descStatsLoadLanguages('${type}', ${i})" id="${type}-${i}"> </a>
-                    </td>
+                    <th>
+                        <img src="${icon_map['c' + sdt.color]}" height="20" width="20"/>
+                    </th>
+                    % for ed in endangerments:
+                        ${stats_cell(ed.ord, i)}
                     % endfor
+                    ${stats_cell(9, i)}
                 </tr>
         % endfor
+                <tr>
+                    <td> </td>
+                    <th>total</th>
+                    % for ed in endangerments:
+                    ${stats_cell(ed.ord, 9)}
+                    % endfor
+                    ${stats_cell(9, 9)}
+                </tr>
             </tbody>
         </table>
     </div>
+</div>
 
-    <div id="languages" class="span7"> </div>
+<div class="row-fluid">
+    <div class="span12" id="languages">
+    </div>
 </div>
 
 <script type="text/javascript">
     $(document).ready(function() {
         $("#ys").slider().on("slideStop", function(e) {
             $('#year').text(e.value);
-            GLOTTOLOG3.descStatsUpdate();
+            GLOTTOLOG3.LangdocStatus.update();
         });
-        $("#extinct_mode").change(function() {
-            GLOTTOLOG3.descStatsUpdate();
-        });
-        $("#macroarea").change(function() {
-            document.location.href = CLLD.route_url(
-                'desc_stats', {}, {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#msfamily').select2('val').join()});
-        });
-        % if request.params.get('extinct_mode'):
-        $("#extinct_mode").prop('checked', true);
-        % endif
-        $("#msfamily").on("change", function(e) {
-            document.location.href = CLLD.route_url(
-                'desc_stats', {}, {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $('#msfamily').select2('val').join()});
-        })
+        $("#macroarea").change(GLOTTOLOG3.LangdocStatus.reload);
+        $("#msfamily").on("change", GLOTTOLOG3.LangdocStatus.reload);
     });
 </script>

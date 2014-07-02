@@ -1,27 +1,18 @@
 # -*- coding: utf-8 -*-
-"""
-The description status browser does not work on data from the database directly, instead
-it works on data loaded from a json file. This file is created with this script.
-"""
 import transaction
-import json
 from math import ceil
 import time
 
-from sqlalchemy.orm import joinedload
-from path import path
-from pylab import figure, axes, pie, savefig
+from sqlalchemy.orm import joinedload, joinedload_all
 
 from clld.scripts.util import parsed_args
-from clld.db.models.common import Language, LanguageSource
+from clld.db.models.common import Language, LanguageSource, ValueSet
 from clld.db.meta import DBSession
+from clld.db.util import page_query
 from clld.lib import dsv
 
-import glottolog3
-from glottolog3.models import (
-    Languoid, LanguoidLevel, LanguoidStatus, DOCTYPES, Ref, Refprovider, Provider,
-)
-from glottolog3.desc_stats import SIMPLIFIED_DOCTYPES
+from glottolog3.models import DOCTYPES, Ref
+from glottolog3.langdocstatus import language_query
 
 
 class Source(object):
@@ -62,19 +53,13 @@ class Source(object):
 
 
 def main(args):  # pragma: no cover
+    # we merge information about extinct languages from unesco and Harald.
     extinct = dict(list(dsv.reader(args.data_file('extinct.tab'))))
-    meds = {}
-    start = time.time()
     with transaction.manager:
+        query = language_query().options(
+            joinedload_all(Language.valuesets, ValueSet.values))
         # loop over active, established languages with geo-coords
-        for i, l in enumerate(
-            DBSession.query(Language)
-            .options(joinedload(Languoid.macroareas), joinedload(Language.valuesets))
-            .filter(Language.active == True)
-            .filter(Languoid.status == LanguoidStatus.established)
-            .filter(Language.latitude != None)
-            .filter(Languoid.level == LanguoidLevel.language)
-        ):
+        for l in page_query(query, n=100, verbose=True):
             # let's collect the relevant sources in a way that allows computation of med.
             # Note: we limit refs to the ones without computerized assignments.
             sources = DBSession.query(Ref).join(LanguageSource)\
@@ -102,28 +87,12 @@ def main(args):  # pragma: no cover
                 if eligible:
                     potential_meds.append(sorted(eligible)[0])
 
-            meds[l.id] = {
-                'id': l.id,
-                'iso': l.hid,
-                'family': l.family.id if l.family else None,
-                'endangerment': 'Extinct' if l.hid in extinct else l.endangerment,
-                'name': l.name,
-                'latitude': l.latitude,
-                'longitude': l.longitude,
-                'macroareas': [ma.name for ma in l.macroareas],
-                'med': med,
-                'sources': [s.__json__() for s in
-                            sorted(set(potential_meds), key=lambda s: -s.year)]}
-
-            if i % 100 == 0:
-                now = time.time()
-                print i, '--', now - start
-                start = now
-
-    with open(args.module_dir.joinpath('static', 'meds.json'), 'w') as fp:
-        json.dump(meds, fp)
-
-    print len(meds), 'languages'
+            # we store the precomputed sources information as jsondata:
+            l.update_jsondata(
+                endangerment='Extinct' if l.hid in extinct else l.endangerment,
+                med=med,
+                sources=[s.__json__() for s in
+                         sorted(set(potential_meds), key=lambda s: -s.year)])
 
 
 if __name__ == '__main__':

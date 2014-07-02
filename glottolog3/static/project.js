@@ -4,73 +4,112 @@ GLOTTOLOG3.filterMarkers = function(ctrl) {
     CLLD.mapFilterMarkers('map', function(marker){
         return (marker.feature.properties.branch != ctrl.val() && marker._icon.style.display != 'none') || (marker.feature.properties.branch == ctrl.val() && ctrl.prop('checked'));
     });
-}
+};
+
 GLOTTOLOG3.formatLanguoid = function (obj) {
     return '<span class="level-' + obj.level + '">' + obj.text + '</span>';
-}
-GLOTTOLOG3.descStatsUpdate = function(map) {
-    var extinct_mode = $('#extinct_mode').prop('checked'),
-        stats = [[0, 0], [0, 0], [0, 0], [0, 0]],
-        year = $("#year").text(),
-        j;
-    if (year) {
-        year = parseInt(year);
-    }
-    map = map === undefined ? CLLD.Maps['map'] : map;
-    map.eachMarker(function(marker){
-        // update marker icon and source id used for info query
-        var i, source, url, sdt = 3;
+};
 
-        if (year) {
-            // set the defaults:
-            url = marker.feature.properties.red_icon;
-            if (extinct_mode) {
-                url = marker.feature.properties.red_eicon;
+/**
+ *
+ */
+GLOTTOLOG3.LangdocStatus = (function(){
+    return {
+        toggleMarkers:  function() {
+            CLLD.mapFilterMarkers('map', function(marker){
+                var checkbox = $('#marker-toggle-ed-' + marker.feature.properties.ed);
+                return checkbox.length && checkbox.prop('checked');
+            })
+        },
+        loadLanguages: function(ed, sdt) {
+            var url = CLLD.route_url(
+                'langdocstatus.languages',
+                {'ed': ed, 'sdt': sdt},
+                {
+                    'macroarea': $("#macroarea").val(),
+                    'year': $('#year').text(),
+                    'family': $("#msfamily").select2("val").join()
+                });
+            $("#languages").focus().load(url);
+        },
+        reload: function(){
+            document.location.href = CLLD.route_url(
+                'langdocstatus.browser',
+                {},
+                {
+                    'macroarea': $("#macroarea").val(),
+                    'year': $('#year').text(),
+                    'family': $('#msfamily').select2('val').join()
+                }
+            );
+        },
+        update: function(){
+            var j, k, total,
+                stats = [
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0]
+                ],
+                totals = [0, 0, 0, 0, 0, 0],
+                year = $("#year").text(),
+                map = CLLD.Maps['map'];
+
+            if (year) {
+                year = parseInt(year);
             }
-            marker.feature.properties.info_query = {};
+            map.eachMarker(function(marker){
+                // update marker icon and source id used for info query
+                var i, source, url, sdt = 3;
 
-            if (marker.feature.properties.sources) {
-                // try to find a source respecting the cut-off year
-                for (i = 0; i < marker.feature.properties.sources.length; i++) {
-                    source = marker.feature.properties.sources[i];
-                    if (source.year <= year) {
-                        url = extinct_mode ? source.eicon : source.icon;
-                        marker.feature.properties.info_query = {'source': source.id};
-                        sdt = source.sdt;
-                        break;
+                if (year) {
+                    // set the defaults:
+                    url = marker.feature.properties.red_icon;
+                    marker.feature.properties.info_query = {};
+
+                    if (marker.feature.properties.sources) {
+                        // try to find a source respecting the cut-off year
+                        for (i = 0; i < marker.feature.properties.sources.length; i++) {
+                            source = marker.feature.properties.sources[i];
+                            if (source.year <= year) {
+                                url = source.icon;
+                                marker.feature.properties.info_query = {'source': source.id};
+                                sdt = source.sdt;
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    // no year given, base properties on the global MED
+                    url = marker.feature.properties.icon;
+                    sdt = marker.feature.properties.sdt;
+                    if (marker.feature.properties.med) {
+                        marker.feature.properties.info_query = {'source': marker.feature.properties.med};
                     }
                 }
+
+                stats[sdt][marker.feature.properties.ed] += 1;
+                marker.setIcon(map.icon(marker.feature, 20, url));
+            });
+            // update the stats table:
+            for (j = 0; j < stats.length; j++) {
+                total = 0;
+                for (k = 0; k < stats[j].length; k++) {
+                    $('#cell-' + k + '-' + j).text(stats[j][k]);
+                    total += stats[j][k];
+                    totals[k] += stats[j][k];
+                }
+                $('#cell-total-' + j).text(total);
             }
-        } else {
-            // no year given, base properties on the global MED
-            url = marker.feature.properties.icon;
-            sdt = marker.feature.properties.sdt;
-            if (extinct_mode) {
-                url = marker.feature.properties.eicon;
+            total = 0;
+            for (j = 0; j < totals.length; j++) {
+                $('#cell-' + j + '-total').text(totals[j]);
+                total += totals[j];
             }
-            if (marker.feature.properties.med) {
-                marker.feature.properties.info_query = {'source': marker.feature.properties.med};
-            }
+            $('#cell-total-total').text(total);
         }
-
-        stats[sdt][marker.feature.properties.extinct ? 1 : 0] += 1;
-        //alert(CLLD.url('/static/icons/c000000.png'));
-        marker.setIcon(map.icon(marker.feature, 20, url));
-    });
-
-    for (j = 0; j < stats.length; j++) {
-        $('#living-' + j).text(stats[j][0]);
-        $('#extinct-' + j).text(stats[j][1]);
-        $('#total-' + j).text(stats[j][0] + stats[j][1]);
     }
-};
-GLOTTOLOG3.descStatsLoadLanguages = function(type, index) {
-    var url = CLLD.route_url(
-        'desc_stats_languages',
-        {'type': type, 'index': index},
-        {'macroarea': $("#macroarea").val(), 'year': $('#year').text(), 'family': $("#msfamily").select2("val").join()});
-    $("#languages").load(url);
-};
+})();
 
 GLOTTOLOG3.Tree = (function(){
     var map_marker = function(node){

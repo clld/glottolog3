@@ -47,6 +47,16 @@ def download(args):
     return [
         {
             'action': 'update',
+            'id': 'gong1255',
+            'name': 'Ta-Ne-Omotic',
+        },
+        {
+            'action': 'update',
+            'id': 'cent2045',
+            'name': 'Jalaa',
+        },
+        {
+            'action': 'update',
             'id': 'chab1238',
             'name': 'Japhug',
         },
