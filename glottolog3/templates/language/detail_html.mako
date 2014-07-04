@@ -81,6 +81,10 @@
             This entry is spurious. This means either that the language denoted cannot be asserted
             to be/have been a language distinct from all others, or that the language denoted is
             covered in another entry.
+            % elif ctx.status.value == 'spurious retired':
+            This entry has been retired and is featured here only for bookkeeping purposes. Either
+            the entry has been replaced with one or more more accurate entries or it has been retired
+            because it was based on a misunderstanding to begin with.
             % else:
             This language is ${ctx.status}.
             % endif
