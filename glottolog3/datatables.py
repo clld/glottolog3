@@ -113,7 +113,8 @@ class IsoCol(Col):
         return Languoid.hid
 
     def search(self, qs):
-        return Languoid.hid.contains(qs.lower())
+        iso_like = Languoid.hid.op('~')('^[a-z]{3}$')
+        return and_(Languoid.hid.contains(qs.lower()), iso_like)
 
 
 class FamilyCol(Col):
