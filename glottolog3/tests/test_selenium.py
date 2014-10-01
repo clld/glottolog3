@@ -33,7 +33,7 @@ class Tests(TestWithSelenium):
         self.assertEqual(dt.get_info().filtered, 1)
 
     def test_languoid_map_and_table(self):
-        map_ = self.get_map('/resource/languoid/id/berb1260')
+        map_ = self.get_map('/resource/languoid/id/ghad1239')
         map_.test_show_marker()
         dt = self.get_datatable('/resource/languoid/id/berb1260')
         dt.filter('doctype', 'grammar')
