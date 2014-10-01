@@ -19,6 +19,7 @@ from sqlalchemy import (
     DateTime,
     desc,
     UniqueConstraint,
+    and_,
 )
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
@@ -242,19 +243,14 @@ class Languoid(Language, CustomModelMixin):
         family.
         """
         session = session or DBSession
-        # retrieve the pks of the ancestors ordered by distance, i.e. from direct parent
+        # retrieve the ancestors ordered by distance, i.e. from direct parent
         # to top-level family:
-        pks = [
-            r[0] for r in session.query(TreeClosureTable.parent_pk)
-            .filter(TreeClosureTable.child_pk == self.pk)
-            .order_by(TreeClosureTable.depth)]
-        # store the ancestor objects keyed py pk
-        ancestors = {
-            l.pk: l for l in session.query(Languoid).filter(Languoid.pk.in_(pks))}
-        # yield the ancestors in order
-        for i, pk in enumerate(pks):
-            if i:
-                yield ancestors[pk]
+        return session.query(Languoid)\
+            .join(TreeClosureTable, and_(
+                TreeClosureTable.parent_pk == Languoid.pk,
+                TreeClosureTable.depth > 0))\
+            .filter(TreeClosureTable.child_pk == self.pk)\
+            .order_by(TreeClosureTable.depth)
 
     def __json__(self, req=None, core=False):
         def ancestor(l):
