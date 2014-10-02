@@ -70,9 +70,9 @@ def glottologmeta(request):
     ql = q.filter(Languoid.hid != None)
     res['number_of_languages'] = {
         'all': ql.count(),
-        'pidgin': qt.filter(Language.name == 'Pidgin').one().child_language_count,
-        'artificial': qt.filter(Language.name == 'Artificial Language').one().child_language_count,
-        'sign': sum(l.child_language_count for l in qt.filter(Language.name.contains('Sign '))),
+        'pidgin': qt.filter(Language.name == u'Pidgin').one().child_language_count,
+        'artificial': qt.filter(Language.name == u'Artificial Language').one().child_language_count,
+        'sign': sum(l.child_language_count for l in qt.filter(Language.name.contains(u'Sign '))),
     }
     res['number_of_languages']['l1'] = res['number_of_languages']['all'] \
         - res['number_of_languages']['pidgin']\
