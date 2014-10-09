@@ -20,6 +20,8 @@ from sqlalchemy import (
     desc,
     UniqueConstraint,
     and_,
+    cast,
+    Text,
 )
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
@@ -239,8 +241,7 @@ class Languoid(Language, CustomModelMixin):
 
     def get_ancestors(self, session=None):
         """
-        :return: Generator yielding the line of ancestors of self back to the top-level\
-        family.
+        :return: Iterable of ancestors of self back to the top-level family.
         """
         session = session or DBSession
         # retrieve the ancestors ordered by distance, i.e. from direct parent
@@ -276,6 +277,7 @@ class Languoid(Language, CustomModelMixin):
             This method does not return the geo coordinates of the Languoid self, but of
             its descendants.
         """
+        
         child_pks = DBSession.query(Languoid.pk)\
             .filter(Languoid.father_pk == self.pk).subquery()
         return DBSession.query(
@@ -365,17 +367,18 @@ class Languoid(Language, CustomModelMixin):
         children_map = {}
         children_of_self = [c.pk for c in self.children]
 
-        for row in DBSession.execute("""\
-select
-    ll.father_pk, c.child_pk, l.id, l.name, l.latitude, ll.hid, ll.level, ll.status, ll.child_language_count, c.depth
-from
-    treeclosuretable as c, language as l, languoid as ll, language as l2
-where
-    l.active is true
-    and c.parent_pk = l2.pk and c.child_pk = l.pk and c.child_pk = ll.pk
-    and c.parent_pk = %s
-order by
-    l2.name, c.depth, l.name;""" % (self.family_pk or self.pk,)):
+        query = DBSession.query(
+            Languoid.father_pk,
+            Languoid.pk, Languoid.id, Languoid.name,
+            Languoid.latitude, Languoid.hid,
+            cast(Languoid.level, Text), cast(Languoid.status, Text),
+            Languoid.child_language_count, TreeClosureTable.depth)\
+        .select_from(Languoid).join(TreeClosureTable,
+            Languoid.pk == TreeClosureTable.child_pk)\
+        .filter(TreeClosureTable.parent_pk == (self.family_pk or self.pk))\
+        .order_by(TreeClosureTable.depth, Languoid.name)
+
+        for row in query:
             fpk, cpk, id_, name, lat, hid, level, status, clc, depth = row
             if hid and len(hid) != 3:
                 hid = None
