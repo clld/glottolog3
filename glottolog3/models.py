@@ -361,6 +361,10 @@ class Languoid(Language, CustomModelMixin):
             yield 'skos:changeNote', 'obsolete'
         if self.status:
             yield 'skos:editorialNote', self.status.description
+        for area in self.macroareas:
+            yield 'dcterms:spatial', area.name
+        for country in self.countries:
+            yield 'dcterms:spatial', 'http://www.geonames.org/countries/%s/' % country.id
 
     def jqtree(self, icon_map=None):
         tree_ = []
