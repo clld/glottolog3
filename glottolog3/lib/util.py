@@ -1,11 +1,11 @@
 import re
 
-from sqlalchemy import or_, not_
+from sqlalchemy import or_, not_, func, cast, Integer, literal_column, union
 
 from clld.util import slug
 from clld.db.meta import DBSession
 
-from glottolog3.models import Provider, Macroarea, Doctype
+from glottolog3.models import Provider, Macroarea, Doctype, Languoid, LegacyCode
 
 
 PAGES_PATTERN = re.compile(':(?P<pages>[0-9]+(\-[0-9]+)?(,\s*[0-9]+(\-[0-9]+)?)*)')
@@ -58,23 +58,21 @@ def get_map(type_):
     return map_
 
 
-def glottocode(name, conn, codes=None):
-    #
-    # TODO: must take legacy glottocodes into account!
-    #
-    codes = {} if codes is None else codes
+def glottocode(name, session, codes=None):
     letters = slug(name)[:4].ljust(4, 'a')
-    r = conn.execute("select id from language where id like '" + letters + "%%' order by id desc limit 1").fetchone()
-    if r:
-        number = int(r[0][4:]) + 1
-    else:
-        number = 1234
+    active = session.query(cast(func.substring(Languoid.id, 5), Integer).label('number'))\
+        .filter(Languoid.id.startswith(letters))
+    legacy = session.query(cast(func.substring(LegacyCode.id, 5), Integer).label('number'))\
+        .filter(LegacyCode.id.startswith(letters))
+    number = session.query(func.coalesce(func.max(literal_column('number') + 1), 1234))\
+        .select_from(union(active, legacy)).scalar()
     number = str(number)
     assert len(number) == 4
     res = letters + number
-    i = 0
-    while res in codes:
-        i += 1
-        res = letters + str(int(number) + i)
-    codes[res] = True
+    if codes is not None:
+        i = 0
+        while res in codes:
+            i += 1
+            res = letters + str(int(number) + i)
+        codes[res] = True
     return res
