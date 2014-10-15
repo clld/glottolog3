@@ -1,5 +1,6 @@
 import time
 
+from six.moves.configparser import ConfigParser
 from path import path
 
 from clld.lib.bibtex import Database
@@ -11,10 +12,16 @@ import glottolog3
 PROJECT = path(glottolog3.__file__).dirname().joinpath('..').abspath()
 
 
+def get_app(config='development.ini'):
+    cfg = PROJECT.joinpath(config)
+    parser = ConfigParser()
+    parser.read(cfg)
+    return glottolog3.main({'__file__': str(cfg), 'here': str(PROJECT)},
+        **{'sqlalchemy.url': parser.get('app:main', 'sqlalchemy.url')})
+
+
 class Tests(TestWithSelenium):
-    app = glottolog3.main(
-        {'__file__': str(PROJECT.joinpath('development.ini')), 'here': str(PROJECT)},
-        **{'sqlalchemy.url': 'postgres://robert@/glottolog3'})
+    app = get_app()
 
     def test_map(self):
         map_ = self.get_map('/resource/languoid/id/berb1260.bigmap.html')

@@ -41,10 +41,6 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    lc = path(glottolog3.__file__).dirname().joinpath('static', 'legacy_codes.json')
-    with open(lc) as fp:
-        settings['legacy_codes'] = load(fp)
-
     settings.update(CFG)
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
@@ -63,6 +59,11 @@ def main(global_config, **settings):
         routes=[
             ('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml'),
             ('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')])
+
+    from clld.db.meta import DBSession
+    config.add_settings(legacy_codes={lc for lc, in
+        DBSession.query(models.LegacyCode.id)})
+
     config.include('clldmpg')
     config.register_menu(
         ('dataset', partial(menu_item, 'dataset', label='Home')),

@@ -522,3 +522,7 @@ class TreeClosureTable(Base):
     parent_pk = Column(Integer, ForeignKey('languoid.pk'))
     child_pk = Column(Integer, ForeignKey('languoid.pk'))
     depth = Column(Integer)
+
+
+class LegacyCode(Base):
+    id = Column(String, unique=True)
