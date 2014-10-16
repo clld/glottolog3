@@ -1,6 +1,6 @@
 import re
 
-from sqlalchemy import or_, not_, func, cast, Integer, literal_column, union
+from sqlalchemy import or_, not_, select, func, cast, Integer, literal_column, union_all
 
 from clld.util import slug
 from clld.db.meta import DBSession
@@ -58,14 +58,14 @@ def get_map(type_):
     return map_
 
 
-def glottocode(name, session, codes=None):
+def glottocode(name, conn, codes=None):
     letters = slug(name)[:4].ljust(4, 'a')
-    active = session.query(cast(func.substring(Languoid.id, 5), Integer).label('number'))\
-        .filter(Languoid.id.startswith(letters))
-    legacy = session.query(cast(func.substring(LegacyCode.id, 5), Integer).label('number'))\
-        .filter(LegacyCode.id.startswith(letters))
-    number = session.query(func.coalesce(func.max(literal_column('number') + 1), 1234))\
-        .select_from(union(active, legacy)).scalar()
+    active = select([cast(func.substring(Languoid.id, 5), Integer).label('number')])\
+        .where(Languoid.id.startswith(letters))
+    legacy = select([cast(func.substring(LegacyCode.id, 5), Integer).label('number')])\
+        .where(LegacyCode.id.startswith(letters))
+    number = conn.execute(select([func.coalesce(func.max(literal_column('number') + 1), 1234)])\
+        .select_from(union_all(active, legacy).alias())).scalar()
     number = str(number)
     assert len(number) == 4
     res = letters + number
