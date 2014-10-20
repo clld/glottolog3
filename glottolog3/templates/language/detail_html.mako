@@ -13,6 +13,11 @@
     <div class="span8">
         <div style="float: right; margin-top: 20px;">${h.alt_representations(req, ctx, doc_position='left', exclude=['bigmap.html', 'snippet.html'])|n}</div>
         <h3>${ctx} ${h.contactmail(req, ctx, title='report a problem')}</h3>
+        % if ctx.level.value == 'family' and ctx.father_pk:
+            <h5>Subfamily</h5>
+        % elif ctx.level:
+            <h5>${ctx.level.value.title()}</h5>
+        % endif
         % if request.admin:
         <a href="http://vmext24-203.gwdg.de/glottologcurator/languages/${ctx.id}" class="btn"><i class="icon icon-wrench"> </i> glottologcurator</a>
         % endif
