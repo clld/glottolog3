@@ -19,8 +19,8 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    update_source = sa.text("UPDATE source "
-        "SET year_int = reverse(substring(reverse(year) from '(?:^|\D)(\d{4})(?!\d)'))::int "
+    update_source = sa.text("UPDATE source SET updated = now(), "
+        "year_int = reverse(substring(reverse(year) from '(?:^|\D)(\d{4})(?!\d)'))::int "
         "WHERE year_int > 3000 OR year_int < 10")
     op.execute(update_source)
 

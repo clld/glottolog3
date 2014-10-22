@@ -22,58 +22,49 @@ from glottolog3.lib.util import glottocode
 
 
 def upgrade():
+    conn = op.get_bind()
     insert_lang = sa.text("INSERT INTO language "
         "(created, updated, active, jsondata, polymorphic_type, id, name, version) "
         "VALUES (now(), now(), true, :jsondata, 'base', :id, :name, 1) "
-        "RETURNING (pk)")
+        "RETURNING (pk)", conn)
     insert_uoid = sa.text("INSERT INTO languoid "
         "(pk, level, status, child_family_count, child_language_count, child_dialect_count) "
-        "VALUES (:pk, 'language', 'spurious retired', 0, 0, 0)")
+        "VALUES (:pk, 'language', 'spurious retired', 0, 0, 0)", conn)
 
     insert_ident = sa.text("INSERT INTO identifier "
         "(created, updated, active, name, type, lang, version) "
         "VALUES (now(), now(), true, :name, 'iso639-3', 'en', 1) "
-        "RETURNING (pk)")
+        "RETURNING (pk)", conn)
     insert_lang_ident = sa.text("INSERT INTO languageidentifier "
         "(created, updated, active, language_pk, identifier_pk, version) "
-        "VALUES (now(), now(), true, :language_pk, :identifier_pk, 1)")
+        "VALUES (now(), now(), true, :language_pk, :identifier_pk, 1)", conn)
 
-    conn = op.get_bind()
     codes = {}
+    fields = ['cr', 'effective', 'reason', 'remedy', 'comment']
     for retired in CREATE:
-        pk = conn.execute(insert_lang,
+        jsondata = {'retirement': {f: retired[f] for f in fields}}
+        pk = insert_lang.scalar(
             id=glottocode(retired['name'], conn, codes),
-            name=retired['name'],
-            jsondata=json.dumps({'retirement': {
-                'cr': retired['cr'],
-                'effective': retired['effective'],
-                'reason': retired['reason'],
-                'remedy': retired['remedy'],
-                'comment': retired['comment']}})).scalar()
-        conn.execute(insert_uoid, pk=pk)
+            name=retired['name'], jsondata=json.dumps(jsondata))
+        insert_uoid.execute(pk=pk)
 
-        ipk = conn.execute(insert_ident, name=retired['iso']).scalar()
-        conn.execute(insert_lang_ident, language_pk=pk, identifier_pk=ipk)
+        ipk = insert_ident.scalar(name=retired['iso'])
+        insert_lang_ident.execute(language_pk=pk, identifier_pk=ipk)
 
     select_pj = sa.text("SELECT l.pk, l.jsondata "
         "FROM language AS l JOIN languoid as ll on l.pk = ll.pk "
-        "WHERE l.id = :id")
-    update_lang = sa.text("UPDATE language "
-        "SET jsondata = :jsondata WHERE pk = :pk")
+        "WHERE l.id = :id", conn)
+    update_lang = sa.text("UPDATE language SET updated = now(), "
+        "jsondata = :jsondata WHERE pk = :pk", conn)
     update_uoid = sa.text("UPDATE languoid "
-        "SET status = 'spurious retired' WHERE pk = :pk")
+        "SET status = 'spurious retired' WHERE pk = :pk", conn)
 
     for retired in UPDATE:
-        pk, jsondata = conn.execute(select_pj, id=retired['id']).fetchone()
+        pk, jsondata = select_pj.execute(id=retired['id']).first()
         jsondata = json.loads(jsondata)
-        jsondata['retirement'] = {
-            'cr': retired['cr'],
-            'effective': retired['effective'],
-            'reason': retired['reason'],
-            'remedy': retired['remedy'],
-            'comment': retired['comment']}
-        conn.execute(update_lang, pk=pk, jsondata=json.dumps(jsondata))
-        conn.execute(update_uoid, pk=pk)
+        jsondata['retirement'] = {f: retired[f] for f in fields}
+        update_lang.execute(pk=pk, jsondata=json.dumps(jsondata))
+        update_uoid.execute(pk=pk)
 
     raise NotImplementedError
 
