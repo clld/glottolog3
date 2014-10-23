@@ -9,15 +9,11 @@
     <link  rel="alternate" type="text/n3" href="${request.resource_url(ctx, ext='n3')}" title="Structured Descriptor Document (n3 format)"/>
 </%block>
 
+<% level = 'Subfamily' if ctx.level.value == 'family' and ctx.father_pk else ctx.level.value.title() %>
 <div class="row-fluid">
     <div class="span8">
         <div style="float: right; margin-top: 20px;">${h.alt_representations(req, ctx, doc_position='left', exclude=['bigmap.html', 'snippet.html'])|n}</div>
-        <h3>${ctx} ${h.contactmail(req, ctx, title='report a problem')}</h3>
-        % if ctx.level.value == 'family' and ctx.father_pk:
-            <h5>Subfamily</h5>
-        % elif ctx.level:
-            <h5>${ctx.level.value.title()}</h5>
-        % endif
+        <h3>${level}: <span class="level-${ctx.level.value}">${ctx}</span> ${h.contactmail(req, ctx, title='report a problem')}</h3>
         % if request.admin:
         <a href="http://vmext24-203.gwdg.de/glottologcurator/languages/${ctx.id}" class="btn"><i class="icon icon-wrench"> </i> glottologcurator</a>
         % endif
