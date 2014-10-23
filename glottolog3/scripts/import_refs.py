@@ -285,7 +285,7 @@ def main(args):  # pragma: no cover
                             d = ref.jsondata or {}
                             d.update(**kw[k])
                             for s, t in FIELD_MAP.items():
-                                if t is None and s in d:
+                                if (t or t is None) and s in d:
                                     del d[s]
                             ref.jsondata = d
                         else:
