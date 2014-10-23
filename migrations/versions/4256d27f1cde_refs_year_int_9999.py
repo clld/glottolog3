@@ -2,7 +2,7 @@
 """refs year_int 9999
 
 Revision ID: 4256d27f1cde
-Revises: 109965e73fe7
+Revises: 487d9c6b4866
 Create Date: 2014-10-21 12:17:38.533000
 
 """
@@ -10,7 +10,7 @@ Create Date: 2014-10-21 12:17:38.533000
 # revision identifiers, used by Alembic.
 
 revision = '4256d27f1cde'
-down_revision = '109965e73fe7'
+down_revision = '487d9c6b4866'
 
 import datetime
 

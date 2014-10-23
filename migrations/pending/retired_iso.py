@@ -1,16 +1,16 @@
 # coding=utf-8
 """retired iso
 
-Revision ID: 109965e73fe7
-Revises: 487d9c6b4866
+Revision ID: 
+Revises: 
 Create Date: 2014-10-15 19:05:49.033000
 
 """
 
 # revision identifiers, used by Alembic.
 
-revision = '109965e73fe7'
-down_revision = '487d9c6b4866'
+revision = ''
+down_revision = ''
 
 import datetime
 import json
