@@ -20,11 +20,9 @@ import sqlalchemy as sa
 TABLE = 'identifier'
 OLD = ['name', 'type', 'description']
 NEW = ['name', 'type', 'description', 'lang']
-OLD_NAME = 'identifier_name_type_description_key'
-NEW_NAME = 'identifier_name_type_description_lang_key'
 
 
-def replace(table, old, new_name, new):
+def replace_unique(table, before, after):
     conn = op.get_bind()
 
     select_name = sa.text('SELECT c.conname FROM pg_constraint AS c '
@@ -32,22 +30,23 @@ def replace(table, old, new_name, new):
         'WHERE r.relname = :table '
         'AND pg_get_constraintdef(c.oid) = :definition', conn)
 
-    old_name = select_name.scalar(table=table,
-        definition='UNIQUE (%s)' % ', '.join(old))
+    before_name = select_name.scalar(table=table,
+        definition='UNIQUE (%s)' % ', '.join(before))
 
-    if old_name:
-        op.drop_constraint(old_name, table)
+    if before_name:
+        op.drop_constraint(before_name, table)
 
-    has_new = select_name.scalar(table=table,
-        definition='UNIQUE (%s)' % ', '.join(new))
+    has_after = select_name.scalar(table=table,
+        definition='UNIQUE (%s)' % ', '.join(after))
 
-    if not has_new:
-        op.create_unique_constraint(new_name, table, new)
+    if not has_after:
+        after_name = '%s_%s_key' % (table, '_'.join(after))
+        op.create_unique_constraint(after_name, table, after)
 
 
 def upgrade():
-    replace(TABLE, OLD, NEW_NAME, NEW)
+    replace_unique(TABLE, OLD, NEW)
     
     
 def downgrade():
-    replace(TABLE, NEW, OLD_NAME, OLD)
+    replace_unique(TABLE, NEW, OLD)

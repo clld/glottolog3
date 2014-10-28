@@ -17,8 +17,15 @@ import datetime
 from alembic import op
 import sqlalchemy as sa
 
+MATCH_EXTRACT = [
+    (': %', ':\s+(.*)'),
+    ('L:%', 'L:(.*)'),
+]
+
 
 def upgrade():
+    conn = op.get_bind()
+
     strip_prefix = sa.text('UPDATE identifier AS i SET updated = now(), '
         'name = substring(name from :extract) '
         'WHERE name LIKE :match AND NOT EXISTS ('
@@ -39,8 +46,8 @@ def upgrade():
                 'AND description = i.description AND lang = i.lang '
                 'AND name = substring(i.name from :extract)))', conn)
     
-    for match, extract in [(': %', ':\s+(.*)'), ('L:%', 'L:(.*)')]:
-        for query in [strip_prefix, del_prefixed_langident, del_prefixed]:
+    for match, extract in MATCH_EXTRACT:
+        for query in (strip_prefix, del_prefixed_langident, del_prefixed):
             query.execute(match=match, extract=extract)
 
 

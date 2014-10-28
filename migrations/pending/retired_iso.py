@@ -23,21 +23,22 @@ from glottolog3.lib.util import glottocode
 
 def upgrade():
     conn = op.get_bind()
+
     insert_lang = sa.text("INSERT INTO language "
-        "(created, updated, active, jsondata, polymorphic_type, id, name, version) "
-        "VALUES (now(), now(), true, :jsondata, 'base', :id, :name, 1) "
+        "(created, updated, active, version, polymorphic_type, jsondata, id, name) "
+        "VALUES (now(), now(), true, 1, 'base', :jsondata, :id, :name) "
         "RETURNING (pk)", conn)
     insert_uoid = sa.text("INSERT INTO languoid "
         "(pk, level, status, child_family_count, child_language_count, child_dialect_count) "
         "VALUES (:pk, 'language', 'spurious retired', 0, 0, 0)", conn)
 
     insert_ident = sa.text("INSERT INTO identifier "
-        "(created, updated, active, name, type, lang, version) "
-        "VALUES (now(), now(), true, :name, 'iso639-3', 'en', 1) "
+        "(created, updated, active, version, name, type, description, lang) "
+        "VALUES (now(), now(), true, 1, :name, :type, :description, 'en') "
         "RETURNING (pk)", conn)
     insert_lang_ident = sa.text("INSERT INTO languageidentifier "
-        "(created, updated, active, language_pk, identifier_pk, version) "
-        "VALUES (now(), now(), true, :language_pk, :identifier_pk, 1)", conn)
+        "(created, updated, active, version, language_pk, identifier_pk) "
+        "VALUES (now(), now(), true, 1, :language_pk, :identifier_pk)", conn)
 
     codes = {}
     fields = ['cr', 'effective', 'reason', 'remedy', 'comment']
@@ -48,8 +49,14 @@ def upgrade():
             name=retired['name'], jsondata=json.dumps(jsondata))
         insert_uoid.execute(pk=pk)
 
-        ipk = insert_ident.scalar(name=retired['iso'])
+        ipk = insert_ident.scalar(name=retired['name'],
+            type='name', description='Glottolog')
         insert_lang_ident.execute(language_pk=pk, identifier_pk=ipk)
+
+        ipk = insert_ident.scalar(name=retired['iso'],
+            type='iso639-3', description=None)
+        insert_lang_ident.execute(language_pk=pk, identifier_pk=ipk)
+        
 
     select_pj = sa.text("SELECT l.pk, l.jsondata "
         "FROM language AS l JOIN languoid as ll on l.pk = ll.pk "
