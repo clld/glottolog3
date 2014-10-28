@@ -292,11 +292,12 @@ class Refs(Sources):
 
     def base_query(self, query):
         if self.language:
-            query = query.join(LanguageSource)\
+            subquery = DBSession.query(LanguageSource)\
+                .filter_by(source_pk=Ref.pk)\
                 .join(TreeClosureTable,
                       TreeClosureTable.child_pk == LanguageSource.language_pk)\
-                .filter(TreeClosureTable.parent_pk == self.language.pk)\
-                .distinct()
+                .filter(TreeClosureTable.parent_pk == self.language.pk)
+            query = query.filter(subquery.exists())
         elif self.complexquery:
             query = getRefs(self.complexquery[0])
         return query
