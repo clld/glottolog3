@@ -1,16 +1,16 @@
 # coding=utf-8
 """change identifier unique
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 282de63560e2
+Revises: d262a0299e2
+Create Date: 2014-10-28 11:54:43.489000
 
 """
 
 # revision identifiers, used by Alembic.
 
-revision = ''
-down_revision = ''
+revision = '282de63560e2'
+down_revision = 'd262a0299e2'
 
 import datetime
 
@@ -50,3 +50,4 @@ def upgrade():
     
 def downgrade():
     replace_unique(TABLE, NEW, OLD)
+
