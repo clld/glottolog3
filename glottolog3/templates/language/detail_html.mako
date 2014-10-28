@@ -132,7 +132,7 @@
                 </ul>
             </%util:accordion_group>
             % endif
-            <% altnames = filter(lambda i: i.type == 'name' and i.description != 'Glottolog', ctx.identifiers) %>
+            <% altnames = filter(lambda i: i.type == 'name' and (i.description != 'Glottolog' or i.name != ctx.name), ctx.identifiers) %>
             % if altnames or ('name_comment' in ctx.datadict()):
             <%util:accordion_group eid="acc-names" parent="sidebar-accordion" title="Alternative names">
                 % if 'name_comment' in ctx.datadict():
