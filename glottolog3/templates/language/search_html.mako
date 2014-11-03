@@ -53,13 +53,6 @@
     </form>
 </div>
 <div class="span7">
-    % if map:
-    <div class="accordion" id="sidebar-accordion" style="margin-top: 1em;">
-        <%util:accordion_group eid="acc-map" parent="sidebar-accordion" title="Map" open="${True}">
-            ${map.render()}
-        </%util:accordion_group>
-    </div>
-    % endif
     % if message:
     <div class="alert alert-error"><p>${message}</p></div>
     % else:
@@ -78,5 +71,12 @@
         <td>${u.languoid_link(request, item.family) if item.family else ''}</td>
         ##<td>${', '.join(n.name for n in item.identifiers if n.type == 'iso639-3')}</td>
     </%util:table>
+    % endif
+    % if map:
+    <div class="accordion" id="sidebar-accordion" style="margin-top: 1em;">
+        <%util:accordion_group eid="acc-map" parent="sidebar-accordion" title="Map" open="${True}">
+            ${map.render()}
+        </%util:accordion_group>
+    </div>
     % endif
 </div>
