@@ -33,7 +33,8 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
     def __call__(self, model, req):
         if model == Language:
             # responses for no longer supported legacy codes
-            if req.matchdict['id'] in req.registry.settings['legacy_codes']:
+            legacy = req.db.query(models.LegacyCode).filter_by(id=req.matchdict['id'])
+            if req.db.query(legacy.exists()).scalar():
                 raise HTTPGone()
         return super(GLCtxFactoryQuery, self).__call__(model, req)
 
@@ -59,10 +60,6 @@ def main(global_config, **settings):
         routes=[
             ('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml'),
             ('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')])
-
-    from clld.db.meta import DBSession
-    config.add_settings(legacy_codes={lc for lc, in
-        DBSession.query(models.LegacyCode.id)})
 
     config.include('clldmpg')
     config.register_menu(
