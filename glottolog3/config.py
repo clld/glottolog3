@@ -174,8 +174,8 @@ CFG = {
         },
         {
             'name': 'WALS',
-            'href': lambda l: "http://wals.info/languoid/lect/wals_code_"
-            + l.get_identifier('WALS'),
+            'hrefs': lambda l: ["http://wals.info/languoid/lect/wals_code_"
+            + i.name for i in l.get_identifier_objs('WALS')],
             'condition': lambda l: l.get_identifier('WALS'),
             'rdf': "owl:sameAs",
             'logo': "wals.png"

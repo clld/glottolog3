@@ -120,14 +120,17 @@
             <%util:accordion_group eid="acc-partner" parent="sidebar-accordion" title="Links" open="${map is None}">
                 <ul class="nav nav-tabs nav-stacked">
                 % for site in sites:
-                    <li>
-                        <a href="${site['href'](ctx)}" target="_blank" title="${site['name']}">
-                            % if 'logo' in site:
-                            <img src="${request.static_url('glottolog3:static/%s' % site['logo'])}" alt="${site['name']}" height="20px" width="20px"/>
-                            % endif
-                            ${site['name']}
-                        </a>
-                    </li>
+                    <% hrefs = site['hrefs'](ctx) if 'hrefs' in site else [site['href'](ctx)] %>
+                    % for href in hrefs:
+                        <li>
+                            <a href="${href}" target="_blank" title="${site['name']}">
+                                % if 'logo' in site:
+                                <img src="${request.static_url('glottolog3:static/%s' % site['logo'])}" alt="${site['name']}" height="20px" width="20px"/>
+                                % endif
+                                ${site['name']}
+                            </a>
+                        </li>
+                    % endfor
                 % endfor
                 </ul>
             </%util:accordion_group>
