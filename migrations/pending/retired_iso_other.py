@@ -18,8 +18,6 @@ import json
 from alembic import op
 import sqlalchemy as sa
 
-from glottolog3.lib.util import glottocode
-
 JSON_KEY = 'iso_retirement'
 
 
@@ -32,7 +30,7 @@ def upgrade():
         'JOIN identifier AS i ON li.identifier_pk = i.pk AND i.type = :type '
         'GROUP BY l.pk HAVING count(*) > 1 ORDER BY l.pk', conn).bindparams(type='iso639-3')
 
-    select_lang = sa.text('SELECT l.pk AS l_pk, li.pk AS li_pk, i.pk AS i_pk, i.name AS iso '
+    select_iso = sa.text('SELECT l.pk AS l_pk, li.pk AS li_pk, i.pk AS i_pk, i.name AS iso '
         'FROM language AS l JOIN languoid as ll ON l.pk = ll.pk '
         'LEFT JOIN (languageidentifier AS li JOIN identifier AS i '
         'ON li.identifier_pk = i.pk AND i.type = :type) ON li.language_pk = l.pk '
@@ -42,18 +40,18 @@ def upgrade():
     del_ident = sa.text('DELETE FROM identifier WHERE pk = :pk', conn)
 
     insert_ident = sa.text('INSERT INTO identifier '
-        '(created, updated, active, version, name, type, lang) '
-        'VALUES (now(), now(), true, 1, :name, :type, :lang) '
-        'RETURNING (pk)', conn).bindparams(type='iso639-3', lang='en')
+        '(created, updated, active, version, name, type, description, lang) '
+        'VALUES (now(), now(), true, 1, :name, :type, :description, :lang) '
+        'RETURNING (pk)', conn).bindparams(type='iso639-3', description=None, lang='en')
     insert_lang_ident = sa.text('INSERT INTO languageidentifier '
         '(created, updated, active, version, language_pk, identifier_pk) '
         'VALUES (now(), now(), true, 1, :language_pk, :identifier_pk)', conn)
 
-    update_hid = sa.text('UPDATE languoid AS l SET hid = :after '
+    update_hid = sa.text('UPDATE languoid SET hid = :after '
         'WHERE hid = :before AND pk = :pk', conn)
 
-    def set_iso(id, after, set_hid=False):
-        l_pk, li_pk, i_pk, before = select_lang.execute(id=id).first()
+    def set_iso(id, after, set_hid=True):
+        l_pk, li_pk, i_pk, before = select_iso.execute(id=id).first()
         if before != after:
             if before is not None:
                 del_lang_ident.execute(pk=li_pk)
@@ -61,8 +59,26 @@ def upgrade():
             if after is not None:
                 i_pk = insert_ident.scalar(name=after)
                 insert_lang_ident.execute(language_pk=l_pk, identifier_pk=i_pk)
-            if set_hid:
+            if before is not None and set_hid:
                 update_hid.execute(pk=l_pk, before=before, after=after)
+
+    select_name = sa.text('SELECT l.pk, l.name, array_agg(i.name) AS names '
+        'FROM language AS l JOIN languoid as ll ON l.pk = ll.pk '
+        'JOIN languageidentifier AS li ON li.language_pk = l.pk '
+        'JOIN identifier AS i ON li.identifier_pk = i.pk '
+        'AND i.type = :type AND i.description = :description '
+        'WHERE l.id = :id GROUP BY l.pk', conn).bindparams(type='name', description='Glottolog')
+
+    update_name = sa.text('UPDATE language SET updated = now(), name = :after '
+        'WHERE name = :before AND pk = :pk', conn)
+
+    def rename(id, after):
+        pk, before, names = select_name.execute(id=id).first()
+        if before != after:
+            update_name.execute(pk=pk, before=before, after=after)
+            if after not in names:
+                i_pk = insert_ident.scalar(type='name', description='Glottolog', name=after)
+                insert_lang_ident.execute(language_pk=pk, identifier_pk=i_pk)
 
     select_json = sa.text('SELECT jsondata FROM language WHERE id = :id', conn)
     update_json = sa.text('UPDATE language SET updated = now(), jsondata = :jsondata '
@@ -73,6 +89,10 @@ def upgrade():
         del dct['id']
         jsondata[JSON_KEY] = dct
         update_json.execute(id=id, jsondata=json.dumps(jsondata))
+
+    update_status = sa.text('UPDATE languoid as ll SET status = :after '
+        'WHERE EXISTS (SELECT 1 FROM language '
+        'WHERE pk = ll.pk AND id = :id)', conn)
 
     other = {o['iso']: o for o in OTHER}
     codes = {}
@@ -89,51 +109,51 @@ def upgrade():
     set_iso('buhi1243', 'ubl')
     set_iso('libo1242', 'lbl')
 
-    # rename merged with drl
+    # rename merged with darl1243 drl Darling to Paakantyi
     retirement('band1337', other['bjd'])
+    rename('darl1243', 'Paakantyi')
 
-    # rename merged with kml
+    # rename merged with lowe1412 kml Lower Tanudan Kalinga to Tanudan Kalinga
     retirement('uppe1424', other['kgh'])
+    rename('lowe1412', 'Tanudan Kalinga')
 
     # add xpq and xnt for splitted dialects
     retirement('mohe1244', other['mof'])
+    set_iso('pequ1242', 'xpg')
+    set_iso('narr1280', 'xnt')
 
-    # assign mol to dialect
+    # add mol for dialect
     retirement('mold1248', other['mol'])
     set_iso('mold1248', 'mol')
 
-    # add new muw as split source
-    #gc = glottocode(other['muw']['name'], conn, codes)
-    #retirement(gc, other['muw'])
-    #set_iso(gc, 'muw')
-
-    # rename split language nru to Narua
+    # rename split language yong1270 nru Yongning Na to Narua
     retirement('naxi1245', other['nbf'])
-    set_iso('yong1270', None)
+    rename('yong1270', 'Narua')
 
-    # missing remedy
+    # add remedy info missing from sil
+    other['ppr']['remedy'] = '[lcq]'
     retirement('piru1241', other['ppr'])
 
-    # make puz retired instead of pub
+    # make puru1262 puz spurious instead of puru1266 pub
     retirement('puru1262', other['puz'])
+    update_status.execute(id='puru1262', after='spurious')
+    update_status.execute(id='puru1266', after='established')
 
-    # assign wre to languoid
+    # add wre for unattested language
     retirement('ware1252', other['wre'])
     set_iso('ware1252', 'wre')
 
-    # add yug as replacement
-    retirement('yugh1239', other['yuu'])
+    # change yugh1239 from yug to yuu, create yug in retired_iso.py
+    set_iso('yugh1239', 'yug')
 
     assert check_invariant.execute().first() is None
-
-    raise NotImplementedError
 
 
 def downgrade():
     pass
 
 
-OTHER = [  # 12
+OTHER = [  # 10
     {'id': u'para1306', 'iso': 'agp', 'name': u'Paranan',
      'cr': u'2009-086', 'effective': '2010-01-18', 'reason': 'split',
      'remedy': 'Split into Pahanan Agta [apf] and Paranan [prf] (new identifier)',
@@ -158,10 +178,6 @@ OTHER = [  # 12
      'cr': None, 'effective': '2008-11-03', 'reason': 'merge',
      'remedy': u'Merge with Romanian [ron] (same as [rum] 639-2/B)',
      'comment': u'Moldavian was merged into Romanian [ISO 639-3 ron].'},
-    {'id': None, 'iso': 'muw', 'name': u'Mundari',
-     'cr': u'2007-065', 'effective': '2008-02-18', 'reason': 'split',
-     'remedy': 'Split into Munda [unx] and Mundari [unr] (new identifier)',
-     'comment': u'Munda is regarded as a separate language from Mundari by numerous published sources. Munda and Mundari are enumerated separately on the national census, thus indicating a separate ethnolinguisic identity.'},
     {'id': u'naxi1245', 'iso': 'nbf', 'name': u'Naxi',
      'cr': u'2010-023', 'effective': '2011-05-18', 'reason': 'split',
      'remedy': 'split into Naxi [nxq] and Narua [nru]',
@@ -177,9 +193,5 @@ OTHER = [  # 12
     {'id': None, 'iso': 'wre', 'name': u'Ware',
      'cr': u'2007-024', 'effective': '2008-01-14', 'reason': 'non-existent',
      'remedy': None,
-     'comment': u'Neither we, the SIL-UTB survey team, nor any other people we have spoken to have heard of the Ware people. Since no information is given in the current Ethnologue entry as to the location of the Ware it is difficult to say conclusively that they do not exist, but the genetic classification of E.10 suggest that they would be located in the north of Tanzania.\nIn July 2005 and January/February 2006 the UTB survey team was in Mara Region, Tanzania where many of the languages in the E.10 group to which Ware is said to belong are located, and found no knowledge of the Ware. An SIL language team located in Arusha Region also failed to discover any knowledge of the Ware amongst the people in their area.\nSince there seems to be no knowledge of the Ware in northern Tanzania now, we would recommend retiring this language code element.'},
-    {'id': u'yugh1239', 'iso': 'yuu', 'name': u'Yugh',
-     'cr': u'2013-031', 'effective': '2014-02-03', 'reason': 'duplicate',
-     'remedy': u'Yugh [yuu] is a duplicate of Yug [yug]',
-     'comment': u'[yuu] Yugh (Yug) and [yug] Yug (Sym-Ket) are the same language.\nI suggest retiring code [yuu] because [yug] is easier to remember, but if [yuu] is older it might be better to retain it instead. The fact that Ethnologue has an entry for [yuu] but not for [yug] might be reason to retain [yuu], though perhaps they could move their article to [yug].\nIn order to complete the change request, the form \u201cRequest for New Language Code Element in ISO 639-3\u201d (file name \u201cISO639-3_NewCodeRequestForm.doc\u201d or \u201cISO639- 3_NewCodeRequestForm.rtf\u201d) must also be submitted for each new identifier that is to be created. That step can be deferred until this form has been processed by the ISO 639-3 registrar, provided that sufficient information on the rationale is given in (b) above.\nIn the case of a minority language that has been considered in some contexts to be a dialect of a major language, yet is divergent enough to be unintelligible to speakers of the standard variety of the major language, it may be more beneficial for the users of the ISO 639-3 and 639-2 code sets to create a new code element for the divergent language variety without splitting the existing code element of the major language. The ISO 639-3 Registration Authority may make this determination when considering a request involving a major language and a highly distinct \u201cdialect.\u201d If such a course is followed, the rationale for the decision will be published in a comment by the Registration Authority on approval of the requested addition for the divergent variety.'}
+     'comment': u'Neither we, the SIL-UTB survey team, nor any other people we have spoken to have heard of the Ware people. Since no information is given in the current Ethnologue entry as to the location of the Ware it is difficult to say conclusively that they do not exist, but the genetic classification of E.10 suggest that they would be located in the north of Tanzania.\nIn July 2005 and January/February 2006 the UTB survey team was in Mara Region, Tanzania where many of the languages in the E.10 group to which Ware is said to belong are located, and found no knowledge of the Ware. An SIL language team located in Arusha Region also failed to discover any knowledge of the Ware amongst the people in their area.\nSince there seems to be no knowledge of the Ware in northern Tanzania now, we would recommend retiring this language code element.'}
 ]

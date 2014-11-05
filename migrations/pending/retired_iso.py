@@ -34,6 +34,11 @@ def upgrade():
         "(pk, level, status, child_family_count, child_language_count, child_dialect_count) "
         "VALUES (:pk, 'language', 'spurious retired', 0, 0, 0)", conn)
 
+    select_iso = sa.text("SELECT pk FROM identifier "
+        "WHERE name = :name AND type = 'iso639-3' AND lang = 'en'", conn)
+    select_ident = sa.text("SELECT pk FROM identifier "
+        "WHERE name = :name AND type = 'name' AND description = 'Glottolog' "
+        "AND lang = 'en'", conn)
     insert_ident = sa.text("INSERT INTO identifier "
         "(created, updated, active, version, name, type, description, lang) "
         "VALUES (now(), now(), true, 1, :name, :type, :description, 'en') "
@@ -44,14 +49,18 @@ def upgrade():
 
     codes = {}
     for retired in CREATE:
+        if select_iso.scalar(name=retired['iso']) is not None:
+            continue
         pk = insert_lang.scalar(
             id=glottocode(retired['name'], conn, codes),
             name=retired['name'],
             jsondata=json.dumps({JSON_KEY: retired}))
         insert_uoid.execute(pk=pk)
 
-        ipk = insert_ident.scalar(name=retired['name'],
-            type='name', description='Glottolog')
+        ipk = select_ident.scalar(name=retired['name'])
+        if ipk is None:
+            ipk = insert_ident.scalar(name=retired['name'],
+                type='name', description='Glottolog')
         insert_lang_ident.execute(language_pk=pk, identifier_pk=ipk)
 
         ipk = insert_ident.scalar(name=retired['iso'],
@@ -71,14 +80,12 @@ def upgrade():
         jsondata[JSON_KEY] = retired
         update_lang.execute(pk=pk, jsondata=json.dumps(jsondata))
 
-    raise NotImplementedError
-
 
 def downgrade():
     pass
 
 
-CREATE = [  # 105
+CREATE = [  # 107
     {'iso': 'aex', 'name': u'Amerax',
      'cr': u'2007-177', 'effective': '2008-01-14', 'reason': 'merge',
      'remedy': u'Merge into English [eng]',
@@ -303,6 +310,10 @@ CREATE = [  # 105
      'cr': u'2007-245', 'effective': '2008-01-14', 'reason': 'merge',
      'remedy': u'Merge into Mainstream Kenyah [xkl]',
      'comment': u'\u201cThe name Kenyah, Kelinyau, was proposed by Wurm and Hattori (1981) mainly based on what Soriente (2005:19) calls "superficial analysis focusing on geographic and administrative boundaries". Using the means of comparative linguistics methodology, it is possible to clarify the variations the Kenyah group. By investigating the shared innovation among the various Kenyah group, Soriente (2005) proposes that the names above- mentioned be used to incorporate all the other variants of another subgroup of Kenyah which further divided into four minor categories (which for the sake of simplicity here will be only referred to as "group 1-4". Group 1 language incorporates dialects of Lepo Tau, Lepo Bem, Uma Jalan, Uma Tukung, Lepo Jengan, Lepo Aga, Uma Ake, Lepo Ga, Lepo La\'ang, Sambup and Likan. Group 2 language incorporates the dialect of Lepo Ke\', and Lepo Kuda. Group 3 language incorporates dialect of Lepo Ma\'ut, Lepo Ndang, Badeng, and Lepo Jamok. Group 4 language incorporate dialects of Bakung and Lepo Teppu\'\u201d'},
+    {'iso': 'muw', 'name': u'Mundari',
+     'cr': u'2007-065', 'effective': '2008-02-18', 'reason': 'split',
+     'remedy': 'Split into Munda [unx] and Mundari [unr] (new identifier)',
+     'comment': u'Munda is regarded as a separate language from Mundari by numerous published sources. Munda and Mundari are enumerated separately on the national census, thus indicating a separate ethnolinguisic identity.'},
     {'iso': 'mzf', 'name': u'Aiku',
      'cr': u'2006-057', 'effective': '2007-07-18', 'reason': 'split',
      'remedy': 'Split into four languages: Ambrak [aag]; Yangum Dey [yde]; Yangum Gel [ygl]; Yangum Mon [ymo]',
@@ -487,6 +498,10 @@ CREATE = [  # 105
      'cr': u'2007-122', 'effective': '2008-01-14', 'reason': 'split',
      'remedy': 'Split into three languages: Hlepho Phowa [yhl], Labo Phowa [ypb], and Ani Phowa [ypn]',
      'comment': u'Phowa speakers are classified under the Yi nationality officially and are affiliated with the Phula ethnic group historically. Although all varieties of Phowa are closely related, a complex dialect continuum has developed within Phowa which features numerous transitional varieties--not all of which are mutually intelligible (cf. Pelkey forthcoming 2008). The three extremes of this dialect continuum feature varieties which are unintelligible to the majority of the remaining Phowa speaking population, and speakers in these three regions are also offset from each other by three corresponding embedded ethnic identities--each unique: Ani, Labo, and Hlepho. These three distinct identities are recognized by ingroup and outgroup Phowa speakers alike and find expression not only in autonyms but also in material culture as is sometimes reported in Chinese sources such as KYSZ (1996).'},
+    {'iso': 'yuu', 'name': u'Yugh',
+     'cr': u'2013-031', 'effective': '2014-02-03', 'reason': 'duplicate',
+     'remedy': u'Yugh [yuu] is a duplicate of Yug [yug]',
+     'comment': u'[yuu] Yugh (Yug) and [yug] Yug (Sym-Ket) are the same language.\nI suggest retiring code [yuu] because [yug] is easier to remember, but if [yuu] is older it might be better to retain it instead. The fact that Ethnologue has an entry for [yuu] but not for [yug] might be reason to retain [yuu], though perhaps they could move their article to [yug].\nIn order to complete the change request, the form \u201cRequest for New Language Code Element in ISO 639-3\u201d (file name \u201cISO639-3_NewCodeRequestForm.doc\u201d or \u201cISO639- 3_NewCodeRequestForm.rtf\u201d) must also be submitted for each new identifier that is to be created. That step can be deferred until this form has been processed by the ISO 639-3 registrar, provided that sufficient information on the rationale is given in (b) above.\nIn the case of a minority language that has been considered in some contexts to be a dialect of a major language, yet is divergent enough to be unintelligible to speakers of the standard variety of the major language, it may be more beneficial for the users of the ISO 639-3 and 639-2 code sets to create a new code element for the divergent language variety without splitting the existing code element of the major language. The ISO 639-3 Registration Authority may make this determination when considering a request involving a major language and a highly distinct \u201cdialect.\u201d If such a course is followed, the rationale for the decision will be published in a comment by the Registration Authority on approval of the requested addition for the divergent variety.'},
     {'iso': 'ywm', 'name': u'Wumeng Yi',
      'cr': u'2007-037', 'effective': '2008-01-14', 'reason': 'merge',
      'remedy': u'Merge into Wusa Yi [ywu], renamed Wumeng Nasu (cf. 2007-038)',
