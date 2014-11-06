@@ -1,4 +1,4 @@
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 from xml.etree import cElementTree as et
 import codecs
 from itertools import cycle
