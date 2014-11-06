@@ -16,7 +16,7 @@ UU_PATTERN = re.compile('\?\[\\\\u(?P<number>[0-9]{3,4})\]')
 
 
 def u_unescape(s):
-    """
+    r"""
     Unencode Unicode escape sequences
     match all 3/4-digit sequences with unicode character
     replace all '?[\u....]' with corresponding unicode
