@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import re
 import json
 
@@ -169,7 +169,7 @@ def match_obsolete_refs(args):
             continue
         count += 1
         if count > 1000:
-            print '1000 obsolete refs processed!'
+            print('1000 obsolete refs processed!')
             break
         ref = Ref.get(id_)
         found = False
@@ -179,7 +179,7 @@ def match_obsolete_refs(args):
                     .filter(Source.description.contains(ref.description))\
                     .filter(or_(Source.author == ref.author, Source.year == ref.year))\
                     .limit(10):
-                print '++', ref.id, '->', match.id, '++', ref.author, '->', match.author, '++', ref.year, '->', match.year
+                print('++', ref.id, '->', match.id, '++', ref.author, '->', match.author, '++', ref.year, '->', match.year)
                 matched[ref.id] = match.id
                 found = True
                 break
@@ -190,7 +190,7 @@ def match_obsolete_refs(args):
                         .limit(10):
                     try:
                         if match.description and ref.description and slug(match.description) == slug(ref.description):
-                            print '++', ref.id, '->', match.id, '++', ref.description, '->', match.description
+                            print('++', ref.id, '->', match.id, '++', ref.description, '->', match.description)
                             matched[ref.id] = match.id
                             found = True
                             break
@@ -198,12 +198,12 @@ def match_obsolete_refs(args):
                         continue
         if not found:
             m += 1
-            print '--', ref.id, ref.name, ref.description
+            print('--', ref.id, ref.name, ref.description)
             matched[ref.id] = None
         else:
             f += 1
-    print f, 'found'
-    print m, 'missed'
+    print(f, 'found')
+    print(m, 'missed')
 
     with open(args.data_file(args.version, 'obsolete_refs_matched.json'), 'w') as fp:
         json.dump(matched, fp)
@@ -284,11 +284,11 @@ def update_reflang(args):
             if lpk not in langs_pk:
                 l = Languoid.get(lpk, default=None)
                 if l:
-                    #print 'relation added according to brugmann data'
+                    #print('relation added according to brugmann data')
                     langs.append(l)
                     langs_pk.append(l.pk)
                 else:
-                    print 'brugmann relation for non-existing languoid'
+                    print('brugmann relation for non-existing languoid')
 
         for code in set(get_codes(ref)):
             if code not in languoid_map:
@@ -296,8 +296,8 @@ def update_reflang(args):
                 continue
             lpk = languoid_map[code]
             if lpk in remove:
-                print ref.name, ref.id, '--', l.name, l.id
-                print 'relation removed according to brugmann data'
+                print(ref.name, ref.id, '--', l.name, l.id)
+                print('relation removed according to brugmann data')
             else:
                 if lpk not in langs_pk:
                     langs.append(DBSession.query(Languoid).get(lpk))
@@ -307,10 +307,10 @@ def update_reflang(args):
         if a or r:
             changed += 1
 
-    print ignored, 'ignored'
-    print obsolete, 'obsolete'
-    print changed, 'changed'
-    print 'unknown codes', unknown.keys()
+    print(ignored, 'ignored')
+    print(obsolete, 'obsolete')
+    print(changed, 'changed')
+    print('unknown codes', unknown.keys())
 
 
 def recreate_treeclosure():
