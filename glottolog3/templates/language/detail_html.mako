@@ -91,6 +91,27 @@
             % endif
         </div>
         % endif
+        % if 'iso_retirement' in ctx.jsondatadict and ctx.jsondata['iso_retirement']['iso'] == ctx.iso_code:
+        <% iso_retirement = ctx.jsondata['iso_retirement'] %>
+        <div class="alert alert-info">
+            <p><strong>Retired in ISO 639-3:</strong>
+            ${u.linkify_iso_codes(iso_retirement['remedy'] or '', class_='iso639-3')}</p>
+            <ul class="inline">
+                % if iso_retirement['cr']:
+                <li><strong>Change request:</strong> ${u.change_request_link(iso_retirement['cr'],  iso_retirement['iso'])}</li>
+                % endif
+                <li><strong>ISO 639-3:</strong> ${iso_retirement['iso']}</li>
+                <li><strong>Name:</strong> ${iso_retirement['name']}</li>
+                % if iso_retirement['reason']:
+                <li><strong>Reason:</strong> ${iso_retirement['reason']}</li>
+                % endif
+                <li><strong>Effective:</strong> ${iso_retirement['effective']}</li>
+            </ul>
+            % if iso_retirement['comment']:
+            <blockquote><small>${iso_retirement['comment']}</small></blockquote>
+            % endif
+        </div>
+        % endif
     </div>
 
     <div class="span4">

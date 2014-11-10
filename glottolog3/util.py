@@ -9,7 +9,7 @@ from clld.db.models.common import Language, Source, LanguageSource
 from clld.db.util import icontains
 from clld.web.adapters.download import download_dir, download_asset_spec
 from clld.web.util.helpers import link, icon
-from clld.web.util.htmllib import HTML
+from clld.web.util.htmllib import HTML, literal
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
 
@@ -23,6 +23,7 @@ from glottolog3.maps import LanguoidMap
 
 REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
 LANG_PATTERN = re.compile('\[(?P<id>[^\]]+)\]')
+ISO_PATTERN = re.compile(r'\[(?P<iso>[a-z]{3})\]')
 
 
 def languoid_link(req, languoid, active=True, classification=False):
@@ -37,6 +38,28 @@ def languoid_link(req, languoid, active=True, classification=False):
             content.append(
                 icon("icon-info-sign", title="classification comment available"))
     return HTML.span(*content, **dict(class_="level-" + languoid.level.value))
+
+
+def change_request_link(cr_id, iso_code=None, label=None):
+    if iso_code:
+        url = 'http://www.sil.org/iso639-3/chg_detail.asp?id={0}&lang={1}'
+        args = (cr_id, iso_code)
+    else:
+        url = 'http://www.sil.org/iso639-3/chg_detail.asp?id={0}'
+        args = (cr_id,)
+    return HTML.a(label or cr_id, href=url.format(*args))
+
+
+def linkify_iso_codes(text, class_=None, url='/resource/languoid/iso/{0}'):
+    def chunks():
+        start = 0
+        for match in ISO_PATTERN.finditer(text):
+            yield text[start:match.start(0)]
+            yield HTML.a(match.group(0), href=url.format(match.group('iso')),
+                class_=class_)
+            start = match.end(0)
+        yield text[start:]
+    return literal('').join(chunks())
 
 
 def old_downloads(req):
