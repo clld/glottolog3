@@ -76,13 +76,14 @@ class DescStatsGeoJson(GeoJson):
         return self.obj[endangerment.shape + SIMPLIFIED_DOCTYPE_MAP[type_].color]
 
     def feature_properties(self, ctx, req, feature):
-        endangerment = ENDANGERMENT_MAP[feature.jsondatadict['endangerment']]
+        endangerment = ENDANGERMENT_MAP[feature.jsondatadict.get('endangerment')]
         # augment the source dicts
-        for s in feature.jsondatadict['sources']:
+        sources = feature.jsondatadict.setdefault('sources', [])
+        for s in sources:
             s['icon'] = self.get_icon(req, s['doctype'], endangerment)
             s['sdt'] = SIMPLIFIED_DOCTYPE_MAP[s['doctype']].ord
 
-        med = feature.jsondatadict['med']
+        med = feature.jsondatadict.get('med')
         return {
             'ed': endangerment.ord,
             'icon': self.get_icon(req, med['doctype'] if med else None, endangerment),
@@ -90,7 +91,7 @@ class DescStatsGeoJson(GeoJson):
             'sdt': SIMPLIFIED_DOCTYPE_MAP[med['doctype'] if med else None].ord,
             'info_query': {'source': med['id']} if med else {},
             'red_icon': self.get_icon(req, None, endangerment),
-            'sources': feature.jsondatadict['sources']}
+            'sources': sources}
 
     def get_language(self, ctx, req, feature):
         return Language(
@@ -245,18 +246,18 @@ def languages(req):
 
     for lang in language_query(req):
         if ed:
-            _ed = lang.jsondatadict['endangerment'] or 'Living'
+            _ed = lang.jsondatadict.get('endangerment') or 'Living'
             if ed.name != _ed:
                 continue
 
         med = None
         if year:
-            for s in lang.jsondatadict['sources']:
+            for s in lang.jsondatadict.get('sources', []):
                 if s['year'] <= year:
                     med = s
                     break
         else:
-            med = lang.jsondatadict['med']
+            med = lang.jsondatadict.get('med')
 
         if sdt:
             _sdt = SIMPLIFIED_DOCTYPE_MAP[med['doctype'] if med else None]
