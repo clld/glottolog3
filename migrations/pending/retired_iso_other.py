@@ -94,6 +94,16 @@ def upgrade():
         'WHERE EXISTS (SELECT 1 FROM language '
         'WHERE pk = ll.pk AND id = :id)', conn)
 
+    def move_jsondata(source, target, keys):
+        src = json.loads(select_json.scalar(id=source))
+        if all(k not in src for k in keys):
+            return
+        trg = json.loads(select_json.scalar(id=target))
+        assert all(k not in trg for k in keys)
+        trg.update({k: src.pop(k) for k in keys})
+        update_json.execute(id=source, jsondata=json.dumps(src))
+        update_json.execute(id=target, jsondata=json.dumps(trg))
+
     other = {o['iso']: o for o in OTHER}
     codes = {}
 
@@ -138,6 +148,7 @@ def upgrade():
     retirement('puru1262', other['puz'])
     update_status.execute(id='puru1262', after='spurious')
     update_status.execute(id='puru1266', after='established')
+    move_jsondata('puru1262', 'puru1266', ['endangerment', 'med', 'sources'])
 
     # add wre for unattested language
     retirement('ware1252', other['wre'])
