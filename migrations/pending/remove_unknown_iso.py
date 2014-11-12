@@ -41,12 +41,21 @@ UNKNOWN = [  # 19
 
 
 def upgrade():
-    isos = [iso for iso, glottocode, kind in UNKNOWN]
+    params = {'type': 'iso639-3',
+        'isos': [iso for iso, glottocode, kind in UNKNOWN]}
+    op.execute(sa.text('UPDATE languoid AS l SET hid = NULL '
+        'WHERE hid = ANY(:isos) AND EXISTS ('
+            'SELECT 1 FROM languageidentifier AS li '
+            'JOIN identifier AS i ON li.identifier_pk = i.pk AND i.type = :type '
+            'WHERE li.language_pk = l.pk AND i.name = ANY(:isos))'
+        ).bindparams(**params))
     op.execute(sa.text('DELETE FROM languageidentifier AS li '
         'WHERE EXISTS (SELECT 1 FROM identifier WHERE pk = li.identifier_pk '
-            'AND name = ANY(:isos))').bindparams(isos=isos))
+            'AND type = :type AND name = ANY(:isos))'
+        ).bindparams(**params))
     op.execute(sa.text('DELETE FROM identifier '
-        'WHERE name = ANY(:isos)').bindparams(isos=isos))
+        'WHERE type = :type AND name = ANY(:isos)'
+        ).bindparams(**params))
 
 
 def downgrade():
