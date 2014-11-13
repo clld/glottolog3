@@ -147,10 +147,6 @@ def news(request):
     return {}
 
 
-def errata(request):
-    return {}
-
-
 def contact(request):
     return {}
 

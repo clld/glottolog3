@@ -9,7 +9,6 @@
     ${util.contextnavitem('home.cite', label='Cite')}
     ${util.contextnavitem('home.credits', label='Credits')}
     ${util.contextnavitem('home.downloads', label='Linked Data')}
-    ${util.contextnavitem('home.errata', label='Errata')}
     ${util.contextnavitem('home.contact', label='Contact')}
 </%def>
 ${next.body()}

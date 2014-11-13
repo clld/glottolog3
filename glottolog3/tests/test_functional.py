@@ -13,7 +13,7 @@ class Tests(TestWithApp):
 
     def test_home(self):
         res = self.app.get('/')
-        for name in 'glossary cite downloads errata contact'.split():
+        for name in 'glossary cite downloads contact'.split():
             res = self.app.get('/meta/' + name)
         for name in 'legal credits'.split():
             res = self.app.get('/' + name)

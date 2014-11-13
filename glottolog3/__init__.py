@@ -114,7 +114,7 @@ def main(global_config, **settings):
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
 
-    for name in 'credits glossary cite downloads errata contact'.split():
+    for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
             'home.' + name,
