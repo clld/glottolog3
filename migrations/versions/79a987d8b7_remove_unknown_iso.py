@@ -1,16 +1,16 @@
 # coding=utf-8
 """remove unknown iso
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 79a987d8b7
+Revises: 56616ae95a23
+Create Date: 2014-11-18 15:57:48.906000
 
 """
 
 # revision identifiers, used by Alembic.
 
-revision = ''
-down_revision = ''
+revision = '79a987d8b7'
+down_revision = '56616ae95a23'
 
 import datetime
 
@@ -43,12 +43,6 @@ UNKNOWN = [  # 19
 def upgrade():
     params = {'type': 'iso639-3',
         'isos': [iso for iso, glottocode, kind in UNKNOWN]}
-    op.execute(sa.text('UPDATE languoid AS l SET hid = NULL '
-        'WHERE hid = ANY(:isos) AND EXISTS ('
-            'SELECT 1 FROM languageidentifier AS li '
-            'JOIN identifier AS i ON li.identifier_pk = i.pk AND i.type = :type '
-            'WHERE li.language_pk = l.pk AND i.name = ANY(:isos))'
-        ).bindparams(**params))
     op.execute(sa.text('DELETE FROM languageidentifier AS li '
         'WHERE EXISTS (SELECT 1 FROM identifier WHERE pk = li.identifier_pk '
             'AND type = :type AND name = ANY(:isos))'
