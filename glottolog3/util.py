@@ -170,26 +170,31 @@ def getRefs(params):
 
     if params.get('languoids'):
         filtered = True
-        lids = DBSession.query(TreeClosureTable.child_pk)\
-            .filter(TreeClosureTable.parent_pk.in_([l.pk for l in params['languoids']]))\
-            .subquery()
-        query = query.join(LanguageSource, LanguageSource.source_pk == Ref.pk)\
-            .filter(LanguageSource.language_pk.in_(lids))
-
+        subquery = DBSession.query(LanguageSource).filter_by(source_pk=Ref.pk)\
+            .join(TreeClosureTable,
+                TreeClosureTable.child_pk == LanguageSource.language_pk)\
+            .filter(TreeClosureTable.parent_pk.in_(
+                [l.pk for l in params['languoids']]))
+        query = query.filter(subquery.exists())
+                
     if params.get('doctypes'):
         filtered = True
-        query = query.join(Refdoctype)\
-            .filter(Refdoctype.doctype_pk.in_([l.pk for l in params['doctypes']]))
+        subquery = DBSession.query(Refdoctype).filter_by(ref_pk=Ref.pk)\
+            .filter(Refdoctype.doctype_pk.in_(
+                [d.pk for d in params['doctypes']]))
+        query = query.filter(subquery.exists())
 
     if params.get('macroareas'):
         filtered = True
-        query = query.join(Refmacroarea)\
-            .filter(Refmacroarea.macroarea_pk.in_([l.pk for l in params['macroareas']]))
+        subquery = DBSession.query(Refmacroarea).filter_by(ref_pk=Ref.pk)\
+            .filter(Refmacroarea.macroarea_pk.in_(
+                [m.pk for m in params['macroareas']]))
+        query = query.filter(subquery.exists())
 
     if not filtered:
         return []
 
-    return query.distinct()
+    return query
 
 
 def provider_index_html(request=None, **kw):
