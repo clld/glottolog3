@@ -28,6 +28,6 @@
     <td><a id="provider-${item.id}" name="provider-${item.id}"> </a>${item.description or ''}</td>
     <td class="right">${ctx.ref_count[item.pk]}</td>
     <%def name="foot()">
-        <th style="text-align: right;">Total:</th><th style="text-align: right;">${sum(ctx.ref_count.values())}</th>
+        <th style="text-align: right;" colspan="2">Total:</th><th style="text-align: right;">${sum(ctx.ref_count.values())}</th>
     </%def>
 </%util:table>
