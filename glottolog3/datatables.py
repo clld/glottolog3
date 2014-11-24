@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from sqlalchemy import or_, and_, desc
-from sqlalchemy.orm import aliased, joinedload
+from sqlalchemy.orm import aliased, joinedload, subqueryload, contains_eager
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
@@ -97,7 +97,7 @@ class MacroareaCol(Col):
         return ', '.join(a.name for a in item.macroareas)
 
     def search(self, qs):
-        return Languoidmacroarea.macroarea_pk == int(qs)
+        return Languoid.macroareas.any(pk=int(qs))
 
     @property
     def choices(self):
@@ -141,10 +141,10 @@ class Families(Languages):
     def base_query(self, query):
         query = query.filter(Language.active == True)\
             .filter(Languoid.status == LanguoidStatus.established)\
-            .outerjoin(Languoidmacroarea)\
             .outerjoin(self.top_level_family, self.top_level_family.pk == Languoid.family_pk)\
-            .distinct()\
-            .options(joinedload(Languoid.macroareas), joinedload(Languoid.family))
+            .options(
+                contains_eager(Languoid.family, alias=self.top_level_family),
+                subqueryload(Languoid.macroareas))
 
         if self.type == 'families':
             return query.filter(
