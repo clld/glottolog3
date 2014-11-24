@@ -466,7 +466,6 @@ class Ref(Source, CustomModelMixin):
     doctypes = relationship(
         Doctype,
         secondary=Refdoctype.__table__,
-        lazy=False,
         order_by='Doctype.name',
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
