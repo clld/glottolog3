@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from sqlalchemy import or_, and_, desc
+from sqlalchemy import or_, and_
 from sqlalchemy.orm import aliased, joinedload, subqueryload, contains_eager
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
@@ -132,11 +132,14 @@ class FamilyCol(Col):
 class Families(Languages):
     def __init__(self, req, model, **kw):
         self.type = kw.pop('type', req.params.get('type', 'languages'))
-        self.top_level_family = aliased(Language)
+        self.top_level_family = aliased(Languoid)
         super(Families, self).__init__(req, model, **kw)
 
     def default_order(self):
-        return desc(Language.created)
+        return Language.created.desc()
+
+    def db_model(self):
+        return Languoid
 
     def base_query(self, query):
         query = query.filter(Language.active == True)\
@@ -209,9 +212,6 @@ class _CollectionCol(Col):
     def format(self, item):
         return ', '.join(filter(None, map(self.link, (getattr(item, self.attr) or '').split(', '))))
 
-    def search(self, qs):
-        return getattr(Ref, self.attr).contains(qs)
-
     @property
     def choices(self):
         return [o.id for o in self.collection]
@@ -222,11 +222,17 @@ class DoctypeCol(_CollectionCol):
     attr = 'doctypes_str'
     route = 'home.glossary'
 
+    def search(self, qs):
+        return Ref.doctypes.any(id=qs)
+
 
 class ProviderCol(_CollectionCol):
     cls = Provider
     attr = 'providers_str'
     route = 'providers'
+
+    def search(self, qs):
+        return Ref.providers.any(id=qs)
 
 
 class CaCol(Col):
@@ -264,7 +270,7 @@ class Refs(Sources):
             self.language_sources = [s.pk for s in self.language.sources]
 
     def default_order(self):
-        return desc(Source.updated)
+        return Source.updated.desc()
 
     def col_defs(self):
         cols = [
@@ -289,6 +295,9 @@ class Refs(Sources):
                 bSortable=False,
                 bSearchable=False))
         return cols
+
+    def db_model(self):
+        return Ref
 
     def base_query(self, query):
         if self.language:
