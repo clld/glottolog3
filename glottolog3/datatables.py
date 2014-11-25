@@ -270,7 +270,7 @@ class Refs(Sources):
             self.language_sources = [s.pk for s in self.language.sources]
 
     def default_order(self):
-        return Source.updated.desc()
+        return Source.updated.desc(), Source.pk.desc()
 
     def col_defs(self):
         cols = [
