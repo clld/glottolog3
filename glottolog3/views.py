@@ -229,6 +229,12 @@ def languages(request):
             raise HTTPFound(location=request.resource_url(l))
         res['message'] = 'No matching languoids found'
 
+    if (res['params']['iso'] and len(res['params']['iso']) < 2 or
+        res['params']['name'] and len(res['params']['name']) < 2):
+        res.update(message='Please enter at least two characters to search',
+            map=None, languoids=[])
+        return res
+
     languoids = list(getLanguoids(**res['params']))
     if not languoids and \
             (res['params']['name'] or res['params']['iso'] or res['params']['country']):
