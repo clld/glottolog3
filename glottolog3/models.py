@@ -178,7 +178,7 @@ class LanguoidStatus(DeclEnum):
 
 
 @implementer(ILanguage)
-class Languoid(Language, CustomModelMixin):
+class Languoid(CustomModelMixin, Language):
     """
     id -> pk
     alnumcode -> id
@@ -413,7 +413,7 @@ class Languoid(Language, CustomModelMixin):
 
 
 @implementer(ISource)
-class Ref(Source, CustomModelMixin):
+class Ref(CustomModelMixin, Source):
     """
     id -> pk
     bibtexkey -> id
