@@ -108,6 +108,7 @@
                 <li><strong>Effective:</strong> ${iso_retirement['effective']}</li>
             </ul>
             % if iso_retirement['comment']:
+            <p><strong>Excerpt from change request document:</strong></p>
             <blockquote><small>${iso_retirement['comment']}</small></blockquote>
             % endif
         </div>
