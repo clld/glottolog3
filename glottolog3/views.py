@@ -31,6 +31,8 @@ from glottolog3.adapters import get_selected_languages_map
 
 YEAR_PATTERN = re.compile('[0-9]{4}$')
 
+GLOTTOCODE_PATTERN = re.compile('[a-z]{4}[1-9]\d{3}$')
+
 
 class LanguoidsMultiSelect(MultiSelect):
     def format_result(self, l):
@@ -219,7 +221,7 @@ def quicksearch(request):
         query = query.filter(Languoid.identifiers.any(
             type=IdentifierType.iso.value, name=term))
         kind = 'ISO 639-3'
-    elif len(term) == 8 and re.match('[a-z]{4}[1-9]\d{3}$', term):
+    elif len(term) == 8 and GLOTTOCODE_PATTERN.match(term):
         query = query.filter(Languoid.id == term)
         kind = 'Glottocode'
     else:
