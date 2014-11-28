@@ -4,7 +4,7 @@ from six.moves.configparser import ConfigParser
 from path import path
 
 from clld.lib.bibtex import Database
-from clld.tests.util import TestWithSelenium
+from clld.tests.util import TestWithSelenium, PageObject
 
 import glottolog3
 
@@ -22,6 +22,14 @@ def get_app(config='development.ini'):
 
 class Tests(TestWithSelenium):
     app = get_app()
+
+    def test_site_search(self):
+        input_ = PageObject(self.browser, 'site-search-input', self.url('/'))
+        input_.e.send_keys('deu')
+        button = PageObject(self.browser, 'site-search-button')
+        button.e.click()
+        time.sleep(0.5)
+        self.assertIn('stan1295', self.browser.current_url)
 
     def test_map(self):
         map_ = self.get_map('/resource/languoid/id/berb1260.bigmap.html')
