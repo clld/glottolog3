@@ -1,9 +1,8 @@
-<%inherit file="../langdoc_comp.mako"/>
-<%namespace name="util" file="../util.mako"/>
+<%inherit file="../glottolog3.mako"/>
 <%! active_menu_item = "sources" %>
 
 
-<h2>${_('Sources')}</h2>
+<h2>${_('References')}</h2>
 <div>
     ${ctx.render()}
 </div>

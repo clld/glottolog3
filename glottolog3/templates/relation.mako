@@ -1,4 +1,4 @@
-<%inherit file="glottolog_comp.mako"/>
+<%inherit file="glottolog3.mako"/>
 
 <%block name="head">
 <script language="javascript" type="text/javascript" src="${request.static_url('clld:web/static/js/jit.js')}"></script>

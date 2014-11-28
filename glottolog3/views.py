@@ -126,7 +126,7 @@ def childnodes(request):
 
 
 def credits(request):
-    return {'stats': Refprovider.get_stats()}
+    return HTTPFound(request.route_path('about'))
 
 
 def glossary(request):
@@ -148,6 +148,10 @@ def news(request):
 
 
 def contact(request):
+    return {}
+
+
+def about(request):
     return {}
 
 
@@ -196,7 +200,59 @@ def getLanguoids(name=False,
     return query
 
 
+def quicksearch(request):
+    message = None
+    query = DBSession.query(Languoid)
+    term = request.params.get('search', '').strip()
+    titlecase = term.istitle()
+    term = term.lower()
+    params = {'iso': '', 'country': '',
+        'name': '', 'namequerytype': 'part', 'multilingual': ''}
+
+    if not term:
+        query = None
+    elif len(term) < 3:
+        query = None
+        message = ('Please enter at least four characters for a name search '
+            'or three characters for an iso code')
+    elif len(term) == 3 and not titlecase:
+        query = query.filter(Languoid.identifiers.any(
+            type=IdentifierType.iso.value, name=term))
+        kind = 'ISO 639-3'
+    elif len(term) == 8 and re.match('[a-z]{4}[1-9]\d{3}$', term):
+        query = query.filter(Languoid.id == term)
+        kind = 'Glottocode'
+    else:
+        query = query.filter(func.lower(Languoid.name).contains(term))
+        kind = 'name part'
+        params['name'] = term
+
+    if query is None:
+        languoids = []
+    else:
+        languoids = query.order_by(Languoid.name)\
+            .options(joinedload(Languoid.family)).all()
+        if not languoids:
+            message = 'No matching languoids found for %s "%s"' % (kind, term)
+        elif len(languoids) == 1:
+            raise HTTPFound(request.resource_url(languoids[0]))
+        
+    map_, icon_map, family_map = get_selected_languages_map(request, languoids)
+    layer = list(map_.get_layers())[0]
+    if not layer.data['features']:
+        map_ = None
+
+    countries = json.dumps(['%s (%s)' % (c.name, c.id) for c in
+        DBSession.query(Country).order_by(Country.description)])
+
+    return {'message': message, 'params': params, 'languoids': languoids,
+        'map': map_, 'countries': countries}
+
+
 def languages(request):
+    if request.params.get('search'):
+        return quicksearch(request)
+
     res = dict(
         countries=json.dumps([
             '%s (%s)' % (c.name, c.id) for c in

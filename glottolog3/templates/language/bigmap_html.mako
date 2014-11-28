@@ -1,4 +1,4 @@
-<%inherit file="../glottolog_comp.mako"/>
+<%inherit file="../glottolog3.mako"/>
 <%namespace name="util" file="../util.mako"/>
 <%! multirow = True %>
 

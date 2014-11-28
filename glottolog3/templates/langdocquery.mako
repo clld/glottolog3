@@ -1,5 +1,4 @@
-<%inherit file="langdoc_comp.mako"/>
-<%namespace name="util" file="util.mako"/>
+<%inherit file="glottolog3.mako"/>
 
 <h3>Bibliographical query</h3>
 <div class="span4 well well-small">

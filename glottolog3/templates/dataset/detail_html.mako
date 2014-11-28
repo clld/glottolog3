@@ -25,13 +25,12 @@
     <p>
         Information about the different languages,
         dialects, and families of the world ('languoids') is available in the
-        <a href="${request.route_url('languages')}" title="glottolog">Languoid</a>
-        section. The
-        <a href="${request.route_url('sources')}" title="langdoc"> Langdoc</a>
+        <a href="${request.route_url('languages')}" title="glottolog">Languages</a> and
+        <a href="${request.route_url('glottolog.families')}">Families</a>
+        sections. The
+        <a href="${request.route_url('sources')}" title="langdoc"> References</a>
         section contains bibliographical information.
-        You can query the bibliographical database with
-        <a href="${request.route_url('sources')}" title="bibliographical query">a normal query</a>
-        or
+        You can query the bibliographical database by filtering the table view or using
         <a href="${request.route_url('langdoc.complexquery')}" title="complex query">a complex query</a>
         involving genealogical affiliation, document type, and macro-area.
     </p>
@@ -45,7 +44,7 @@
         </div>
     </div>
     <div class="span8">
-        <h3>Languoid catalogue</h3>
+        <h3>Catalogue of languages and families</h3>
         <p>
             <strong>Glottolog</strong> provides a
             <a href="${request.route_url('languages')}" title="languoids">comprehensive catalogue</a>
@@ -61,10 +60,10 @@
 
 <div class="row-fluid">
     <div class="span8">
-        <h3>Langdoc</h3>
+        <h3>Bibliography</h3>
         <p>
-            <strong><a href="${request.route_url('sources')}" title="langdoc"> Langdoc </a></strong>
-            is a comprehensive collection of bibliographical data for the world's lesser
+            The <a href="${request.route_url('sources')}" title="langdoc">References </a>
+            section ('langdoc') provides a comprehensive collection of bibliographical data for the world's lesser
             known languages. It provides access to more than 180,000 references of descriptive works such as
             grammars, dictionaries, word lists, texts etc. Search criteria include author, year, title,
             country, and genealogical affiliation. References can be downloaded as txt, bib, html,

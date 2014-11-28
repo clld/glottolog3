@@ -1,4 +1,4 @@
-<%inherit file="../langdoc_comp.mako"/>
+<%inherit file="../glottolog3.mako"/>
 
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">

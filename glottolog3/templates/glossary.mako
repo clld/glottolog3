@@ -1,4 +1,4 @@
-<%inherit file="home_comp.mako"/>
+<%inherit file="about_comp.mako"/>
 <%namespace name="util" file="util.mako"/>
 
 <h3>Glossary</h3>

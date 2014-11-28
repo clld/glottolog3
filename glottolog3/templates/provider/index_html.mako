@@ -1,21 +1,21 @@
-<%inherit file="../langdoc_comp.mako"/>
+<%inherit file="../about_comp.mako"/>
 <%namespace name="util" file="../util.mako"/>
 
-<h3>Langdoc Information</h3>
+<h3>References Information</h3>
 
 <p>
-    Langdoc aims to provide complete references on the world's languages (apart
+    Glottolog aims to provide complete references on the world's languages (apart
     from national languages and a few dozen other major languages for which
     thousands of studies exist).
     At the moment, it contains ${totalrefs} references on ${totalnodes}
-    varieties and families. The sources of Langdoc are given below.
+    varieties and families. The sources of Glottolog are given below.
 </p>
 <p>
-    Each reference is annotated for its source. In this way Langdoc gives credit
+    Each reference is annotated for its source. In this way Glottolog gives credit
     to the creators of the resource that originally contributed the reference.
-    Please help us to make Langdoc's references more complete. If you have a
+    Please help us to make Glottolog's references more complete. If you have a
     reference that is missing, or even a collection of references, please contact
-    the editors. At the moment, many of Langdoc’s references are not correctly
+    the editors. At the moment, many of Glottolog’s references are not correctly
     annotated. If you notice a reference that should be annotated differently,
     please contact the editors.
 </p>

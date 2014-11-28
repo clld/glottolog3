@@ -1,5 +1,6 @@
-<%inherit file="../glottolog_comp.mako"/>
+<%inherit file="../glottolog3.mako"/>
 <%namespace name="util" file="../util.mako"/>
+<%! active_menu_item = "search" %>
 
 <h3>Choose by property</h3>
 <div class="span4 well well-small">

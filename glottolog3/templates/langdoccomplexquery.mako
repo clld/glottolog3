@@ -1,5 +1,5 @@
-<%inherit file="langdoc_comp.mako"/>
-<%namespace name="util" file="util.mako"/>
+<%inherit file="glottolog3.mako"/>
+<%! active_menu_item = "query" %>
 
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/introjs.min.css')}" rel="stylesheet">
@@ -8,7 +8,7 @@
     <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
 </%block>
 
-<h3>Complex query</h3>
+<h3>Complex query (references)</h3>
 <form>
 <div class="span6">
     <div class="span6 well well-small form-inline">

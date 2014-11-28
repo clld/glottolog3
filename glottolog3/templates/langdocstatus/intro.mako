@@ -1,4 +1,4 @@
-<%inherit file="../langdoc_comp.mako"/>
+<%inherit file="../glottolog3.mako"/>
 <%namespace name="util" file="../util.mako"/>
 
 <%def name="browser_link(label, **query)">

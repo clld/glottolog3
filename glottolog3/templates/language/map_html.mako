@@ -1,5 +1,4 @@
-<%inherit file="../glottolog_comp.mako"/>
-<%namespace name="util" file="../util.mako"/>
+<%inherit file="../glottolog3.mako"/>
 <%! active_menu_item = "languages" %>
 
 <%block name="title">${_('Languages')}</%block>

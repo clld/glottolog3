@@ -64,9 +64,12 @@ def main(global_config, **settings):
     config.include('clldmpg')
     config.register_menu(
         ('dataset', partial(menu_item, 'dataset', label='Home')),
-        ('languages', partial(menu_item, 'languages', label='Languoids')),
-        ('sources', partial(menu_item, 'sources', label='Langdoc')),
-        ('news', lambda ctx, req: (req.route_url('news'), 'News')),
+        ('languages', partial(menu_item, 'languages', label='Languages')),
+        ('families', partial(menu_item, 'glottolog.families', label='Families')),
+        ('search', partial(menu_item, 'glottolog.languages', label='Search')),
+        ('sources', partial(menu_item, 'sources', label='References')),
+        ('query', partial(menu_item, 'langdoc.complexquery', label='Complex query')),
+        ('about', partial(menu_item, 'about', label='About')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(

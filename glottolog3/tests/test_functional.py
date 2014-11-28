@@ -15,7 +15,7 @@ class Tests(TestWithApp):
         res = self.app.get('/')
         for name in 'glossary cite downloads contact'.split():
             res = self.app.get('/meta/' + name)
-        for name in 'legal credits'.split():
+        for name in 'legal about news'.split():
             res = self.app.get('/' + name)
 
     def test_feeds(self):

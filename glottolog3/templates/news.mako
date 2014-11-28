@@ -1,6 +1,4 @@
-<%inherit file="glottolog3.mako"/>
-<%namespace name="u" file="util.mako"/>
-<%! active_menu_item = "news" %>
+<%inherit file="about_comp.mako"/>
 
 <h3>News</h3>
 
