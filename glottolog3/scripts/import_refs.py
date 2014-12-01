@@ -302,7 +302,8 @@ def main(args):  # pragma: no cover
                 ref = Ref(name='%s %s' % (kw.get('author', 'na'), kw.get('year', 'nd')), **kw)
 
             ref.description = ref.title or ref.booktitle
-            ref.name = '%s %s' % (ref.author or 'n.a.', ref.year or 'n.d.')
+            originator = ref.author or ref.editor or 'Anoymous'
+            ref.name = '%s %s' % (originator, ref.year or 'n.d.')
 
             def append(attr, obj):
                 if obj and obj not in attr:
