@@ -302,7 +302,7 @@ def main(args):  # pragma: no cover
                 ref = Ref(name='%s %s' % (kw.get('author', 'na'), kw.get('year', 'nd')), **kw)
 
             ref.description = ref.title or ref.booktitle
-            originator = ref.author or ref.editor or 'Anoymous'
+            originator = ref.author or ref.editor or 'Anonymous'
             ref.name = '%s %s' % (originator, ref.year or 'n.d.')
 
             def append(attr, obj):
