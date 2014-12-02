@@ -50,13 +50,13 @@ def change_request_link(cr_id, iso_code=None, label=None):
     return HTML.a(label or cr_id, href=url.format(*args))
 
 
-def linkify_iso_codes(text, class_=None, url='/resource/languoid/iso/{0}'):
+def linkify_iso_codes(request, text, class_=None, route_name='glottolog.iso'):
     def chunks():
         start = 0
         for match in ISO_PATTERN.finditer(text):
             yield text[start:match.start(0)]
-            yield HTML.a(match.group(0), href=url.format(match.group('iso')),
-                class_=class_)
+            url = request.route_url(route_name, id=match.group('iso'))
+            yield HTML.a(match.group(0), href=url, class_=class_)
             start = match.end(0)
         yield text[start:]
     return literal('').join(chunks())
