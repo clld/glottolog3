@@ -95,7 +95,7 @@
         <% iso_retirement = ctx.jsondata['iso_retirement'] %>
         <div class="alert alert-info">
             <p><strong>Retired in ISO 639-3:</strong>
-            ${u.linkify_iso_codes(iso_retirement['remedy'] or '', class_='iso639-3')}</p>
+            ${u.linkify_iso_codes(request, iso_retirement['remedy'] or '', class_='iso639-3')}</p>
             <ul class="inline">
                 % if iso_retirement['cr']:
                 <li><strong>Change request:</strong> ${u.change_request_link(iso_retirement['cr'],  iso_retirement['iso'])}</li>
