@@ -36,6 +36,10 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
             legacy = req.db.query(models.LegacyCode).filter_by(id=req.matchdict['id'])
             if req.db.query(legacy.exists()).scalar():
                 raise HTTPGone()
+        elif model == Source:
+            legacy = req.db.query(models.LegacyRef).filter_by(id=req.matchdict['id'])
+            if req.db.query(legacy.exists()).scalar():
+                raise HTTPGone()
         return super(GLCtxFactoryQuery, self).__call__(model, req)
 
 

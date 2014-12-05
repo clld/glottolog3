@@ -525,3 +525,7 @@ class TreeClosureTable(Base):
 
 class LegacyCode(Base):
     id = Column(String, unique=True)
+
+
+class LegacyRef(Base):
+    id = Column(String, unique=True)

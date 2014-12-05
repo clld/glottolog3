@@ -80,6 +80,8 @@ class Tests(TestWithApp):
     def test_legacy(self):
         res = self.app.get('/resource/languoid/id/zulu1241', status=410)
         res = self.app.get('/resource/languoid/id/zzzz9999', status=404)
+        res = self.app.get('/resource/reference/id/11', status=410)
+        res = self.app.get('/resource/reference/id/0', status=404)
 
     def test_language(self):
         res = self.app.get('/resource/languoid/id/stan1295.rdf')
