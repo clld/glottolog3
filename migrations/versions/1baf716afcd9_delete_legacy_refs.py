@@ -1,15 +1,15 @@
 # coding=utf-8
 """delete legacy refs
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 1baf716afcd9
+Revises: 7a787c138e
+Create Date: 2014-12-08 18:23:02.156000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '1baf716afcd9'
+down_revision = '7a787c138e'
 
 import datetime
 
