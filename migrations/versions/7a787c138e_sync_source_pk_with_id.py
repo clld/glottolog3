@@ -1,15 +1,15 @@
 # coding=utf-8
 """sync source pk with id
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 7a787c138e
+Revises: 185b48316200
+Create Date: 2014-12-08 17:08:56.307000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '7a787c138e'
+down_revision = '185b48316200'
 
 import datetime
 
@@ -17,20 +17,37 @@ from alembic import op
 import sqlalchemy as sa
 
 
-def upgrade():
-    update_source_pks([
-        {'before': 320754, 'after': 500001},
-        {'before': 320755, 'after': 500002}])
-    # TODO: update source pk sequence
+def upgrade(verbose=True):
+    conn = op.get_bind()
+
+    select_ba = sa.text('SELECT s.pk AS before, s.id::int AS after '
+        'FROM source AS s WHERE s.pk != s.id::int '
+        'AND NOT EXISTS (SELECT 1 FROM source WHERE pk = s.id::int) '
+        'ORDER BY s.id::int', conn)
+
+    set_sequence = sa.text("""SELECT setval('source_pk_seq', max(x))
+        FROM unnest(array[(SELECT coalesce(max(pk), 0) FROM source), :minimum])
+        AS x""", conn)
+
+    before_after = select_ba.execute().fetchall()
+    if verbose:
+        from itertools import groupby
+        def consecutive(ba):
+            for k, g in groupby(enumerate(ba), lambda (i, (b, a)): i - b):
+                group = [ba for i, ba in g]
+                yield group[0], group[-1]
+        print list(consecutive(before_after))
+            
+    update_source_pks(conn, before_after)
+
+    set_sequence.scalar(minimum=510000)
     
 
 def downgrade():
-    update_source_pks([
-        {'after': 320754, 'before': 500001},
-        {'after': 320755, 'before': 500002}])
+    pass
 
 
-def update_source_pks(before_after):
+def update_source_pks(conn, before_after):
     select_fks = sa.text('SELECT c.conname AS const, '
             's.relname AS stab, sa.attname AS scol, '
             't.relname AS ttab, ta.attname AS tcol '
@@ -51,7 +68,6 @@ def update_source_pks(before_after):
     update_source = sa.text('UPDATE source SET pk = :after WHERE pk = :before')
     update_other = 'UPDATE %(stab)s SET %(scol)s = :after WHERE %(scol)s = :before'
 
-    conn = op.get_bind()
     fks = conn.execute(select_fks).fetchall()
     drop, add = zip(*map(drop_add_fk, fks))
     
