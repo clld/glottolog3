@@ -64,15 +64,18 @@ def glottocode(name, conn, codes=None):
         .where(Languoid.id.startswith(letters))
     legacy = select([cast(func.substring(LegacyCode.id, 5), Integer).label('number')])\
         .where(LegacyCode.id.startswith(letters))
+    if not codes:
+        known = union_all(active, legacy)
+    else:
+        dirty = select([cast(func.substring(literal_column('dirty'), 5), Integer).label('number')])\
+            .select_from(func.unnest(list(codes)).alias('dirty'))\
+            .where(literal_column('dirty').startswith(letters))
+        known = union_all(active, legacy, dirty)
     number = conn.execute(select([func.coalesce(func.max(literal_column('number') + 1), 1234)])\
-        .select_from(union_all(active, legacy).alias())).scalar()
+        .select_from(known.alias())).scalar()
     number = str(number)
     assert len(number) == 4
     res = letters + number
     if codes is not None:
-        i = 0
-        while res in codes:
-            i += 1
-            res = letters + str(int(number) + i)
         codes[res] = True
     return res
