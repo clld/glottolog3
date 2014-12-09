@@ -207,7 +207,7 @@ class _CollectionCol(Col):
             id_,
             title=self.collection_dict[id_].name,
             href=self.dt.req.route_url(
-                self.route, _anchor='%s-%s' % (self.cls.mapper_name().lower(), id_)))
+                self.route, _anchor='%s-%s' % (self.cls.__name__.lower(), id_)))
 
     def format(self, item):
         return ', '.join(filter(None, map(self.link, (getattr(item, self.attr) or '').split(', '))))
