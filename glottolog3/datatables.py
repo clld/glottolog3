@@ -195,10 +195,13 @@ class _CollectionCol(Col):
     route = None
 
     def __init__(self, dt, name, **kw):
-        self.collection = DBSession.query(self.cls).order_by(self.cls.id).all()
+        self.collection = self.query().all()
         self.collection_dict = {o.id: o for o in self.collection}
         kw['bSortable'] = False
         super(_CollectionCol, self).__init__(dt, name, **kw)
+
+    def query(self):
+        return DBSession.query(self.cls).order_by(self.cls.id)
 
     def link(self, id_):
         if not id_:
@@ -221,6 +224,9 @@ class DoctypeCol(_CollectionCol):
     cls = Doctype
     attr = 'doctypes_str'
     route = 'home.glossary'
+
+    def query(self):
+        return DBSession.query(self.cls).order_by(self.cls.ord)
 
     def search(self, qs):
         return Ref.doctypes.any(id=qs)

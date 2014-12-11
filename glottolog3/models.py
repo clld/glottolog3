@@ -115,15 +115,10 @@ class Doctype(Base, IdNameDescriptionMixin):
     """
     abbr = Column(Unicode)
 
+    ord = Column(Integer)
+
     def __unicode__(self):
         return capwords(self.name.replace('_', ' '))
-
-    @property
-    def ord(self):
-        try:
-            return DOCTYPES.index(self.id)
-        except ValueError:
-            return len(DOCTYPES)
 
 
 class Refdoctype(Base):
