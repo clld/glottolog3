@@ -9,5 +9,4 @@
             <li><a href="https://github.com/clld/glottolog-data/issues">clld/glottolog-data/issues</a> for errata on languoids &amp; references</li>
             <li><a href="https://github.com/clld/glottolog3/issues">clld/glottolog3/issues</a> for problems with the site software</li>
         </ul>
-        </p>
     </div>
