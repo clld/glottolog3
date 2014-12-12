@@ -454,14 +454,14 @@ class Ref(CustomModelMixin, Source):
     providers = relationship(
         Provider,
         secondary=Refprovider.__table__,
-        order_by='Provider.name',
+        order_by='Provider.id',
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
 
     doctypes = relationship(
         Doctype,
         secondary=Refdoctype.__table__,
-        order_by='Doctype.name',
+        order_by='Doctype.ord',
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
 
