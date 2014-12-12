@@ -5,7 +5,7 @@ import json
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
-from sqlalchemy import or_, desc
+from sqlalchemy import and_, or_, desc
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
@@ -225,7 +225,9 @@ def quicksearch(request):
         query = query.filter(Languoid.id == term)
         kind = 'Glottocode'
     else:
-        query = query.filter(func.lower(Languoid.name).contains(term))
+        query = query.filter(Languoid.identifiers.any(and_(
+            Identifier.type == 'name', Identifier.description == 'Glottolog',
+            func.lower(Identifier.name).contains(term))))
         kind = 'name part'
         params['name'] = term
 
