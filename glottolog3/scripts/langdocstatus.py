@@ -22,9 +22,8 @@ class Source(object):
     def __init__(self, source):
         self.index = len(DOCTYPES)
         self.doctype = None
-        doctypes = (source.doctypes_str or '').split(', ')
 
-        for doctype in doctypes:
+        for doctype in source.doctypes:
             if doctype and DOCTYPES.index(doctype) < self.index:
                 self.index = DOCTYPES.index(doctype)
                 self.doctype = doctype
@@ -32,7 +31,7 @@ class Source(object):
         # the number of pages is disvided by number of doctypes times number of
         # described languages
         self.pages = int(ceil(
-            float(source.pages_int or 0) / (len(doctypes)*len(source.languages))))
+            float(source.pages_int or 0) / (len(source.doctypes)*len(source.languages))))
 
         self.year = source.year_int
         self.id = source.id

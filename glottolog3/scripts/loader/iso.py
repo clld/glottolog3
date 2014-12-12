@@ -110,8 +110,6 @@ def update(args):
                 address='Dallas',
                 publisher='SIL International',
                 url='http://www.sil.org/iso639-3/cr_files/%s.pdf' % crno,
-                doctypes_str=dtid,
-                providers_str=pid,
                 language_note=', '.join('%(Language Name)s [%(Affected Identifier)s]' % spec for spec in affected),
                 jsondata=dict(hhtype=dtid, src=pid))
             ref.doctypes.append(dt)

@@ -448,9 +448,6 @@ class Ref(CustomModelMixin, Source):
     #: store the trigger for computerized assignment of doctype
     ca_doctype_trigger = Column(Unicode)
 
-    doctypes_str = Column(Unicode)
-    providers_str = Column(Unicode)
-
     providers = relationship(
         Provider,
         secondary=Refprovider.__table__,

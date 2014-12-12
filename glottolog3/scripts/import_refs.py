@@ -331,8 +331,6 @@ def main(args):  # pragma: no cover
 
             if changed:
                 count += 1
-                ref.doctypes_str = ', '.join(o.id for o in ref.doctypes)
-                ref.providers_str = ', '.join(o.id for o in ref.providers)
 
         print count, 'records updated or imported'
         print skipped, 'records skipped because of lack of information'
