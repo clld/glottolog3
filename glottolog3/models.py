@@ -22,6 +22,7 @@ from sqlalchemy import (
     and_,
     cast,
     Text,
+    Index,
 )
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
@@ -405,6 +406,11 @@ class Languoid(CustomModelMixin, Language):
                     continue
                 children_map[fpk].append(node)
         return tree_
+
+
+# index datatables.Refs.default_order
+source_order_index = Index('source_updated_desc_pk_desc_key',
+    Source.updated.desc(), Source.pk.desc(), unique=True)
 
 
 @implementer(ISource)
