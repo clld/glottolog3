@@ -196,49 +196,37 @@ class _CollectionCol(Col):
 
     def __init__(self, dt, name, **kw):
         self.collection = self.query().all()
-        self.collection_dict = {o.id: o for o in self.collection}
+        self.choices = [c.id for c in self.collection]
         kw['bSortable'] = False
         super(_CollectionCol, self).__init__(dt, name, **kw)
 
     def query(self):
         return DBSession.query(self.cls).order_by(self.cls.id)
 
-    def link(self, id_):
-        if not id_:
-            return ''
-        return HTML.a(
-            id_,
-            title=self.collection_dict[id_].name,
-            href=self.dt.req.route_url(
-                self.route, _anchor='%s-%s' % (self.cls.__name__.lower(), id_)))
-
     def format(self, item):
-        return ', '.join(filter(None, map(self.link, (getattr(item, self.attr) or '').split(', '))))
+        route_url = self.dt.req.route_url
+        links = (HTML.a(d.id, title=d.name, href=route_url(self.route,
+            _anchor='%s-%s' % (d.__class__.__name__.lower(), d.id)))
+            for d in getattr(item, self.attr))
+        return ', '.join(links)
 
-    @property
-    def choices(self):
-        return [o.id for o in self.collection]
+    def search(self, qs):
+        return getattr(self.dt.db_model(), self.attr).any(id=qs)
 
 
 class DoctypeCol(_CollectionCol):
     cls = Doctype
-    attr = 'doctypes_str'
+    attr = 'doctypes'
     route = 'home.glossary'
 
     def query(self):
         return DBSession.query(self.cls).order_by(self.cls.ord)
 
-    def search(self, qs):
-        return Ref.doctypes.any(id=qs)
-
 
 class ProviderCol(_CollectionCol):
     cls = Provider
-    attr = 'providers_str'
+    attr = 'providers'
     route = 'providers'
-
-    def search(self, qs):
-        return Ref.providers.any(id=qs)
 
 
 class CaCol(Col):
@@ -306,6 +294,7 @@ class Refs(Sources):
         return Ref
 
     def base_query(self, query):
+        query = query.options(joinedload(Ref.doctypes), joinedload(Ref.providers))
         if self.language:
             subquery = DBSession.query(LanguageSource)\
                 .filter_by(source_pk=Ref.pk)\
