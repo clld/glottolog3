@@ -17,6 +17,7 @@ requires = [
     'gunicorn',
     'psycopg2',
     'waitress',
+    'alembic>=0.7.1',
     ]
 
 setup(name='glottolog3',
