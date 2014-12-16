@@ -5,7 +5,7 @@ import json
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
-from sqlalchemy import and_, or_, desc
+from sqlalchemy import and_
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
@@ -60,12 +60,12 @@ def iso(request):
 def glottologmeta(request):
     q = DBSession.query(Languoid)\
         .filter(Language.active == True)\
-        .filter(or_(Languoid.status == LanguoidStatus.established,
-                    Languoid.status == LanguoidStatus.unattested))
+        .filter(Languoid.status.in_(
+            (LanguoidStatus.established, LanguoidStatus.unattested)))
     qt = q.filter(Languoid.father_pk == None)
     res = {
         'last_update': DBSession.query(Language.updated)\
-        .order_by(desc(Language.updated)).first()[0],
+        .order_by(Language.updated.desc()).first()[0],
         'number_of_families': qt.filter(Languoid.level == LanguoidLevel.family).count(),
         'number_of_isolates': qt.filter(Languoid.level == LanguoidLevel.language).count(),
     }
@@ -186,12 +186,10 @@ def getLanguoids(name=False,
             "whole": func.lower(Identifier.name) == name.lower(),
         }[namequerytype if namequerytype in ('regex', 'whole') else 'part']
 
-        query = query.join(LanguageIdentifier, Identifier)\
-            .filter(Identifier.type == 'name')\
-            .filter(namequeryfilter)
+        crit = [Identifier.type == 'name', namequeryfilter]
         if not multilingual:
-            query = query.filter(or_(
-                Identifier.lang.in_((u'', u'eng', u'en')), Identifier.lang == None))
+            crit.append(func.coalesce(Identifier.lang, '').in_((u'', u'eng', u'en')))
+        query = query.filter(Language.identifiers.any(and_(*crit)))
     elif country:
         return []  # pragma: no cover
     else:
