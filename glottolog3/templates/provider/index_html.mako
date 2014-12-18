@@ -20,7 +20,7 @@
     please contact the editors.
 </p>
 
-<%util:table items="${ctx.get_query()}" args="item" eid="refs" class_="table-condensed table-striped" options="${dict(aaSorting=[[2, 'desc']])}">\
+<%util:table items="${[p for p in ctx.get_query() if p.pk in ctx.ref_count]}" args="item" eid="refs" class_="table-condensed table-striped" options="${dict(aaSorting=[[2, 'desc']])}">\
     <%def name="head()">
         <th>Bibliography</th><th>Description</th><th>References</th>
     </%def>

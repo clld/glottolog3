@@ -50,16 +50,18 @@ Glottolog update
     # TODO: run ... download for all data sources below!?
     #
     python glottolog3/scripts/load.py development.ini 2.4 hh update
-    python glottolog3/scripts/load.py development.ini 2.4 glottologcurator update
+    #python glottolog3/scripts/load.py development.ini 2.4 glottologcurator update
     python glottolog3/scripts/load.py development.ini 2.4 unesco update
     python glottolog3/scripts/load.py development.ini 2.4 ethnologue update
     python glottolog3/scripts/load.py development.ini 2.4 iso update
     python glottolog3/scripts/load.py development.ini 2.4 endangeredlanguages update
     python glottolog3/scripts/load.py development.ini 2.4 languagelandscape update
-    python glottolog3/scripts/load.py development.ini 2.4 wikipedia update
+    #python glottolog3/scripts/load.py development.ini 2.4 wikipedia update
 
     python glottolog3/scripts/update_alternative_names.py development.ini
     python glottolog3/scripts/update_reflang.py --version=2.4 development.ini
+
+    #unknown codes [u'ipk', u'yyg', u'qpt', u'hai', u'kok', u'gon', u'NOCODE_Kenunu', u'yrm', u'kon', u'gpb', u'adc', u'NOCODE_Metombola', u'tmh', u'NOCODE_Kwadza', u'bik', u'iku', u'NOCODE_Teshena', u'NOCODE_Nymele', u'uwu', u'NOCODE_Sidi', u'psx', u'NOCODE_Boshof', u'que', u'NOCODE_Hacha', u'afh', u'NOCODE_Sakiriaba', u'NOCODE_Mwele', u'din', u'NOCODE_Auyo', u'NOCODE_Kuvale', u'kln', u'gny', u'sqi', u'idn', u'ful', u'NOCODE_Wurangung']
 
     python glottolog3/scripts/compute_treefiles.py development.ini
 	python glottolog3/scripts/langdocstatus.py development.ini

@@ -1,3 +1,4 @@
+# coding: utf8
 import time
 
 from six.moves.configparser import ConfigParser
@@ -44,8 +45,8 @@ class Tests(TestWithSelenium):
 
     def test_datatable_language(self):
         dt = self.get_datatable('/glottolog/language')
-        dt.filter('name', u'\xfc')
-        self.assertEqual(dt.get_info().filtered, 1)
+        dt.filter('name', u'ü')
+        self.assertEqual(dt.get_info().filtered, 14)
 
     def test_languoid_map_and_table(self):
         map_ = self.get_map('/resource/languoid/id/ghad1239')

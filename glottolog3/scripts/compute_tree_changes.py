@@ -505,8 +505,8 @@ def main(args):
         if id_ in lnames and name != lnames[id_]:
             if slug(lnames[id_]) == slug(name):
                 attrs['name'] = name
-            else:
-                print '%s\t%s' % (lnames[id_], name)
+            #else:
+            #    print '%s\t%s' % (lnames[id_], name)
         if hnode:
             attrs['father_pk'] = branch_to_pk[hnode]
         attrs['globalclassificationcomment'] = comment or None

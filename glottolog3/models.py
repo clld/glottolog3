@@ -147,12 +147,13 @@ class Refprovider(Base):
 
     @classmethod
     def get_stats(cls):
-        return dict(
+        return {
+            row[0]: row[1] for row in
             DBSession.query(Provider.pk, func.count(cls.ref_pk).label('c'))
             .filter(Provider.pk == cls.provider_pk)
             .group_by(Provider.pk)
             .order_by(desc('c'))
-            .all())
+            .all()}
 
 
 #-----------------------------------------------------------------------------
