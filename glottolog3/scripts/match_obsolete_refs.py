@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
-
 import transaction
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
@@ -11,21 +9,12 @@ from glottolog3.models import Ref
 
 
 def main(args):
-    #get_obsolete_refs(args)
+    refs = get_obsolete_refs(args)
     with transaction.manager:
-        #match_obsolete_refs(args)
+        matched = match_obsolete_refs(args, refs)
 
-        #
         # TODO:
         # - create bibtex file containing all refs to be removed!
-        # -
-        #
-        matched = args.data_file(args.version, 'obsolete_refs_matched.json')
-        if matched.exists():
-            with open(matched) as fp:
-                matched = json.load(fp)
-        else:
-            matched = {}
 
         for id_, repl in matched.items():
             if not repl:

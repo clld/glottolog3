@@ -344,10 +344,10 @@ def main(args):  # pragma: no cover
         _start, _end, _number = compute_pages(pages)
         if _number > 0 and _number != number:
             DBSession.execute(
-                "update source set pages_int = %s, startpage_int = %s where pk = %s",
+                "update source set pages_int = %s, startpage_int = %s where pk = %s" %
                 (_number, _start, pk))
             DBSession.execute(
-                "update ref set endpage_int = %s where pk = %s",
+                "update ref set endpage_int = %s where pk = %s" %
                 (_end, pk))
 
     return changes

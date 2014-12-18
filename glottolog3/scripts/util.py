@@ -8,7 +8,7 @@ from clld.db.meta import DBSession
 from clld.util import slug
 from clld.lib.bibtex import Database
 from clld.db.models.common import Source, Language_data
-from clld.db.util import page_query
+from clld.db.util import page_query, icontains
 
 from glottolog3.lib.util import get_map, roman_to_int
 from glottolog3.lib.bibtex import unescape
@@ -132,36 +132,21 @@ def update_relationship(col, new, log=None, log_only=False):
 def get_obsolete_refs(args):
     """compute all refs that no longer have an equivalent in the bib file.
     """
-    refs = []
-    known_ids = {}
     bib = Database.from_file(args.data_file(args.version, 'refs.bib'), encoding='utf8')
-    for rec in bib:
-        known_ids[rec['glottolog_ref_id']] = 1
-
-    for row in DBSession.query(Ref.id):
-        if row[0] not in known_ids:
-            refs.append(row[0])
-
-    with open(args.data_file(args.version, 'obsolete_refs.json'), 'w') as fp:
-        json.dump(refs, fp)
-
-    return bib
+    known_ids = {rec['glottolog_ref_id']: 1 for rec in bib}
+    return [(row[0], row[1]) for row in
+            DBSession.query(Ref.id, Ref.name)
+            .filter(not_(icontains(Ref.name, 'ISO 639-3 Registration Authority')))
+            if row[0] not in known_ids]
 
 
-def match_obsolete_refs(args):
-    with open(args.data_file(args.version, 'obsolete_refs.json')) as fp:
-        refs = json.load(fp)
-    matched = args.data_file(args.version, 'obsolete_refs_matched.json')
-    if matched.exists():
-        with open(matched) as fp:
-            matched = json.load(fp)
-    else:
-        matched = {}
+def match_obsolete_refs(args, refs):
+    matched = {}
 
     #
     # TODO: optionally re-evaluate known-unmatched refs!
     #
-
+    refs = [r[0] for r in refs]
     count = 0
     f, m = 0, 0
     for id_ in refs:
@@ -204,9 +189,7 @@ def match_obsolete_refs(args):
             f += 1
     print(f, 'found')
     print(m, 'missed')
-
-    with open(args.data_file(args.version, 'obsolete_refs_matched.json'), 'w') as fp:
-        json.dump(matched, fp)
+    return matched
 
 
 def get_codes(ref):
@@ -361,8 +344,14 @@ def update_providers(args):
 
     provider_map = get_map(Provider)
     for block in content.split('\n\n\n\n'):
-        lines = block.split('\n')
-        id_, abbr = lines[0].strip().split(':')
+        lines = [line for line in block.split('\n') if line]
+        if not lines:
+            continue
+        try:
+            id_, abbr = lines[0].strip().split(':')
+        except:
+            print(lines[0])
+            raise
         id_ = id_.split('.')[0]
         description = unescape('\n'.join(lines[1:]))
         name = description.split('.')[0]

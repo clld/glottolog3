@@ -33,7 +33,7 @@ from copy import copy
 import codecs
 import json
 import re
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
@@ -58,18 +58,12 @@ def split_families(fp):
         """
         branch = [unescape(n.strip().replace('_', ' ')) for n in line.split(',')]
         name_map = {
-            'Deaf Sign Language': 'Sign Languages',
             'Unclassifiable': 'Unclassified',
             'Artificial Language': 'Artificial Language',
             'Mixed Language': 'Mixed Language',
-            'Pidgin': 'Pidgin',
-            #'Unattested': 'Unattested',
         }
         if branch[0] in name_map:
-            return (
-                [name_map[branch[0]]],
-                'established' if branch[0] != 'Unattested' else 'unattested',
-                ', '.join(branch[1:]))
+            return [name_map[branch[0]]], 'established', ', '.join(branch[1:])
 
         comment = ''
         if branch[0] in ['Spurious', 'Speech Register', 'Unattested']:
@@ -136,7 +130,13 @@ def parse_families(filename, families, languages):
 
 
 class Migration(object):
+    """Object to store information about a migration, i.e. a change of a languoid.
+    """
     def __init__(self, pk, hid, **kw):
+        """
+        pk: primary key of the languoid affected.
+        hid:
+        """
         self.pk = pk
         self.hid = hid
         for k, v in kw.items():
@@ -144,6 +144,13 @@ class Migration(object):
 
 
 def languoid(pk, level, **kw):
+    """Assemble metadata of a languoid, serializable to JSON.
+
+    :param pk:
+    :param level:
+    :param kw:
+    :return:
+    """
     d = dict(pk=pk, level=level, active=True, father_pk=None, status='established')
     d.update(kw)
     return d
@@ -255,9 +262,7 @@ def main(args):
         "select pk from languoid order by pk desc limit 1").fetchone()[0]
     gcs = {}
 
-    lnames = {}
-    for row in DBSession.execute("select pk, name from language"):
-        lnames[row[0]] = row[1]
+    lnames = {row[0]: row[2] for row in DBSession.execute("select pk, id, name from language")}
 
     # dict mapping branches (i.e. tuples of sub-family names) to dicts of H-languages
     families = OrderedDict()
@@ -282,17 +287,15 @@ def main(args):
             del families[key]
 
     # we also want to be able to lookup families by name
-    names = {}
+    names = defaultdict(list)
     for branch in families:
-        name = branch[-1]
-        if name in names:
-            names[name].append(branch)
-        else:
-            names[name] = [branch]
+        names[branch[-1]].append(branch)
 
     # now add the unclassifiabble, unattested, un-whatever
     parse_families(data_file(args, 'lof.txt'), families, languages)
 
+    existingnames = lnames.values()
+    newlangs = {}
     ncodes = {}
     languoids = []
     for code in languages:
@@ -301,6 +304,7 @@ def main(args):
             ncodes[code] = maxid
             hnode, status, name, comment = languages[code]
             # we have to insert a new H-language!
+            newlangs[name] = (code, name in existingnames)
             attrs = languoid(
                 maxid,
                 'language',
@@ -382,12 +386,9 @@ def main(args):
                 todo.append(Migration(row[0], None))
 
     # note: for legacy gl nodes, we map leaf-tuples to lists of matching nodes!
-    rglnodes = {}
+    rglnodes = defaultdict(list)
     for node, leafs in glnodes.items():
-        if leafs in rglnodes:
-            rglnodes[leafs].append(node)
-        else:
-            rglnodes[leafs] = [node]
+        rglnodes[leafs].append(node)
 
     # now we look for matches between old and new classification:
     for leafs, nodes in rglnodes.items():
@@ -484,6 +485,11 @@ def main(args):
     print migrations, 'migrations'
     print nomatches, 'nomatches'
     print new, 'new nodes'
+    print len(newlangs), 'new languages'
+    for name, spec in newlangs.items():
+        code, exists = spec
+        if exists:
+            print 'existing name:', name, 'new code:', code
 
     risolate_names = dict(zip(isolate_names.values(), isolate_names.keys()))
     rcollapsed_names = dict(zip(collapsed_names.values(), collapsed_names.keys()))
@@ -493,6 +499,9 @@ def main(args):
         hnode, status, name, comment = languages[l]
         id_ = codes.get(l, ncodes.get(l))
         attrs = languoid(id_, 'language', status=status)
+        if id_ in lnames and name != lnames[id_]:
+            #print '%s\t%s' % (lnames[id_], name)
+            attrs['name'] = name
         if hnode:
             attrs['father_pk'] = branch_to_pk[hnode]
         attrs['globalclassificationcomment'] = comment or None
@@ -501,6 +510,9 @@ def main(args):
             attrs['hname'] = risolate_names[l]
         if l in rcollapsed_names:
             attrs['hname'] = rcollapsed_names[l]
+        #
+        # TODO: are we taking language names from Harald again?
+        #
         languoids.append(attrs)
 
     for row in DBSession.execute(
