@@ -37,6 +37,7 @@ from collections import OrderedDict, defaultdict
 
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
+from clld.util import nfilter, slug
 
 from glottolog3.lib.bibtex import unescape
 from glottolog3.lib.util import glottocode
@@ -56,34 +57,37 @@ def split_families(fp):
         """parse a line specifying a language family as comma separated list of
         ancestors.
         """
-        branch = [unescape(n.strip().replace('_', ' ')) for n in line.split(',')]
         name_map = {
-            'Unclassifiable': 'Unclassified',
-            'Artificial Language': 'Artificial Language',
-            'Mixed Language': 'Mixed Language',
+            'Unclassifiable',  # keep top-level family as subfamily
+            'Artificial Language',  # keep top-level family as subfamily
+            'Pidgin',  # keep top-level family as subfamily
+            'Mixed Language',  # keep top-level family as subfamily
+            'Unattested',  # keep top-level family as subfamily
+            'Speech Register',  # keep top-level family as subfamily
+            'Spurious',  # book keeping 'Preliminary'
         }
-        if branch[0] in name_map:
-            return [name_map[branch[0]]], 'established', ', '.join(branch[1:])
-
-        comment = ''
-        if branch[0] in ['Spurious', 'Speech Register', 'Unattested']:
-            if branch[0] == 'Speech Register':
-                status = 'established'
-                comment = 'speech register'
+        branch = [unescape(n.strip().replace('_', ' ')) for n in line.split(',')]
+        if branch[0] not in name_map:
+            return branch, 'established', ''
+        family = branch.pop(0)
+        subfamily = None
+        retired = False
+        if branch:
+            # there's a second level!
+            if family == 'Spurious':
+                if branch[0] == 'Retired':
+                    retired = True
+                    branch.pop(0)
             else:
-                status = branch[0].lower()
-            if branch[0] == 'Unattested' and len(branch) == 1:
-                # unattested languages without classification should not be treated as
-                # isolates!
-                branch[0] = 'Unclassified'
-            else:
-                branch = branch[1:]
-            if branch and branch[0] in ['Retired']:
+                subfamily = '%s (%s)' % (branch.pop(0), family)
+        status = 'established'
+        if family in ['Spurious', 'Unattested']:
+            status = family.lower()
+            if retired:
                 status += ' retired'
-                branch = branch[1:]
-            return branch, status, ''
-
-        return branch, 'established', comment
+        if family == 'Spurious':
+            family = 'Book keeping'
+        return nfilter([family, subfamily]), status, ', '.join(branch)
 
     family = None
     for line in fp.read().split('\n'):
@@ -322,7 +326,6 @@ def main(args):
     rnodes = {}
     for family in families:
         #leafs = families[family]
-        assert family[0] not in ['Speech Register', 'Spurious']
         leafs = tuple(sorted(code for code in families[family].keys() if code in codes))
         try:
             assert leafs
@@ -494,14 +497,17 @@ def main(args):
     risolate_names = dict(zip(isolate_names.values(), isolate_names.keys()))
     rcollapsed_names = dict(zip(collapsed_names.values(), collapsed_names.keys()))
 
+    print lnames
     # and updates of father_pks for languages:
     for l in languages:
         hnode, status, name, comment = languages[l]
         id_ = codes.get(l, ncodes.get(l))
         attrs = languoid(id_, 'language', status=status)
-        if id_ in lnames and name != lnames[id_]:
-            #print '%s\t%s' % (lnames[id_], name)
-            attrs['name'] = name
+        if id_ in lnames: and name != lnames[id_]:
+            if slug(lnames[id_]) == slug(name):
+                attrs['name'] = name
+            else:
+                print '%s\t%s' % (lnames[id_], name)
         if hnode:
             attrs['father_pk'] = branch_to_pk[hnode]
         attrs['globalclassificationcomment'] = comment or None
