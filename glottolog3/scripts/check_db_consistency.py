@@ -83,8 +83,7 @@ class IsolateInactive(Check):
             .order_by(Languoid.id)
 
 
-def main():
-    parsed_args()
+def main(args):    
     for cls in Check:
         check = cls()
         if check.invalid:
@@ -92,4 +91,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(parsed_args())
