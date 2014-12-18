@@ -43,7 +43,6 @@ Glottolog update
     python glottolog3/scripts/match_obsolete_refs.py --version=2.4 development.ini
     python glottolog3/scripts/import_refs.py --version=2.4 --mode=update development.ini
 
-    python glottolog3/scripts/cleanup_jsondata.py development.ini
 	python glottolog3/scripts/ia.py development.ini update
 	python glottolog3/scripts/gbs.py development.ini update
 
