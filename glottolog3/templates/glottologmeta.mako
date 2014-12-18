@@ -4,7 +4,7 @@
 
 <div class="row-fluid">
     <div class="span10 offset1">
-        <%util:section title="Languoids Information" prefix="">
+        <%util:section title="About Languoids" prefix="">
         </%util:section>
     </div>
 </div>
@@ -18,34 +18,61 @@
     <div class="span7">
         <p>
             Glottolog aims to provide a comprehensive list of languoids (families, languages,
-            dialects, chronolects, eventually sociolects) that linguists need to talk about. Each
+            dialects) that linguists need to be able to identify. Each
             languoid has a unique and persistent identifier called <strong>Glottocode</strong>,
             consisting of four letters and four digits [abcd1234].
         </p>
         <p>
-            Currently ${str(last_update).split(' ')[0]} the number of (extinct or living) languages are as follows:
+            Currently ${str(last_update).split(' ')[0]} there are <strong>${number_of_languages['l1']} spoken L1 languages</strong> (i.e. spoken languages traditionally used by a community of speakers as their first language).
         </p>
-        <table class="table table-striped">
+    <p>
+        Languages are classified (see below) into <strong>${number_of_families} families</strong> and
+        <strong>${number_of_isolates} isolates</strong>, i.e., one-member families.
+        This classification is the best guess
+        by the Glottolog editors and the classification principles are described in <a href="#x1-10011">Figure 1</a>
+        below and the accompanying text. Users should be aware that for many groups of languages, there is little available
+        historical-comparative research, so the classifications are subject to change as scholarship and interest in
+        those languages increase. Please contact the editors if you have corrections to the language
+        classification.
+    </p>
+    <p>
+        In addition to the genealogical trees (families and isolates), the Families page also includes the following <strong>non-genealogical trees</strong>:
+        <ul>
+          <li>Unattested languages</li>
+          <li>Unclassifiable languages</li>
+          <li>Pidgin languages</li>
+          <li>Mixed languages</li>
+          <li>Speech registers</li>
+          <li>Artificial spoken languages</li>
+          <li>Sign languages and auxiliary sign systems</li>
+        </ul>
+    </p>
+    <p>
+        (Glottolog also contains lists of putative languages and families that are not regarded as real languoids by the editors but that are given a Glottocode for bookkeeping purposes;
+        these are called <strong>bookkeeping languoids</strong> and they are described further below.)
+    </p>
+    </div>
+</div>
+
+<div class="row-fluid">
+    <div class="span5 offset1">
+        <table class="table table-striped" style="float: inline;">
             <tbody>
                 <tr>
-                    <th>Spoken L1 Languages</th>
+                    <th>Spoken L1 languages</th>
                     <td class="right">
                         ${number_of_languages['l1']}
                         <!--p>***# leaves in lff.txt + #Unclassified lof.txt + Mixed Languages in lof.txt + unattested Languages in lof.txt *** </p-->
                     </td>
                 </tr>
                 <tr>
-                    <th>Artificial Spoken Languages</th>
+                    <th>Unattested languages</th>
                     <td class="right">
-                        ${number_of_languages['artificial']}
-                        <!--p>*** # artifical in lof.txt *** </p-->
                     </td>
                 </tr>
                 <tr>
-                    <th>Sign Languages and Auxiliary Sign Systems</th>
+                    <th>Uncassifiable languages</th>
                     <td class="right">
-                        ${number_of_languages['sign']}
-                        <!--p>*** # sign in lof.txt *** </p-->
                     </td>
                 </tr>
                 <tr>
@@ -53,6 +80,30 @@
                     <td class="right">
                         ${number_of_languages['pidgin']}
                         <!--p>*** # pidgin in lof.txt *** </p-->
+                    </td>
+                </tr>
+                <tr>
+                    <th>Mixed languages</th>
+                    <td class="right">
+                    </td>
+                </tr>
+                <tr>
+                    <th>Speech registers</th>
+                    <td class="right">
+                    </td>
+                </tr>
+                <tr>
+                    <th>Artificial spoken languages</th>
+                    <td class="right">
+                        ${number_of_languages['artificial']}
+                        <!--p>*** # artifical in lof.txt *** </p-->
+                    </td>
+                </tr>
+                <tr>
+                    <th>Sign languages and auxiliary sign systems</th>
+                    <td class="right">
+                        ${number_of_languages['sign']}
+                        <!--p>*** # sign in lof.txt *** </p-->
                     </td>
                 </tr>
                 <tr>
@@ -65,50 +116,29 @@
             </tbody>
         </table>
     </div>
+    <div class="span5">
+        <div style="float: right;" class="span9 well well-small">
+            <img src="${request.static_url('glottolog3:static/World_Map.jpg')}"/>
+        </div>
+    </div>
 </div>
+
 
 <div class="row-fluid">
     <div class="span10 offset1">
-        <div style="float: right;" class="span5 well well-small">
-            <img src="${request.static_url('glottolog3:static/World_Map.jpg')}"/>
-        </div>
-    <p>
-        Languages are classified (see below) into ${number_of_families} and
-        ${number_of_isolates} isolates, i.e., one-member families, and a few other
-        categories (sign, pidgin, mixed language etc). This classification is the best guess
-        by the Glottolog editors and the classification principles are described in the schema
-        below. Users should be aware that for many groups of languages, there is little available
-        historical-comparative research, and are subject to change as scholarship and interest in
-        those language increase. Please contact the editors if you have corrections to the language
-        classification.
-    </p>
-    <p>
-        Language classification tends to mix the notions of <em>member</em> and <em>child</em>.
-        The subtle differences between Latin, Proto-Romance and the Romance language family
-        are normally disregarded. This does not create problems 99% of the time, but becomes
-        problematic when automatic reasoners are applied.
-        <a href="${request.route_url('language', id='stan1290')}">French</a> is not a <em>member</em> of
-        <a href="${request.route_url('language', id='lati1261')}">Latin</a>
-        for instance, but it is a <em>member</em> of
-        <a href="${request.route_url('language', id='roma1334')}">Romance</a>.
-        At this stage of the project, we
-        separate paleolects (earlier varieties) from the purely set theoretic tree. A paleolect
-        can never have children. In future versions of Glottolog, a more detailed modeling may
-        be provided.
-    </p>
 
     <%util:section title="Principles" prefix="">
     <p>
         Every putative language is considered according to the decision procedure in
         <a href="#x1-10011">Figure 1</a>.
-        All spoken languages for which a sufficient amount of linguistic data exists&mdash;the decision
-        tree leaves with double boxes around them&mdash;are deemed classifiable, and are classified
+        All spoken languages for which a sufficient amount of linguistic data exists&mdash;the leaves of the decision
+        tree with double boxes around them&mdash;are deemed classifiable, and are classified
         into genealogical families (and isolates). The other kinds of languages are filed into
-        other categories. The listing is complete only for classifiable languages. Regarding
-        unattested, unclassifiable and spurious languages, see <a href="${request.route_url('source', id=308733)}">Harald Hammarström (2012)</a>. A comprehensive
+        the other categories that were listed above. Glottolog is complete only for classifiable languages. Regarding
+        unattested and unclassifiable languages, see <a href="${request.route_url('source', id=308733)}">Harald Hammarström (2012)</a>. A comprehensive
         listing of pidgins is <a href="${request.route_url('source', id=129370)}">Peter Bakker and Mikael Parkvall (2010)</a>. This listing differentiates different levels of
         evidence for the existence of a pidgin, rather than a strict yes/no existence-decision.
-        There are extensive lists of sign languages (<a href="${request.route_url('source', id=45973)}">Taylor, Allan R. 1996</a>, <a href="${request.route_url('source', id=314571)}">J. Albert Bickford 2005</a>, <a href="${request.route_url('source', id=114593)}">Kamei, Nobutaka 2004</a>, <a href="${request.route_url('source', id=314546)}">Ulrike Zeshan 2006</a>, <a href="${request.route_url('source', id=314580)}">Roger Blench and Andy Warren 2003</a>, <a href="${request.route_url('source', id=161311)}">Anonymous 2007</a>),
+        Elsewhere there are extensive lists of sign languages (<a href="${request.route_url('source', id=45973)}">Taylor, Allan R. 1996</a>, <a href="${request.route_url('source', id=314571)}">J. Albert Bickford 2005</a>, <a href="${request.route_url('source', id=114593)}">Kamei, Nobutaka 2004</a>, <a href="${request.route_url('source', id=314546)}">Ulrike Zeshan 2006</a>, <a href="${request.route_url('source', id=314580)}">Roger Blench and Andy Warren 2003</a>, <a href="${request.route_url('source', id=161311)}">Anonymous 2007</a>),
         whistled languages (<a href="${request.route_url('source', id=108497)}">Julien Meyer 2005</a>) and artificial languages (<a href="${request.route_url('source', id=314581)}">P. O. Bartlett 2006</a>).
      <!--l. 86--></p>
     </%util:section>
@@ -124,15 +154,15 @@
         </caption>
     </div>
 
-            <%util:section title="Inclusion/Exclusion of Languages" prefix="" level="4">
+            <%util:section title="Inclusion/exclusion of languages" prefix="" level="4">
     <h5><a id="x1-3000"></a>1. Is the putative language assertably distinct from all other known languages?</h5>
     <p>
         For any alleged language to be considered in the classification we must first determine whether it was
         distinct from all other languages. By distinct, we mean <em>not mutually intelligible</em>
         with any other language. In principle, any convincing evidence to this effect is sufficient. For example,
         direct comparison of language data or testimonies of non-intelligibility to all neighbouring languages
-        is the most straightforward kind of evidence. But also, e.g., evidence (archaeological, aerial, ethnographic)
-        isolation from all other humans for a long time could make a convincing case that a language is indeed
+        is the most straightforward kind of evidence. But also, various types of evidence
+        for isolation from all other humans for a long time could make a convincing case that a language is indeed
         distinct from all others.
     </p>
     <p>
@@ -140,7 +170,7 @@
         (<a href="${request.route_url('source', id=85197)}">Carlos Alberto Ricardo 1986</a>). Ethnographic evidence suggests that they, if akin to anyone in the vicinity, are Kanamari
         (a known Katukinan language, see, e.g., <a href="${request.route_url('source', id=9415)}">Zoraide dos Anjos 2011</a>). However, <a href="${request.route_url('source', id=311488)}">Scott Wallace (2011)</a> recounts one meeting between a
         Kanamari and the Flecheiros revealing that they do not speak intelligible languages (though one Kanamari
-        women captured at an early age was living among the Flecheiros). Even if not totally foolproof, this
+        woman captured at an early age was living among the Flecheiros). Even if not totally foolproof, this
         appears to be convincing evidence that the Flecheiros speak a language distinct from all others.
     </p>
     <p>
@@ -151,6 +181,11 @@
         to count as testimonies. There are cases where unintelligibility information comes from individuals who
         were in no position to judge it, e.g., they might be passing on hearsay, or pass on some kind of general
         impression not based solely on language.
+    </p>
+    <p>
+        If a putative language is or was not considered as a distinct language by these criteria,
+        it is either a dialect of a language, or it is classified as “based on misunderstanding”.
+        In the latter case, it is listed as a type of bookkeping languoid (see below).
     </p>
     <h5><a id="x1-4000"></a>2. Are there form-meaning pairs?</h5>
     <p>
@@ -187,21 +222,35 @@
         language may come and go in the course of history of a people, whereas a people cannot be without a main
         speech form for any period of history.
     </p>
+    <p>
+        If a putative language is not the main means of communication for a society,
+        it is classified as a pidgin or as a speech register.
+        (Whistled and drummed languages as well as jargons are not currently included in Glottolog.)
+    </p>
     <h5><a id="x1-6000"></a>4. Is the modality speech?</h5>
     <p>
         The present classification of languages is restricted to spoken languages for the sole reason that there
-        exists a methodology for establishing genealogical relationships is known for spoken languages (<a href="${request.route_url('source', id=94097)}">Campbell, Lyle and Poser, William J. 2008</a>).
+        exists a methodology for establishing genealogical relationships for spoken languages (<a href="${request.route_url('source', id=94097)}">Campbell, Lyle and Poser, William J. 2008</a>).
         This is not necessarily the case for signed languages.
+    </p>
+    <p>
+        Sign languages are grouped into a variety of subgroups that also thought to reflect genealogical history.
+        But here the same theoretical foundation is lacking, and thus the sign language groupings are much less secure.
+        The Sign Language groupings are not accountable like the spoken language groupings, i.e., accompanied by a reference that justifies the outcome according to a well-understood theory.
+        Rather, the sign language groupings reflect the impression of origin by individual researchers and/or simple lexicostatistical counts.
     </p>
     <h5><a id="x1-7000"></a>5. Are the form-meaning pairs enough to distinguish between different classification proposals?</h5>
     <p>
         We also require that the amount of form-meaning pairs is sufficient for a classification. There is no
-        universal fix threshold for how much is sufficient as this depends on how closely related the language is
+        universal fixed threshold for how much is sufficient as this depends on how closely related the language is
         to other known languages. An approximate minimal requirement is 50 items or so of basic vocabulary, i.e.,
-        not personal names or special domain vocabulary. For example, the extinct Gamela of Northeastern Brazil is
+        not personal names or special domain vocabulary. For example, the extinct language Gamela of northeastern Brazil is
         known from 19 words only (<a href="${request.route_url('source', id=47776)}">Curt Nimuendajú 1937</a>:68)&mdash;hardly enough for a classification. It is arguable that the
         sound-values encoded in the Linear A script can be gauged, but little, if any, meaning can be inferred
         (<a href="${request.route_url('source', id=18847)}">Yves Duhoux 1998</a>, <a href="${request.route_url('source', id=145800)}">Best, Jan 1989</a>, <a href="${request.route_url('source', id=10744)}">K. Aartun 1997</a>), rendering the data insufficient for classification.
+    </p>
+    <p>
+        If not enough form-meaning pairs are attested to allow classification, the language is filed under Unclassifiable.
     </p>
             </%util:section>
             <%util:section title="Classification" prefix="" level="4">
@@ -294,14 +343,14 @@
         in the reference, not necessarily the interpretation of this state given in that reference.
     </p>
             </%util:section>
-            <%util:section title="Names of Families and Subfamilies" prefix="">
+            <%util:section title="Names of families and subfamilies" prefix="">
     <p>
-        Whenever possible, current from the literature names of families and subfamilies are taken over. This is
+        Whenever possible, names of families and subfamilies are taken over from the current literature. This is
         considered possible when there is no name clash (with another language or (sub-)family in the world) and
         the name in the literature in principle refers to the intended set of languages. If the (sub-)family in the
         present classification differs in any significant way from that associated with a certain name, we have
         introduced a new unique name which is in often not found in the literature. The new names are all unique
-        and unambiguous but there is otherwise little effort spent on finding the name optimal in describing its set
+        and unambiguous but otherwise, for the current edition of Glottolog, we spent little effort on finding the name optimal in describing its set
         of languages (e.g., with the name of a central river or by taking the word for &ldquo;man&rdquo;) or optimal in the system
         of names in the region or greater family (e.g., by using a name with a Spanish flavour if the surrounding
         (sub-)families have Spanish-flavoured names). A number of names may look somewhat artificial
@@ -331,6 +380,44 @@
         sense of having a common ancestor unique only to them.
     </p>
             </%util:section>
+            <%util:section title="Dialects" prefix="">
+    <p>
+        For the current edition of Glottolog, we spent little effort on making dialect classifications consistent and on providing references for dialects.
+        Most of the information on dialects in Glottolog  is lifted from the Multitree project and contains numerous errors and inconsistencies which we are aware of, but have not yet had the resources to systematically correct.
+        We hope to provide more information on dialects in the future.
+    </p>
+            </%util:section>
+            <%util:section title="Bookkeeping languoids" prefix="">
+    <p>
+        Glottolog contains lists of three types of languoids that the editors do not regard as real languoids but that are included for bookkeeping purposes:
+        languages based on misunderstanding, languages that need to be reassigned, and pseudo-families.
+    </p>
+    <dl>
+        <dt>Languages based on misunderstanding</dt>
+        <dd style="margin-left: 0">
+        Sometimes linguists claim the existence of a language that later turns out to be a misunderstanding.
+        For instance, <a href="${request.route_url('glottolog.languages', _query={'search': 'Yarsun'})}">Yarsun</a> was once claimed by Ethnologue to be an Austronesian language of northern New Guinea, and there is still an ISO 639-3 code for it.
+        However, recent research provided insufficient evidence that such a language ever existed in the sense of being distinct from every other language.
+        In such cases, ISO 639-3 codes are often retired, because active ISO 639-3 codes must be about real languages.
+        Glottolog never retires Glottocodes and keeps them also for bookkeeping purposes.
+        </dd>
+        <dt>Languoids that need to be reassigned</dt>
+        <dd style="margin-left: 0">
+        Some languoids have been classified as non-language languoids, but have not been reassigned yet.
+        These are put in this preliminary category.
+        For example, ISO 639-3 once had a language “Durango Nahuatl” <a class="iso639-3" href="${request.route_url('glottolog.iso', id='nln')}">[nln]</a>.
+        This language was split into two distinct languages  “Eastern Durango Nahuatl” <a class="iso639-3" href="${request.route_url('glottolog.iso', id='azd')}">[azd]</a> and “Western Durango Nahuatl” <a class="iso639-3" href="${request.route_url('glottolog.iso', id='azn')}">[azn]</a>.
+        The code <a class="iso639-3" href="${request.route_url('glottolog.iso', id='nln')}">[nln]</a> was retired.
+        Glottolog still includes the former “Durango Nahuatl” with the ISO code <a class="iso639-3" href="${request.route_url('glottolog.iso', id='nln')}">[nln]</a>, but in the future this code will be reassigned to the family “Durango Nahuatl” <a href="${request.route_url('language', id='dura1246')}">[dura1246]</a> (in contrast to ISO 639-3, Glottocodes may also be assigned to families).
+        Similarly, Ethnologue used to have an Arawakan language “Ipeka-Tapuia” <a class="iso639-3" href="${request.route_url('glottolog.iso', id='paj')}">[paj]</a>, which was merged into Curripaco, because it turned out to be a dialect of this language.
+        The code <a class="iso639-3" href="${request.route_url('glottolog.iso', id='paj')}">[paj]</a> was retired, but in Glottolog it will be assigned to the Ipeka-Tapuia dialect of Curripaco.
+        </dd>
+        <dt>Pseudo-families</dt>
+        <dd style="margin-left: 0">
+        Since Glottolog also serves to classify bibliographical references, it also contains a number of pseudo-families such as <a href="${request.route_url('glottolog.languages', _query={'search': 'Nostratic'})}">Nostratic</a>, <a href="${request.route_url('glottolog.languages', _query={'search': 'Altaic'})}">Altaic</a> and <a href="${request.route_url('glottolog.languages', _query={'search': 'Mon-Khmer'})}">Mon-Khmer</a>, which are not recognized as families in Glottolog, but for which a substantial literature exists that linguists may still be interested in..
+        </dd>
+    </dl>
+    </%util:section>
     <%util:section title="Acknowledgements" prefix="">
     <p>Thanks </p>
     <ul class="itemize1">
@@ -341,6 +428,8 @@
         <li class="itemize">To Bonny Sands for help with access to various valuable documents </li>
         <li class="itemize">To Mikael Parkvall for help with &ldquo;Creole&rdquo; language classification </li>
         <li class="itemize">To Willem Adelaar for many points of discussion re South American languages </li>
+        <li class="itemize">To Raoul Zamponi for help with access to various valuable documents</li>
+        <li class="itemize">To Guillaume Segerer for help with access to various valuable documents</li>
         <li class="itemize">To all authors of descriptive and comparative works on the languages of the world </li>
         <li class="itemize">To 25 libraries for access and services </li>
         <li class="itemize">To over 250 individuals who provided confirming and/or clarificatory information</li>
