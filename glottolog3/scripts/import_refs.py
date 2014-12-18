@@ -177,6 +177,9 @@ YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
 DOCTYPE_PATTERN = re.compile('(?P<name>[a-z\_]+)\s*(\((?P<comment>[^\)]+)\))?\s*(\;|$)')
 CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
 
+#
+# make sure content is tripped and '' is converted to None
+#
 
 #
 # TODO: implement three modes: compare, import, update
@@ -274,6 +277,12 @@ def main(args):  # pragma: no cover
                     kw['endpage_int'] = end
                 if number is not None and 'pages_int' not in kw:
                     kw['pages_int'] = number
+
+            for k in kw.keys():
+                v = kw[k]
+                if isinstance(v, basestring):
+                    v = v.strip() or None
+                kw[k] = v
 
             if update:
                 for k in kw.keys():

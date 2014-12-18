@@ -497,13 +497,12 @@ def main(args):
     risolate_names = dict(zip(isolate_names.values(), isolate_names.keys()))
     rcollapsed_names = dict(zip(collapsed_names.values(), collapsed_names.keys()))
 
-    print lnames
     # and updates of father_pks for languages:
     for l in languages:
         hnode, status, name, comment = languages[l]
         id_ = codes.get(l, ncodes.get(l))
         attrs = languoid(id_, 'language', status=status)
-        if id_ in lnames: and name != lnames[id_]:
+        if id_ in lnames and name != lnames[id_]:
             if slug(lnames[id_]) == slug(name):
                 attrs['name'] = name
             else:
@@ -516,9 +515,6 @@ def main(args):
             attrs['hname'] = risolate_names[l]
         if l in rcollapsed_names:
             attrs['hname'] = rcollapsed_names[l]
-        #
-        # TODO: are we taking language names from Harald again?
-        #
         languoids.append(attrs)
 
     for row in DBSession.execute(
