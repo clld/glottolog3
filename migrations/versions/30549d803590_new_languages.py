@@ -1,15 +1,15 @@
 # coding=utf-8
 """new languages
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 30549d803590
+Revises: 36052643279d
+Create Date: 2014-12-18 19:08:39.684000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '30549d803590'
+down_revision = '36052643279d'
 
 import datetime
 import json
