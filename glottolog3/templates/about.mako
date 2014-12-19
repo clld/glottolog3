@@ -30,7 +30,7 @@
     </p>
     <p>
         A table of source bibliographies for Langdoc is available at
-        <a href="${request.route_url('providers')}">Langdoc information</a>.
+        <a href="${request.route_url('providers')}">References information</a>.
     </p>
 </div>
 <div class="span4 well well-small">
