@@ -2,7 +2,7 @@
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "search" %>
 
-<h3>Choose by property</h3>
+<h3>Search languages, families, and dialects</h3>
 <div class="span4 well well-small">
     <form>
         % if request.admin:

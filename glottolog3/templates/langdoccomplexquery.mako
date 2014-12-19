@@ -8,7 +8,7 @@
     <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
 </%block>
 
-<h3>Complex query (references)</h3>
+<h3>Search references</h3>
 <form>
 <div class="span6">
     <div class="span6 well well-small form-inline">
