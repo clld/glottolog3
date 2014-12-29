@@ -8,6 +8,7 @@ import six
 
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
+
 from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus
 
 
@@ -39,7 +40,7 @@ class Check(six.with_metaclass(CheckMeta, object)):
 
     def __str__(self):
         if self.invalid_count:
-            msg = '%d invalid (%s)' % (self.invalid_count, self.__doc__)
+            msg = '%d invalid\n    (violating %s)' % (self.invalid_count, self.__doc__)
         else:
             msg = 'OK'
         return '%s: %s' % (self.__class__.__name__, msg)
@@ -80,6 +81,16 @@ class IsolateInactive(Check):
                 Languoid.child_language_count != 0,
                 Languoid.child_dialect_count != 0,
                 Languoid.children.any()))\
+            .order_by(Languoid.id)
+
+
+class GlottologName(Check):
+    """Languoid has its name as Glottolog identifier."""
+
+    def invalid_query(self, session):
+        return session.query(Languoid)\
+            .filter(~Languoid.identifiers.any(name=Languoid.name,
+                type=u'name', description=u'Glottolog'))\
             .order_by(Languoid.id)
 
 
