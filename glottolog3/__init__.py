@@ -70,9 +70,9 @@ def main(global_config, **settings):
         ('dataset', partial(menu_item, 'dataset', label='Home')),
         ('languages', partial(menu_item, 'languages', label='Languages')),
         ('families', partial(menu_item, 'glottolog.families', label='Families')),
-        ('search', partial(menu_item, 'glottolog.languages', label='Lang-Search')),
+        ('search', partial(menu_item, 'glottolog.languages', label='L-Search')),
         ('sources', partial(menu_item, 'sources', label='References')),
-        ('query', partial(menu_item, 'langdoc.complexquery', label='Ref-Search')),
+        ('query', partial(menu_item, 'langdoc.complexquery', label='R-Search')),
         ('about', partial(menu_item, 'about', label='About')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
