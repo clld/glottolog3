@@ -1,1 +1,0 @@
-glottolog3 README
