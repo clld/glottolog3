@@ -34,7 +34,7 @@ ${ctx.coins(request)|n}
                 ${h.external_link(ctx.url)}
             </p>
             % endif
-            ${util.gbs_links(filter(None, [ctx.gbs_identifier]))}
+            ${util.gbs_links([i for i in [ctx.gbs_identifier] if i])}
             % if ctx.jsondatadict.get('internetarchive_id'):
                 <hr />
                 <iframe src='https://archive.org/stream/${ctx.jsondatadict.get('internetarchive_id')}?ui=embed#mode/1up' width='680px' height='750px' frameborder='1' ></iframe>

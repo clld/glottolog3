@@ -137,7 +137,7 @@
                 </ul>
             </%util:accordion_group>
             % endif
-            <% sites = filter(lambda s: s['condition'](ctx), request.registry.settings.get('PARTNERSITES', [])) %>
+            <% sites = [s for s in request.registry.settings.get('PARTNERSITES', []) if s['condition'](ctx)] %>
             % if sites:
             <%util:accordion_group eid="acc-partner" parent="sidebar-accordion" title="Links" open="${map is None}">
                 <ul class="nav nav-tabs nav-stacked">
@@ -157,7 +157,7 @@
                 </ul>
             </%util:accordion_group>
             % endif
-            <% altnames = filter(lambda i: i.type == 'name' and (i.description != 'Glottolog' or i.name != ctx.name), ctx.identifiers) %>
+            <% altnames = [i for i in ctx.identifiers if i.type == 'name' and (i.description != 'Glottolog' or i.name != ctx.name)] %>
             % if altnames or ('name_comment' in ctx.datadict()):
             <%util:accordion_group eid="acc-names" parent="sidebar-accordion" title="Alternative names">
                 % if 'name_comment' in ctx.datadict():

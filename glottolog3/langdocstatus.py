@@ -156,7 +156,7 @@ def language_query(req=None):
         if macroarea:
             query = query.join(Languoidmacroarea).join(Macroarea)\
                 .filter(Macroarea.name == macroarea)
-        families = filter(None, req.params.get('family', '').split(','))
+        families = [f for f in req.params.get('family', '').split(',') if f]
         if families:
             family = aliased(Languoid)
             query = query.join(family, Languoid.family_pk == family.pk)\
@@ -179,7 +179,7 @@ def family_query(req=None):
 
 
 def _get_families(req):
-    families = filter(None, req.params.get('family', '').split(','))
+    families = [f for f in req.params.get('family', '').split(',') if f]
     if families:
         return DBSession.query(Languoid).filter(Languoid.id.in_(families)).all()
     return []

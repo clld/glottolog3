@@ -149,7 +149,7 @@ def get_params(params, **kw):
             if cstruct[plural]:
                 reqparams[plural] = cstruct[plural]
         else:
-            cstruct[plural] = filter(None, params.get(plural, '').split(','))
+            cstruct[plural] = [p for p in params.get(plural, '').split(',') if p]
             if cstruct[plural]:
                 reqparams[plural] = params[plural]
     schema.add(biblio)

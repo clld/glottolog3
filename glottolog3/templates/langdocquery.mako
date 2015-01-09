@@ -15,5 +15,5 @@
     </form>
 </div>
 <div class="span7">
-    ##${h.refs_table(u.getRefs(**params) if filter(None, params.values()) else (0, []))}
+    ##${h.refs_table(u.getRefs(**params) if any(params.values()) else (0, []))}
 </div>
