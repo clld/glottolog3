@@ -43,6 +43,11 @@ UNIQUE = [
 def upgrade():
     conn = op.get_bind()
 
+    def select_duplicate(tab, cols):
+        cols = ', '.join(cols)
+        return sa.text('SELECT %(cols)s, count(*) FROM %(tab)s '
+            'GROUP BY %(cols)s HAVING count(*) > 1 ORDER BY %(cols)s' % locals(), conn)
+
     select_const = sa.text('SELECT name, definition FROM ('
         'SELECT c.conname AS name, pg_get_constraintdef(c.oid) AS definition, '
         'array(SELECT a.attname::text FROM unnest(c.conkey) AS n '
@@ -54,7 +59,13 @@ def upgrade():
         conn).bindparams(type='u')
 
     for tab, cols in UNIQUE:
-        matching = select_consts.execute(tab=tab, cols=cols).fetchall()
+        violating = select_duplicate(tab, cols).execute().fetchall()
+        if violating:
+            print 'violating %s UNIQUE(%s): %d' % (tab, ', '.join(cols), len(violating))
+            print violating
+        continue
+
+        matching = select_const.execute(tab=tab, cols=cols).fetchall()
         if matching:
             assert len(matching) == 1
             name, definition = matching[0]
@@ -63,6 +74,8 @@ def upgrade():
             op.drop_constraint(name, tab)
         name = '%s_%s_key' % (tab, '_'.join(cols))
         op.create_unique_constraint(name, tab, cols)
+
+    raise NotImplementedError
 
 
 def downgrade():
