@@ -24,7 +24,6 @@ UNIQUE = [
     ('languageidentifier', ['language_pk', 'identifier_pk']),
     ('languagesource', ['language_pk', 'source_pk']),
     ('sentencereference', ['sentence_pk', 'source_pk']),
-    ('unitparameterunit', ['unit_pk', 'unitparameter_pk']),  # denormalized?
     ('unitvalue', ['unit_pk', 'unitparameter_pk', 'unitdomainelement_pk']),  # ude_pk nullable
     ('value', ['valueset_pk', 'domainelement_pk']),  # de_pk nullable
     ('valuesentence', ['value_pk', 'sentence_pk']),
@@ -58,13 +57,15 @@ def upgrade():
         'WHERE s.names @> :cols AND s.names <@ :cols',
         conn).bindparams(type='u')
 
-    for tab, cols in UNIQUE:
-        violating = select_duplicate(tab, cols).execute().fetchall()
-        if violating:
-            print 'violating %s UNIQUE(%s): %d' % (tab, ', '.join(cols), len(violating))
-            print violating
-        continue
+    duplicates = [(tab, cols, select_duplicate(tab, cols).execute().fetchall())
+        for tab, cols in UNIQUE]
+    violating = [(tab, cols, rows) for tab, cols, rows in duplicates if rows]
+    if violating:
+        for tab, cols, rows in violating:
+            print 'violating %s UNIQUE(%s): %d' % (tab, ', '.join(cols), len(rows))
+        raise RuntimeError
 
+    for tab, cols in UNIQUE:
         matching = select_const.execute(tab=tab, cols=cols).fetchall()
         if matching:
             assert len(matching) == 1
