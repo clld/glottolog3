@@ -20,14 +20,15 @@
     please contact the editors.
 </p>
 
-<%util:table items="${[p for p in ctx.get_query() if p.pk in ctx.ref_count]}" args="item" eid="refs" class_="table-condensed table-striped" options="${dict(aaSorting=[[2, 'desc']])}">\
+<%util:table items="${[p for p in ctx.get_query() if p.pk in ctx.ref_count]}" args="item" eid="refs" class_="table-condensed table-striped" options="${dict(aaSorting=[[3, 'desc']])}">\
     <%def name="head()">
-        <th>Bibliography</th><th>Description</th><th>References</th>
+        <th>Provider</th><th>Bibliography</th><th>Description</th><th>References</th>
     </%def>
+    <td>${item.id}</td>
     <td>${h.link(request, item)}</td>
     <td><a id="provider-${item.id}" name="provider-${item.id}"> </a>${item.description or ''}</td>
     <td class="right">${ctx.ref_count[item.pk]}</td>
     <%def name="foot()">
-        <th style="text-align: right;" colspan="2">Total:</th><th style="text-align: right;">${sum(ctx.ref_count.values())}</th>
+        <th style="text-align: right;" colspan="3">Total:</th><th style="text-align: right;">${sum(ctx.ref_count.values())}</th>
     </%def>
 </%util:table>
