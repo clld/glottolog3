@@ -1,6 +1,8 @@
 from __future__ import unicode_literals, print_function
+import io
 import re
 import json
+from six.moves.configparser import SafeConfigParser
 
 from sqlalchemy import sql, desc, not_, or_
 
@@ -332,33 +334,27 @@ UPDATE languoid SET child_%(level)s_count = (
     DBSession.execute('COMMIT')
 
 
-def update_providers(args):
-    if not args.data_file(args.version, 'provider.txt').exists():
+def update_providers(args, filename='providers.ini'):
+    filepath = args.data_file(args.version, filename)
+    if not filepath.exists():
         return
 
-    with open(args.data_file(args.version, 'provider.txt')) as fp:
-        content = fp.read().decode('latin1')
-
-    if '\r\n' in content:
-        content = content.replace('\r\n', '\n')
+    p = SafeConfigParser()
+    with io.open(filepath, encoding='utf-8') as fp:
+        p.readfp(fp)
 
     provider_map = get_map(Provider)
-    for block in content.split('\n\n\n\n'):
-        lines = [line for line in block.split('\n') if line]
-        if not lines:
-            continue
-        try:
-            id_, abbr = lines[0].strip().split(':')
-        except:
-            print(lines[0])
-            raise
-        id_ = id_.split('.')[0]
-        description = unescape('\n'.join(lines[1:]))
-        name = description.split('.')[0]
-
-        if id_ == 'hedvig-tirailleur':
-            id_ = u'skirgard'
-
+    section_id = {
+        'eballiso2009': 'eball',
+        'fabreall2009ann': 'fabre',
+        'hedvig-tirailleur': 'skirgard',
+        'sn': 'nordhoff',
+    }
+    for section in p.sections():
+        id_ = section_id.get(section, section)
+        name = p.get(section, 'title')
+        description = p.get(section, 'description')
+        abbr = p.get(section, 'abbr')
         if slug(id_) not in provider_map:
             args.log.info('adding provider %s' % slug(id_))
             DBSession.add(
