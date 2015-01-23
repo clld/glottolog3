@@ -2,6 +2,7 @@ import re
 import json
 
 import transaction
+from sqlalchemy.orm.attributes import get_history
 
 from clld.lib.bibtex import Database
 from clld.util import slug
@@ -177,9 +178,6 @@ YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
 DOCTYPE_PATTERN = re.compile('(?P<name>[a-z\_]+)\s*(\((?P<comment>[^\)]+)\))?\s*(\;|$)')
 CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
 
-#
-# make sure content is tripped and '' is converted to None
-#
 
 #
 # TODO: implement three modes: compare, import, update
@@ -217,6 +215,7 @@ def main(args):  # pragma: no cover
             changed = False
             assert rec.get('glottolog_ref_id')
             id_ = int(rec.get('glottolog_ref_id'))
+
             if args.mode != 'update' and id_ in known_ids:
                 continue
             ref = DBSession.query(Source).get(id_)
@@ -291,7 +290,7 @@ def main(args):  # pragma: no cover
                     v = getattr(ref, k)
                     if kw[k] != v:
                         if k == 'jsondata':
-                            d = ref.jsondata or {}
+                            d = {k: v for k, v in ref.jsondatadict.items()}
                             d.update(**kw[k])
                             for s, t in FIELD_MAP.items():
                                 if (t or t is None) and s in d:
