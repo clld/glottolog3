@@ -2,7 +2,7 @@ from __future__ import unicode_literals, print_function
 import io
 import re
 import json
-from six.moves.configparser import SafeConfigParser
+from six.moves.configparser import RawConfigParser
 
 from sqlalchemy import sql, desc, not_, or_
 
@@ -334,24 +334,25 @@ UPDATE languoid SET child_%(level)s_count = (
     DBSession.execute('COMMIT')
 
 
-def update_providers(args, filename='providers.ini'):
+def update_providers(args, filename='BIBFILES.ini'):
     filepath = args.data_file(args.version, filename)
     if not filepath.exists():
         return
 
-    p = SafeConfigParser()
-    with io.open(filepath, encoding='utf-8') as fp:
+    p = RawConfigParser()
+    with io.open(filepath, encoding='utf-8-sig') as fp:
         p.readfp(fp)
 
     provider_map = get_map(Provider)
-    section_id = {
+    sectname_id = {
         'eballiso2009': 'eball',
         'fabreall2009ann': 'fabre',
         'hedvig-tirailleur': 'skirgard',
         'sn': 'nordhoff',
     }
     for section in p.sections():
-        id_ = section_id.get(section, section)
+        sectname = section[:-4] if section.endswith('.bib') else section
+        id_ = sectname_id.get(sectname, sectname)
         name = p.get(section, 'title')
         description = p.get(section, 'description')
         abbr = p.get(section, 'abbr')
