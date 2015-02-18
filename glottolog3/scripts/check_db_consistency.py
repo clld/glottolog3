@@ -9,7 +9,8 @@ import six
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 
-from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus
+from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus,\
+    TreeClosureTable, Language
 
 
 class CheckMeta(type):
@@ -66,6 +67,23 @@ class FamilyChildren(Check):
             .filter_by(active=True, level=LanguoidLevel.family)\
             .filter(~Languoid.children.any(sa.and_(Languoid.active == True,
                 Languoid.level.in_([LanguoidLevel.family, LanguoidLevel.language]))))\
+            .order_by(Languoid.id)
+
+
+class FamilyLanguages(Check):
+    """Family has at least two languages."""
+
+    def invalid_query(self, session):
+        child = sa.orm.aliased(Languoid, flat=True)
+        return session.query(Languoid)\
+            .filter_by(active=True, level=LanguoidLevel.family)\
+            .join(TreeClosureTable, TreeClosureTable.parent_pk == Languoid.pk)\
+            .outerjoin(child, sa.and_(
+                TreeClosureTable.child_pk == child.pk,
+                TreeClosureTable.depth > 0,
+                child.level == LanguoidLevel.language))\
+            .group_by(Language.pk, Languoid.pk)\
+            .having(sa.func.count(child.pk) < 2)\
             .order_by(Languoid.id)
 
 
