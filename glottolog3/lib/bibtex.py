@@ -3,7 +3,7 @@ import re
 
 from six import PY3
 
-from glottolog3.lib import latex
+from clld.lib import latex
 latex.register()
 
 
@@ -13,6 +13,9 @@ if PY3:  # pragma: no cover
 
 
 UU_PATTERN = re.compile('\?\[\\\\u(?P<number>[0-9]{3,4})\]')
+
+
+# FIXME: resolve remaining code duplication with clld.lib.bibtex
 
 
 def u_unescape(s):
