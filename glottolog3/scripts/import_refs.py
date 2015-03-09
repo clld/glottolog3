@@ -170,7 +170,10 @@ FIELD_MAP = {
     'yeartitle': '',
 }
 
-CONVERTER = {'ozbib_id': int}
+CONVERTER = {
+    'ozbib_id': int,
+    'url': lambda u, cmd=re.compile(r'^\\url\{(.*)\}$'): cmd.sub(r'\1', u),
+}
 
 PREF_YEAR_PATTERN = re.compile('\[(?P<year>(1|2)[0-9]{3})(\-[0-9]+)?\]')
 YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
