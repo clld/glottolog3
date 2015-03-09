@@ -46,7 +46,7 @@ class Tests(TestWithSelenium):
     def test_datatable_language(self):
         dt = self.get_datatable('/glottolog/language')
         dt.filter('name', u'ü')
-        self.assertEqual(dt.get_info().filtered, 14)
+        self.assertEqual(dt.get_info().filtered, 1)
 
     def test_languoid_map_and_table(self):
         map_ = self.get_map('/resource/languoid/id/ghad1239')
