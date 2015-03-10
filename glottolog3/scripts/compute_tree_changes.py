@@ -47,7 +47,7 @@ def data_file(args, name):
     return args.data_file(args.version, name)
 
 
-NOCODE_PATTERN = re.compile('NOCODE\_[a-zA-Z0-9\-\_]+$')
+NOCODE_PATTERN = re.compile('NOCODE_[\w\-]+$')
 
 
 def split_families(fp):
