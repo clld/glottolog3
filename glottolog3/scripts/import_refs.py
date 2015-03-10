@@ -18,6 +18,8 @@ from glottolog3.scripts.util import (
     update_providers, update_relationship, compute_pages, CA_PATTERN, ca_trigger,
 )
 
+NONREF_JSONDATA = {'gbs', 'internetarchive_id'}
+
 FIELD_MAP = {
     'abstract': '',
     'added': '',
@@ -271,11 +273,9 @@ def main(args):  # pragma: no cover
                     v = getattr(ref, k)
                     if kw[k] != v:
                         if k == 'jsondata':
-                            d = {k: v for k, v in ref.jsondatadict.items()}
+                            d = {k: v for k, v in ref.jsondatadict.items()
+                                 if k in NONREF_JSONDATA}
                             d.update(**kw[k])
-                            for s, t in FIELD_MAP.items():
-                                if (t or t is None) and s in d:
-                                    del d[s]
                             ref.jsondata = d
                         else:
                             print k, '--', v
