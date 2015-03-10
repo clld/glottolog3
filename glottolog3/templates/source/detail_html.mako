@@ -33,6 +33,10 @@ ${ctx.coins(request)|n}
             <p>
                 ${h.external_link(ctx.url)}
             </p>
+            % elif ctx.jsondatadict.get('doi'):
+            <p>
+                ${h.external_link('http://dx.doi.org/%s' % ctx.jsondatadict['doi'])}
+            </p>
             % endif
             ${util.gbs_links([i for i in [ctx.gbs_identifier] if i])}
             % if ctx.jsondatadict.get('internetarchive_id'):
