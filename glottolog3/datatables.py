@@ -264,6 +264,8 @@ class Refs(Sources):
             self.language_sources = [s.pk for s in self.language.sources]
 
     def default_order(self):
+        if self.language and self.language.level != LanguoidLevel.family:
+            return Source.pages_int.desc().nullslast(), Source.pk.desc()            
         return Source.updated.desc(), Source.pk.desc()
 
     def col_defs(self):
