@@ -3,6 +3,7 @@ import re
 
 from six import PY3
 
+from clld.lib.bibtex import u_unescape
 from clld.lib import latex
 latex.register()
 
@@ -12,40 +13,7 @@ if PY3:  # pragma: no cover
     unichr = chr
 
 
-UU_PATTERN = re.compile('\?\[\\\\u(?P<number>[0-9]{3,4})\]')
-
-
 # FIXME: resolve remaining code duplication with clld.lib.bibtex
-
-
-def u_unescape(s):
-    r"""
-    Unencode Unicode escape sequences
-    match all 3/4-digit sequences with unicode character
-    replace all '?[\u....]' with corresponding unicode
-
-    There are some decimal/octal mismatches in unicode encodings in bibtex
-
-    >>> r = u_unescape(r'?[\u123] ?[\u1234]')
-    """
-    new = []
-    e = 0
-    for m in UU_PATTERN.finditer(s):
-        new.append(s[e:m.start()])
-        e = m.end()
-
-        digits = hex(int(m.group('number')))[2:].rjust(4, '0')
-        r = False
-        try:
-            r = (u'\\u' + digits).decode('unicode_escape')
-        except (UnicodeDecodeError, TypeError):  # pragma: no cover
-            pass
-        if r:
-            new.append(r)
-        else:
-            new.append(s[m.start():m.end()])  # pragma: no cover
-    new.append(s[e:len(s)])
-    return ''.join(new)
 
 
 RE_XML_ILLEGAL = re.compile(
