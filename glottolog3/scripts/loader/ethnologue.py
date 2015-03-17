@@ -23,6 +23,7 @@ SUBGROUP_URL = BASE_URL + 'subgroups/'
 def download(args):
     with open(args.data_file(DATA_FILE), 'w') as fp:
         fp.write(requests.get(DATA_URL).content)
+    # TODO: copy or downlad JSON!!!!
 
 
 def update(args):

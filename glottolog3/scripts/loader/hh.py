@@ -19,7 +19,16 @@ from glottolog3.lib.util import get_map, REF_PATTERN
 from glottolog3.scripts.util import update_relationship, PAGES_PATTERN, WORD_PATTERN
 
 
+def get_lginfo(args, filter=None):
+    return [
+        (r.hid, r) for r in
+        dsv.reader(args.data_file('lginfo.csv'), delimiter=',', namedtuples=True)
+        if filter is None or filter(r)]
+
+
 def countries(args, languages):
+    """update relations between languages and countries they are spoken in.
+    """
     count = 0
     countries = {}
     for row in dsv.reader(args.data_file('countries.tab'), encoding='latin1'):
@@ -27,21 +36,24 @@ def countries(args, languages):
         if hid not in languages:
             languages[hid] = Languoid.get(hid, key='hid', default=None)
         if not languages[hid]:
+            args.log.warn('unknown hid in countries.tab: %s' % hid)
             continue
         l = languages[hid]
         if l.countries:
+            # we only add country relations to new languages or languages which have none.
             continue
         for cname in set(cnames):
             if cname not in countries:
                 countries[cname] = Country.get(cname, key='name', default=None)
             if not countries[cname]:
+                args.log.warn('unknown country name in countries.tab: %s' % cname)
                 continue
             c = countries[cname]
             if c.id not in [_c.id for _c in l.countries]:
                 l.countries.append(c)
                 count += 1
 
-    print 'countries:', count, 'relations added'
+    args.log.info('countries: %s relations added' % count)
 
 
 def macroareas(args, languages):
@@ -50,14 +62,14 @@ def macroareas(args, languages):
     # we store references to languages to make computation of cumulated macroareas for
     # families easier
     lang_map = {}
-
-    for hid, macroarea in dsv.reader(args.data_file('macroareas.tab')):
+    for hid, info in get_lginfo(args, lambda x: x.macro_area):
         if hid not in languages:
             languages[hid] = Languoid.get(hid, key='hid', default=None)
         if not languages[hid]:
             continue
         lang_map[languages[hid].pk] = languages[hid]
-        update_relationship(languages[hid].macroareas, [ma_map[macroarea]], log=args.log)
+        update_relationship(
+            languages[hid].macroareas, [ma_map[info.macro_area]], log=args.log)
 
     for family in DBSession.query(Languoid)\
             .filter(Languoid.level == LanguoidLevel.family)\
@@ -68,19 +80,19 @@ def macroareas(args, languages):
             if lang[0] in lang_map:
                 mas.extend(lang_map[lang[0]].macroareas)
         update_relationship(family.macroareas, mas, log=args.log)
-    print 'macroareas done'
+    args.log.info('macroareas done')
 
 
 def coordinates(args, languages):
     diff = lambda x, y: abs(x - y) > 0.001
 
-    for hid, lon, lat in dsv.reader(args.data_file('coordinates.tab')):
+    for hid, info in get_lginfo(args, lambda x: x.longitude and x.latitude):
         if hid not in languages:
             languages[hid] = Languoid.get(hid, key='hid', default=None)
         if not languages[hid]:
             continue
         language = languages[hid]
-        lat, lon = map(float, [lat, lon])
+        lat, lon = map(float, [info.latitude, info.longitude])
 
         if not language.latitude or not language.longitude:
             language.longitude, language.latitude = lon, lat

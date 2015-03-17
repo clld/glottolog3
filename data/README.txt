@@ -6,14 +6,23 @@ Glottolog update
 
 	(clld)robert@astroman:~/venvs/clld/glottolog3$ mkdir data/2.4
 
-- unpack monster.zip
+- update glottolog-data:
+
+    (clld)robert@astroman:~/venvs/clld/data/glottolog-data/scripts$ git pull --rebase origin
+    (clld)robert@astroman:~/venvs/clld/data/glottolog-data/scripts$ time python monster.py
+
 - copy files
 
+    (clld)robert@astroman:~/venvs/clld/data/glottolog-data/scripts$ t
 	(clld)robert@astroman:~/venvs/clld/harald_ftp$ ./copy.sh 2.4
 
 - alembic upgrade head
 
 	alembic upgrade head
+
+- check consistency
+
+    python glottolog3/scripts/check_db_consistency.py development.ini
 
 - dump current version
 
@@ -22,17 +31,33 @@ Glottolog update
 
 - compute tree changes, update the tree and recompute the tree closure
 
-	python glottolog3/scripts/compute_tree_changes.py --version=2.4 development.ini
+	python glottolog3/scripts/compute_tree_changes.py --version=2.4 development.in
+        3830 matches
+        52 migrations
+        0 nomatches
+        219 new nodes
+        78 new languages
+        existing name: Nauo new code: nwo
+        existing name: Wagawaga new code: wgb
+
+    Note: Problems with existing names for different hids must be fixed by migrations
+    before import of a new tree.
+
     python glottolog3/scripts/import_tree.py --version=2.4 development.ini
+        real	9m15.198s
 
 - computing changes again should yield only matches!
 
     python glottolog3/scripts/compute_tree_changes.py --version=2.4 development.ini
 
-    3805 matches
-    0 migrations
-    0 nomatches
-    0 new nodes
+        ~~ Chinali-Lahul Lohar -> Indo-European, Indo-Iranian, Indo-Aryan, Unclassified Indo-Aryan, Chinali-Lahul Lohar
+        ~~ Ghera-Gurgula -> Indo-European, Indo-Iranian, Indo-Aryan, Indo-Aryan Central zone, Subcontinental Central Indo-Aryan, Western Hindi, Unclassified Western Hindi, Ghera-Gurgula
+        -- Yucatecan-Core Mayan ->
+        4042 matches
+        2 migrations
+        1 nomatches
+        0 new nodes
+        0 new languages
 
 - update refs:
 
@@ -68,7 +93,13 @@ Glottolog update
 
 - test feeds of new languages and new grammars!
 
+- check consistency
+
+    python glottolog3/scripts/check_db_consistency.py development.ini
+
 - update version number!
+
+    TODO: update editors! Sebastian Bank statt Nordhoff!
 
 	python glottolog3/scripts/update_version.py --version=2.4 development.ini
 

@@ -245,7 +245,7 @@ def main(args):  # pragma: no cover
                 p = kw.get('publisher')
                 if ':' in p:
                     address, publisher = [s.strip() for s in kw['publisher'].split(':', 1)]
-                    if not 'address' in kw or kw['address'] == address:
+                    if 'address' not in kw or kw['address'] == address:
                         kw['address'], kw['publisher'] = address, publisher
 
             if rec.get('numberofpages'):
@@ -281,8 +281,8 @@ def main(args):  # pragma: no cover
                             d.update(**kw[k])
                             ref.jsondata = d
                         else:
-                            print k, '--', v
-                            print k, '++', kw[k]
+                            #print k, '--', v
+                            #print k, '++', kw[k]
                             setattr(ref, k, kw[k])
                             changed = True
                             if ref.id in changes:

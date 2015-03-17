@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+write: Language.jsondata['endangerment'|...]
+"""
 import transaction
 from math import ceil
 import time
