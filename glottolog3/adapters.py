@@ -12,30 +12,29 @@ from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump
 from clld.web.adapters.geojson import pacific_centered_coordinates, GeoJsonLanguages
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
-from clld.db.meta import DBSession
 from clld.db.models.common import Language, LanguageIdentifier
 from clld.web.icon import ORDERED_ICONS
 
 import glottolog3
-from glottolog3.models import LanguoidLevel, Country
+from glottolog3.models import Languoid, LanguoidLevel, Country
 from glottolog3.interfaces import IProvider
 
 
-def _lang_query():
-    return DBSession.query(Language)\
-        .options(
-            joinedload_all(Language.languageidentifier, LanguageIdentifier.identifier))\
-        .order_by(Language.pk)
-
-
 class LanguoidCsvDump(CsvDump):
+
     def query(self, req):
-        return _lang_query()
+        return Languoid.csv_query(session=req.db)
+
+    def get_fields(self, req):
+        return Languoid.csv_head()
 
 
 class LanguoidN3Dump(N3Dump):
+
     def query(self, req):
-        return _lang_query()
+        return req.db.query(Language).options(joinedload_all(
+                Language.languageidentifier, LanguageIdentifier.identifier))\
+            .order_by(Language.pk)
 
 
 class Redirect(Representation):
