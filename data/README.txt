@@ -103,7 +103,8 @@ Glottolog update
 
 
     - run nosetests
-    - tag code
+    - create release of glottolog3
+    - create release of glottolog-data
 
     - create downloads for new version
     - deploy to production (copy treefiles and downloads first!?)
