@@ -107,12 +107,12 @@ def justifications(args, languages):
     langs_by_name = {}
 
     for l in DBSession.query(Languoid).filter(Languoid.active == False):
-        langs_by_hname[l.jsondatadict.get('hname')] = l
+        langs_by_hname[l.jsondata.get('hname')] = l
         langs_by_hid[l.hid] = l
         langs_by_name[l.name] = l
 
     for l in DBSession.query(Languoid).filter(Languoid.active == True):
-        langs_by_hname[l.jsondatadict.get('hname')] = l
+        langs_by_hname[l.jsondata.get('hname')] = l
         langs_by_hid[l.hid] = l
         langs_by_name[l.name] = l
 

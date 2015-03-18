@@ -95,8 +95,8 @@ CFG = {
     'PARTNERSITES': [
         {
             'name': 'Ethnologue',
-            'href': lambda l: l.jsondatadict['ethnologue'],
-            'condition': lambda l: l.jsondatadict.get('ethnologue'),
+            'href': lambda l: l.jsondata['ethnologue'],
+            'condition': lambda l: l.jsondata.get('ethnologue'),
             'logo': "ethnologue.png",
             'rdf': "rdfs:seeAlso",
         },
@@ -118,16 +118,16 @@ CFG = {
         {
             'name': 'Wikipedia',
             'href': lambda l: "http://en.wikipedia.org/wiki/"
-            + l.jsondatadict.get('wikipedia', 'ISO_639:' + str(l.iso_code)),
-            'condition': lambda l: l.jsondatadict.get('wikipedia') or l.iso_code,
+            + l.jsondata.get('wikipedia', 'ISO_639:' + str(l.iso_code)),
+            'condition': lambda l: l.jsondata.get('wikipedia') or l.iso_code,
             'rdf': "owl:sameAs",
             'logo': "wikipedia.png"
         },
         {
             'name': 'DBpedia',
             'href': lambda l: "http://dbpedia.org/page/"
-            + l.jsondatadict.get('wikipedia', 'ISO_639:' + str(l.iso_code)),
-            'condition': lambda l: l.jsondatadict.get('wikipedia') or l.iso_code,
+            + l.jsondata.get('wikipedia', 'ISO_639:' + str(l.iso_code)),
+            'condition': lambda l: l.jsondata.get('wikipedia') or l.iso_code,
             'rdf': "owl:sameAs",
             'logo': "dbpedia.png"
         },
@@ -205,9 +205,9 @@ CFG = {
         },
         {
             'name': 'UNESCO Atlas',
-            'href': lambda l: l.jsondatadict['unesco']['url'],
+            'href': lambda l: l.jsondata['unesco']['url'],
             'rdf': "rdfs:seeAlso",
-            'condition': lambda l: 'unesco' in l.jsondatadict,
+            'condition': lambda l: 'unesco' in l.jsondata,
             #'logo': "unesco.jpg"  # not allowed without explicit permission!
         },
         #{
@@ -221,9 +221,9 @@ CFG = {
         #},
         {
             'name': 'languagelandscapes',
-            'href': lambda l: l.jsondatadict['languagelandscape'],
+            'href': lambda l: l.jsondata['languagelandscape'],
             'rdf': "rdfs:seeAlso",
-            'condition': lambda l: 'languagelandscape' in l.jsondatadict,
+            'condition': lambda l: 'languagelandscape' in l.jsondata,
             'logo': "languagelandscape.png"
         },
         #{ # requires click-through terms-of-use

@@ -276,7 +276,7 @@ def main(args):  # pragma: no cover
                     v = getattr(ref, k)
                     if kw[k] != v:
                         if k == 'jsondata':
-                            d = {k: v for k, v in ref.jsondatadict.items()
+                            d = {k: v for k, v in ref.jsondata.items()
                                  if k in NONREF_JSONDATA}
                             d.update(**kw[k])
                             ref.jsondata = d

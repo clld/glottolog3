@@ -23,7 +23,7 @@ def update_lang(lang, **kw):
     """
     name = kw.pop('name', None)
     if name and name != lang.name:
-        if 'hname' not in lang.jsondatadict:
+        if 'hname' not in lang.jsondata:
             lang.update_jsondata(hname=lang.name)
         print 'renamed', lang.name, 'to', name
         lang.name = name

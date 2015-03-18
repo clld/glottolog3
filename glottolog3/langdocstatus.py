@@ -76,14 +76,14 @@ class DescStatsGeoJson(GeoJson):
         return self.obj[endangerment.shape + SIMPLIFIED_DOCTYPE_MAP[type_].color]
 
     def feature_properties(self, ctx, req, feature):
-        endangerment = ENDANGERMENT_MAP[feature.jsondatadict.get('endangerment')]
+        endangerment = ENDANGERMENT_MAP[feature.jsondata.get('endangerment')]
         # augment the source dicts
-        sources = feature.jsondatadict.setdefault('sources', [])
+        sources = feature.jsondata.setdefault('sources', [])
         for s in sources:
             s['icon'] = self.get_icon(req, s['doctype'], endangerment)
             s['sdt'] = SIMPLIFIED_DOCTYPE_MAP[s['doctype']].ord
 
-        med = feature.jsondatadict.get('med')
+        med = feature.jsondata.get('med')
         return {
             'ed': endangerment.ord,
             'icon': self.get_icon(req, med['doctype'] if med else None, endangerment),
@@ -246,18 +246,18 @@ def languages(req):
 
     for lang in language_query(req):
         if ed:
-            _ed = lang.jsondatadict.get('endangerment') or 'Living'
+            _ed = lang.jsondata.get('endangerment') or 'Living'
             if ed.name != _ed:
                 continue
 
         med = None
         if year:
-            for s in lang.jsondatadict.get('sources', []):
+            for s in lang.jsondata.get('sources', []):
                 if s['year'] <= year:
                     med = s
                     break
         else:
-            med = lang.jsondatadict.get('med')
+            med = lang.jsondata.get('med')
 
         if sdt:
             _sdt = SIMPLIFIED_DOCTYPE_MAP[med['doctype'] if med else None]

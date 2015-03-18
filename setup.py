@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'clld>=0.28',
+    'clld>=0.32',
     'clldmpg',
-    ]
+]
 
 setup(name='glottolog3',
       version='0.0',

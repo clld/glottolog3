@@ -91,7 +91,7 @@
             % endif
         </div>
         % endif
-        % if 'iso_retirement' in ctx.jsondatadict and ctx.jsondata['iso_retirement']['iso'] == ctx.iso_code:
+        % if 'iso_retirement' in ctx.jsondata and ctx.jsondata['iso_retirement']['iso'] == ctx.iso_code:
         <% iso_retirement = ctx.jsondata['iso_retirement'] %>
         <div class="alert alert-info">
             <p><strong>Retired in ISO 639-3:</strong>

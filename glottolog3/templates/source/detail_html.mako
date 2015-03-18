@@ -7,9 +7,9 @@
 ##<abbr class="unapi-id" title="${h.urlescape(request.resource_url(ctx))}"></abbr>
 ${ctx.coins(request)|n}
 
-% if ctx.jsondatadict.get('thanks'):
+% if ctx.jsondata.get('thanks'):
 <div class="alert alert-info">
-    This record was contributed by ${ctx.jsondatadict['thanks']}.
+    This record was contributed by ${ctx.jsondata['thanks']}.
 </div>
 % endif
 
@@ -33,15 +33,15 @@ ${ctx.coins(request)|n}
             <p>
                 ${h.external_link(ctx.url)}
             </p>
-            % elif ctx.jsondatadict.get('doi'):
+            % elif ctx.jsondata.get('doi'):
             <p>
-                ${h.external_link('http://dx.doi.org/%s' % ctx.jsondatadict['doi'])}
+                ${h.external_link('http://dx.doi.org/%s' % ctx.jsondata['doi'])}
             </p>
             % endif
             ${util.gbs_links([i for i in [ctx.gbs_identifier] if i])}
-            % if ctx.jsondatadict.get('internetarchive_id'):
+            % if ctx.jsondata.get('internetarchive_id'):
                 <hr />
-                <iframe src='https://archive.org/stream/${ctx.jsondatadict.get('internetarchive_id')}?ui=embed#mode/1up' width='680px' height='750px' frameborder='1' ></iframe>
+                <iframe src='https://archive.org/stream/${ctx.jsondata['internetarchive_id']}?ui=embed#mode/1up' width='680px' height='750px' frameborder='1' ></iframe>
             % endif
          </div>
         <div id="tab2" class="tab-pane"><pre>${bibrec}</pre></div>
