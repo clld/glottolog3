@@ -36,9 +36,7 @@ Glottolog update
         52 migrations
         0 nomatches
         219 new nodes
-        78 new languages
-        existing name: Nauo new code: nwo
-        existing name: Wagawaga new code: wgb
+        76 new languages
 
     Note: Problems with existing names for different hids must be fixed by migrations
     before import of a new tree.
@@ -50,10 +48,10 @@ Glottolog update
 
     python glottolog3/scripts/compute_tree_changes.py --version=2.4 development.ini
 
-        ~~ Chinali-Lahul Lohar -> Indo-European, Indo-Iranian, Indo-Aryan, Unclassified Indo-Aryan, Chinali-Lahul Lohar
         ~~ Ghera-Gurgula -> Indo-European, Indo-Iranian, Indo-Aryan, Indo-Aryan Central zone, Subcontinental Central Indo-Aryan, Western Hindi, Unclassified Western Hindi, Ghera-Gurgula
+        ~~ Chinali-Lahul Lohar -> Indo-European, Indo-Iranian, Indo-Aryan, Unclassified Indo-Aryan, Chinali-Lahul Lohar
         -- Yucatecan-Core Mayan ->
-        4042 matches
+        4046 matches
         2 migrations
         1 nomatches
         0 new nodes
@@ -65,7 +63,7 @@ Glottolog update
     #    - create bibtex, store in github repo
     #    - create obsolete_refs_matches.json
     #    - remove refs with matches
-    python glottolog3/scripts/match_obsolete_refs.py --version=2.4 development.ini
+    #python glottolog3/scripts/match_obsolete_refs.py --version=2.4 development.ini
     python glottolog3/scripts/import_refs.py --version=2.4 --mode=update development.ini
 
 	python glottolog3/scripts/ia.py development.ini update
@@ -110,3 +108,8 @@ Glottolog update
     - create downloads for new version
     - deploy to production (copy treefiles and downloads first!?)
     - add dump of new version to glottolog-data
+
+
+TODO: fix
+- http://localhost:6543/glottolog/glottologinformation
+- http://localhost:6543/news

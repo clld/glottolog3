@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Updating the language-country relationships
 -------------------------------------------
@@ -6,6 +7,7 @@ We only add new relationships for languages which so far have not been related t
 country. This is to make sure the relationships determined by algorithms other than
 Harald's remain stable.
 """
+from __future__ import unicode_literals
 from clld.lib import dsv
 from clld.db.meta import DBSession
 from clld.db.models.common import (
@@ -21,7 +23,7 @@ from glottolog3.scripts.util import update_relationship, PAGES_PATTERN, WORD_PAT
 
 def get_lginfo(args, filter=None):
     return [
-        (r.hid, r) for r in
+        (r.id, r) for r in
         dsv.reader(args.data_file('lginfo.csv'), delimiter=',', namedtuples=True)
         if filter is None or filter(r)]
 
@@ -29,6 +31,20 @@ def get_lginfo(args, filter=None):
 def countries(args, languages):
     """update relations between languages and countries they are spoken in.
     """
+    cname_map = {
+        'Tanzania': 'Tanzania, United Republic of',
+        'Russia': 'Russian Federation',
+        'South Korea': 'Korea, Republic of',
+        'Iran': 'Iran, Islamic Republic of',
+        'Syria': 'Syrian Arab Republic',
+        'Laos': "Lao People's Democratic Republic",
+        r"C\^ote d'Ivoire": "Côte d'Ivoire",
+        'British Virgin Islands': 'Virgin Islands, British',
+        'Bolivia': 'Bolivia, Plurinational State of',
+        'Venezuela': 'Venezuela, Bolivarian Republic of',
+        'Democratic Republic of the Congo': 'Congo, The Democratic Republic of the',
+        'Micronesia': 'Micronesia, Federated States of',
+    }
     count = 0
     countries = {}
     for row in dsv.reader(args.data_file('countries.tab'), encoding='latin1'):
@@ -44,7 +60,8 @@ def countries(args, languages):
             continue
         for cname in set(cnames):
             if cname not in countries:
-                countries[cname] = Country.get(cname, key='name', default=None)
+                q = cname if '(' not in cname else cname.split('(')[0].strip()
+                countries[cname] = Country.get(cname_map.get(q, q), key='name', default=None)
             if not countries[cname]:
                 args.log.warn('unknown country name in countries.tab: %s' % cname)
                 continue
