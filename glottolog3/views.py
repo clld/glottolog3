@@ -5,7 +5,7 @@ import json
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
-from sqlalchemy import and_
+from sqlalchemy import and_, true, false, null
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
@@ -59,27 +59,36 @@ def iso(request):
 
 def glottologmeta(request):
     q = DBSession.query(Languoid)\
-        .filter(Language.active == True)\
+        .filter(Language.active == true())\
         .filter(Languoid.status.in_(
             (LanguoidStatus.established, LanguoidStatus.unattested)))
-    qt = q.filter(Languoid.father_pk == None)
+    qt = q.filter(Languoid.father_pk == null())
     res = {
-        'last_update': DBSession.query(Language.updated)\
+        'last_update': DBSession.query(Language.updated)
         .order_by(Language.updated.desc()).first()[0],
         'number_of_families': qt.filter(Languoid.level == LanguoidLevel.family).count(),
         'number_of_isolates': qt.filter(Languoid.level == LanguoidLevel.language).count(),
     }
-    ql = q.filter(Languoid.hid != None)
-    res['number_of_languages'] = {
-        'all': ql.count(),
-        'pidgin': qt.filter(Language.name == u'Pidgin').one().child_language_count,
-        'artificial': qt.filter(Language.name == u'Artificial Language').one().child_language_count,
-        'sign': sum(l.child_language_count for l in qt.filter(Language.name.contains(u'Sign '))),
-    }
+    ql = q.filter(Languoid.hid != null())
+    res['number_of_languages'] = {'all': ql.count()}
+    res['special_families'] = {}
+    for name in [
+        'Unattested',
+        'Unclassifiable',
+        'Pidgin',
+        'Mixed Language',
+        'Artificial Language',
+        'Speech Register',
+        'Sign Language',
+    ]:
+        l = qt.filter(Language.name == name).one()
+        res['special_families'][name] = l
+        res['number_of_languages'][name] = l.child_language_count
+
     res['number_of_languages']['l1'] = res['number_of_languages']['all'] \
-        - res['number_of_languages']['pidgin']\
-        - res['number_of_languages']['artificial']\
-        - res['number_of_languages']['sign']
+        - res['number_of_languages']['Pidgin']\
+        - res['number_of_languages']['Artificial Language']\
+        - res['number_of_languages']['Sign Language']
     return res
 
 
@@ -101,13 +110,13 @@ def childnodes(request):
         Languoid.level,
         func.count(TreeClosureTable.child_pk).label('children'))\
         .filter(Language.pk == TreeClosureTable.parent_pk)\
-        .filter(Language.active == True)
+        .filter(Language.active == true())
 
     if request.params.get('node'):
         query = query.filter(Languoid.father_pk == int(request.params['node']))
     else:
         # narrow down selection of top-level nodes in the tree:
-        query = query.filter(Languoid.father_pk == None)
+        query = query.filter(Languoid.father_pk == null())
         if request.params.get('q'):
             query = query.filter(Language.name.contains(request.params.get('q')))
 

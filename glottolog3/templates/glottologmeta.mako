@@ -38,6 +38,7 @@
     <p>
         In addition to the genealogical trees (families and isolates), the Families page also includes the following <strong>non-genealogical trees</strong>:
         <ul>
+        ## TODO: link to glossary! and to family page!?
           <li>Unattested languages</li>
           <li>Unclassifiable languages</li>
           <li>Pidgin languages</li>
@@ -65,53 +66,15 @@
                         <!--p>***# leaves in lff.txt + #Unclassified lof.txt + Mixed Languages in lof.txt + unattested Languages in lof.txt *** </p-->
                     </td>
                 </tr>
+                % for label in ['Unattested', 'Unclassifiable', 'Pidgin', 'Mixed Language', 'Speech Register', 'Artificial Language', 'Sign Language']:
+                    <tr>
+                        <th>${h.link(request, special_families[label])}</th>
+                        <td class="right">${number_of_languages[label]}</td>
+                    </tr>
+                % endfor
                 <tr>
-                    <th>Unattested languages</th>
-                    <td class="right">
-                    </td>
-                </tr>
-                <tr>
-                    <th>Uncassifiable languages</th>
-                    <td class="right">
-                    </td>
-                </tr>
-                <tr>
-                    <th>Pidgin Languages</th>
-                    <td class="right">
-                        ${number_of_languages['pidgin']}
-                        <!--p>*** # pidgin in lof.txt *** </p-->
-                    </td>
-                </tr>
-                <tr>
-                    <th>Mixed languages</th>
-                    <td class="right">
-                    </td>
-                </tr>
-                <tr>
-                    <th>Speech registers</th>
-                    <td class="right">
-                    </td>
-                </tr>
-                <tr>
-                    <th>Artificial spoken languages</th>
-                    <td class="right">
-                        ${number_of_languages['artificial']}
-                        <!--p>*** # artifical in lof.txt *** </p-->
-                    </td>
-                </tr>
-                <tr>
-                    <th>Sign languages and auxiliary sign systems</th>
-                    <td class="right">
-                        ${number_of_languages['sign']}
-                        <!--p>*** # sign in lof.txt *** </p-->
-                    </td>
-                </tr>
-                <tr>
-                    <td> </td>
-                    <td class="right">
-                        ${number_of_languages['all']}
-                        <!--p>*** sum of the above *** </p-->
-                    </td>
+                    <td>All</td>
+                    <td class="right">${number_of_languages['all']}</td>
                 </tr>
             </tbody>
         </table>
