@@ -16,17 +16,22 @@ from clld.db.models.common import Language, LanguageIdentifier
 from clld.web.icon import ORDERED_ICONS
 
 import glottolog3
-from glottolog3.models import Languoid, LanguoidLevel, Country
+from glottolog3.models import LanguoidLevel, Country
 from glottolog3.interfaces import IProvider
 
 
 class LanguoidCsvDump(CsvDump):
 
     def query(self, req):
-        return Languoid.csv_query(session=req.db)
+        return self.model.csv_query(session=req.db)
 
     def get_fields(self, req):
-        return Languoid.csv_head()
+        if not self.fields:
+            self.fields = self.model.csv_head()
+        return self.fields
+
+    def row(self, req, fd, item, index):
+        return item.to_csv(cols=self.fields)
 
 
 class LanguoidN3Dump(N3Dump):

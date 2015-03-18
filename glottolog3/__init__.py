@@ -132,7 +132,7 @@ def main(global_config, **settings):
     config.register_map('language', maps.LanguoidMap)
 
     config.register_download(adapters.LanguoidCsvDump(
-        Language, 'glottolog3', description="Languoids as CSV"))
+        models.Languoid, 'glottolog3', description="Languoids as CSV"))
     config.register_download(adapters.LanguoidN3Dump(
         Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
