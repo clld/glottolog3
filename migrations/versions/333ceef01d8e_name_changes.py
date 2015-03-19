@@ -1,15 +1,15 @@
 # coding=utf-8
 """name changes
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 333ceef01d8e
+Revises: f17360a2b38
+Create Date: 2015-03-19 11:21:31.657000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '333ceef01d8e'
+down_revision = 'f17360a2b38'
 
 import datetime
 
@@ -62,7 +62,7 @@ GCODE_OLD_NEW = [
     ('nucl1235', u'Nuclear Armenian', u'Modern Armenian'),
     ('nucl1302', u'Nuclear Georgian', u'Modern Georgian'),
     ('nucl1305', u'Nuclear Kannada', u'Modern Kannada'),
-    ('kagf1238', u'Kag-Fer-Jiir-Koor-Ror-Us-Zuksun', u'Ut-Ma\u2019in'),
+    ('kagf1238', u'Kag-Fer-Jiir-Koor-Ror-Us-Zuksun', u"Ut-Ma'in"),
     ('chur1257', u'Church Slavic', u'Old Church Slavonic'),
     ('orej1242', u'Orejon', u'Maihiki'),
     ('abis1238', u'Abishira', u'Aewa'),
