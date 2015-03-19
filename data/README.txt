@@ -13,8 +13,8 @@ Glottolog update
 
 - copy files
 
+    # FIXME: work on glottolog-data clone directly!
     (clld)robert@astroman:~/venvs/clld/data/glottolog-data/scripts$ t
-	(clld)robert@astroman:~/venvs/clld/harald_ftp$ ./copy.sh 2.4
 
 - alembic upgrade head
 
@@ -31,7 +31,7 @@ Glottolog update
 
 - compute tree changes, update the tree and recompute the tree closure
 
-	python glottolog3/scripts/compute_tree_changes.py --version=2.4 development.in
+	python glottolog3/scripts/compute_tree_changes.py --version=2.4 development.ini
         3830 matches
         52 migrations
         0 nomatches
@@ -41,7 +41,7 @@ Glottolog update
     Note: Problems with existing names for different hids must be fixed by migrations
     before import of a new tree.
 
-    python glottolog3/scripts/import_tree.py --version=2.4 development.ini
+    time python glottolog3/scripts/import_tree.py --version=2.4 development.ini
         real	9m15.198s
 
 - computing changes again should yield only matches!
@@ -64,7 +64,7 @@ Glottolog update
     #    - create obsolete_refs_matches.json
     #    - remove refs with matches
     #python glottolog3/scripts/match_obsolete_refs.py --version=2.4 development.ini
-    python glottolog3/scripts/import_refs.py --version=2.4 --mode=update development.ini
+    time python glottolog3/scripts/import_refs.py --version=2.4 --mode=update development.ini
 
 	python glottolog3/scripts/ia.py development.ini update
 	python glottolog3/scripts/gbs.py development.ini update
@@ -73,7 +73,6 @@ Glottolog update
     # TODO: run ... download for all data sources below!?
     #
     python glottolog3/scripts/load.py development.ini 2.4 hh update
-    #python glottolog3/scripts/load.py development.ini 2.4 glottologcurator update
     python glottolog3/scripts/load.py development.ini 2.4 unesco update
     python glottolog3/scripts/load.py development.ini 2.4 ethnologue update
     python glottolog3/scripts/load.py development.ini 2.4 iso update
@@ -97,8 +96,6 @@ Glottolog update
 
 - update version number!
 
-    TODO: update editors! Sebastian Bank statt Nordhoff!
-
 	python glottolog3/scripts/update_version.py --version=2.4 development.ini
 
 
@@ -110,7 +107,3 @@ Glottolog update
     - deploy to production (copy treefiles and downloads first!?)
     - add dump of new version to glottolog-data
 
-
-TODO: fix
-- http://localhost:6543/glottolog/glottologinformation
-- http://localhost:6543/news
