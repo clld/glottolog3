@@ -113,6 +113,9 @@ Glottolog update
     - create release of glottolog-data
 
     - create downloads for new version
+
+    time python glottolog3/scripts/create_downloads.py development.ini
+
     - deploy to production (copy treefiles and downloads first!?)
     - add dump of new version to glottolog-data
 
