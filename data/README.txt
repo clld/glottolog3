@@ -115,7 +115,9 @@ Glottolog update
     - create downloads for new version
 
     time python glottolog3/scripts/create_downloads.py development.ini
+    python glottolog3/scripts/llod.py development.ini
+
+        runs almost 5h
 
     - deploy to production (copy treefiles and downloads first!?)
     - add dump of new version to glottolog-data
-
