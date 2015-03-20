@@ -2,7 +2,7 @@
 
 <h3>News</h3>
 
-<h4>Glottolog 2.4</h4>
+<h4>Glottolog 2.4 - 20-03-2015</h4>
 
 <dl>
     <dt>References</dt>

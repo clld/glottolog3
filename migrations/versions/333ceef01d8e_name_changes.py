@@ -9,7 +9,7 @@ Create Date: 2015-03-19 11:21:31.657000
 
 # revision identifiers, used by Alembic.
 revision = '333ceef01d8e'
-down_revision = 'f17360a2b38'
+down_revision = '63debe586cd'#'f17360a2b38'
 
 import datetime
 

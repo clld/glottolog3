@@ -14,7 +14,7 @@ Glottolog update
 - copy files
 
     # FIXME: work on glottolog-data clone directly!
-    (clld)robert@astroman:~/venvs/clld/data/glottolog-data/scripts$ t
+    (clld)robert@astroman:~/venvs/clld/data/glottolog-data/scripts$ ./copy.sh 2.4
 
 - alembic upgrade head
 
@@ -64,7 +64,15 @@ Glottolog update
     #    - create obsolete_refs_matches.json
     #    - remove refs with matches
     #python glottolog3/scripts/match_obsolete_refs.py --version=2.4 development.ini
+
+    python glottolog3/scripts/load.py development.ini 2.4 iso update
+
     time python glottolog3/scripts/import_refs.py --version=2.4 --mode=update development.ini
+
+        159473 records updated or imported
+        204 records skipped because of lack of information
+
+        real	88m25.657s
 
 	python glottolog3/scripts/ia.py development.ini update
 	python glottolog3/scripts/gbs.py development.ini update
@@ -75,7 +83,6 @@ Glottolog update
     python glottolog3/scripts/load.py development.ini 2.4 hh update
     python glottolog3/scripts/load.py development.ini 2.4 unesco update
     python glottolog3/scripts/load.py development.ini 2.4 ethnologue update
-    python glottolog3/scripts/load.py development.ini 2.4 iso update
     python glottolog3/scripts/load.py development.ini 2.4 endangeredlanguages update
     python glottolog3/scripts/load.py development.ini 2.4 languagelandscape update
     #python glottolog3/scripts/load.py development.ini 2.4 wikipedia update
@@ -83,10 +90,10 @@ Glottolog update
     python glottolog3/scripts/update_alternative_names.py development.ini
     python glottolog3/scripts/update_reflang.py --version=2.4 development.ini
 
-    #unknown codes [u'ipk', u'yyg', u'qpt', u'hai', u'kok', u'gon', u'NOCODE_Kenunu', u'yrm', u'kon', u'gpb', u'adc', u'NOCODE_Metombola', u'tmh', u'NOCODE_Kwadza', u'bik', u'iku', u'NOCODE_Teshena', u'NOCODE_Nymele', u'uwu', u'NOCODE_Sidi', u'psx', u'NOCODE_Boshof', u'que', u'NOCODE_Hacha', u'afh', u'NOCODE_Sakiriaba', u'NOCODE_Mwele', u'din', u'NOCODE_Auyo', u'NOCODE_Kuvale', u'kln', u'gny', u'sqi', u'idn', u'ful', u'NOCODE_Wurangung']
-
-    python glottolog3/scripts/compute_treefiles.py development.ini
-	python glottolog3/scripts/langdocstatus.py development.ini
+        997 ignored
+        1162 obsolete
+        28281 changed
+        unknown codes [u'ipk', u'yyg', u'NOCODE_Quechua-Sureno-Unificado', u'hai', u'kok', u'gon', u'NOCODE_Kenunu', u'kon', u'gpb', u'NOCODE_Nauo', u'NOCODE_Metombola', u'NOCODE_Kwadza', u'NOCODE_Quechua-Ecuatoriano-Unificado', u'bik', u'iku', u'NOCODE_Sidi', u'sqi', u'NOCODE_Boshof', u'que', u'afh', u'NOCODE_Sakiriaba', u'NOCODE_Hoa', u'din', u'NOCODE_Kuvale', u'kln', u'NOCODE_Mwele', u'ful', u'NOCODE_Wurangung']
 
 - test feeds of new languages and new grammars!
 
@@ -98,6 +105,8 @@ Glottolog update
 
 	python glottolog3/scripts/update_version.py --version=2.4 development.ini
 
+    python glottolog3/scripts/compute_treefiles.py development.ini
+	python glottolog3/scripts/langdocstatus.py development.ini
 
     - run nosetests
     - create release of glottolog3
