@@ -344,22 +344,16 @@ def update_providers(args, filename='BIBFILES.ini'):
         p.readfp(fp)
 
     provider_map = get_map(Provider)
-    sectname_id = {
-        'eballiso2009': 'eball',
-        'fabreall2009ann': 'fabre',
-        'hedvig-tirailleur': 'skirgard',
-        'sn': 'nordhoff',
-    }
     for section in p.sections():
         sectname = section[:-4] if section.endswith('.bib') else section
-        id_ = sectname_id.get(sectname, sectname)
+        id_ = slug(sectname)
         name = p.get(section, 'title')
         description = p.get(section, 'description')
         abbr = p.get(section, 'abbr')
-        if slug(id_) not in provider_map:
+        if id_ not in provider_map:
             args.log.info('adding provider %s' % slug(id_))
             DBSession.add(
-                Provider(id=slug(id_), name=name, description=description, abbr=abbr))
+                Provider(id=id_, name=name, description=description, abbr=abbr))
 
 
 def update_refnames(args):
