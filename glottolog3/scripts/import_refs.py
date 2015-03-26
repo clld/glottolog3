@@ -297,20 +297,17 @@ def main(args):  # pragma: no cover
             originator = ref.author or ref.editor or 'Anonymous'
             ref.name = '%s %s' % (originator, ref.year or 'n.d.')
 
-            def append(attr, obj):
-                if obj and obj not in attr:
-                    attr.append(obj)
-                    return True
-
             a, r = update_relationship(
                 ref.macroareas,
                 [macroarea_map[name] for name in
                  set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')]))])
             changed = changed or a or r
 
-            for name in set(filter(None, [s.strip() for s in kw['jsondata'].get('src', '').split(',')])):
-                result = append(ref.providers, provider_map[slug(name)])
-                changed = changed or result
+            src = [s.strip() for s in kw['jsondata'].get('src', '').split(',')]
+            prv = {provider_map(slug(s)) for s in src if s}
+            if set(ref.providers) != prv:
+                ref.providers = list(prv)
+                changed = True
 
             a, r = update_relationship(
                 ref.doctypes,
