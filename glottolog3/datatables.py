@@ -173,7 +173,7 @@ class Families(Languages):
             FamilyCol(self, 'top-level family'),
             IsoCol(self, 'iso', sTitle='ISO-639-3'),
             MacroareaCol(self, 'macro-area'),
-            Col(self, 'child_dialect_count', sTitle='Child dialects', sClass='right'),
+            Col(self, 'child_dialect_count', model_col=Languoid.child_dialect_count, sTitle='Child dialects', sClass='right'),
             Col(self, 'latitude'),
             Col(self, 'longitude'),
         ]
