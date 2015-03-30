@@ -21,11 +21,11 @@ import sqlalchemy as sa
 def upgrade():
     conn = op.get_bind()
     select_jd = sa.text('SELECT jsondata FROM source WHERE id = :id', conn)
-    unlink = [(tab, sa.text('DELETE FROM %s WHERE EXISTS '
-        '(SELECT 1 FROM source WHERE pk = %s.ref_pk AND id = :id)' % (tab, tab), conn))
+    unlink = [sa.text('DELETE FROM %s WHERE EXISTS '
+        '(SELECT 1 FROM source WHERE pk = %s.ref_pk AND id = :id)' % (tab, tab), conn)
         for tab in ('refcountry', 'refdoctype', 'refmacroarea', 'refprovider')]
-    unlink += [(tab, sa.text('DELETE FROM %s WHERE EXISTS '
-        '(SELECT 1 FROM source WHERE pk = %s.source_pk AND id = :id)' % (tab, tab), conn))
+    isolated = [sa.text('SELECT NOT EXISTS (SELECT 1 FROM %s WHERE EXISTS '
+        '(SELECT 1 FROM source WHERE pk = %s.source_pk AND id = :id))' % (tab, tab), conn)
         for tab in ('languagesource', 'valuesetreference')]
     del_ref = sa.text('DELETE FROM ref WHERE EXISTS '
         '(SELECT 1 FROM source WHERE PK = ref.pk AND id = :id)', conn)
@@ -36,12 +36,11 @@ def upgrade():
         if not (bibkey == old_bk == rep_bk):
             print('skipped %r' % ((id, bibkey, replacement),))
             continue
-        print id, replacement
-        for tab, u in unlink:
-            print tab, u.execute(id=id).rowcount
+        for u in unlink:
+            u.execute(id=id)
+        assert all(i.scalar(id=id) for i in isolated)
         del_ref.execute(id=id)
         del_source.execute(id=id)
-        print
 
     raise NotImplementedError
 
