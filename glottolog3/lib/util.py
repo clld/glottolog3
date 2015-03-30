@@ -9,8 +9,6 @@ from glottolog3.models import Provider, Macroarea, Doctype, Languoid, LegacyCode
 
 
 PAGES_PATTERN = re.compile(':(?P<pages>[0-9]+(\-[0-9]+)?(,\s*[0-9]+(\-[0-9]+)?)*)')
-REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*(?P<comment>[^\*]*)')
-REF_PATTERN2 = re.compile('\*\*(?P<id>[0-9]+)\*\*')
 YEAR_PATTERN = re.compile('[0-9]{4}$')
 NUMERALMAP = zip(
     (1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1),

@@ -8,6 +8,8 @@ country. This is to make sure the relationships determined by algorithms other t
 Harald's remain stable.
 """
 from __future__ import unicode_literals
+import re
+
 from clld.lib import dsv
 from clld.db.meta import DBSession
 from clld.db.models.common import (
@@ -17,8 +19,10 @@ from clld.db.models.common import (
 from glottolog3.models import (
     Languoid, Country, Macroarea, LanguoidLevel, TreeClosureTable,
 )
-from glottolog3.lib.util import get_map, REF_PATTERN
-from glottolog3.scripts.util import update_relationship, PAGES_PATTERN, WORD_PATTERN
+from glottolog3.lib.util import get_map
+from glottolog3.scripts.util import update_relationship, WORD_PATTERN
+
+REF_PATTERN = re.compile('\*\*(?P<id>\d+)\*\*(?::(?P<pages>[\divx\-, ]+))?')
 
 
 def get_lginfo(args, filter=None):
@@ -124,10 +128,6 @@ def justifications(args, languages):
     - text goes into ValueSet.description
     - refs go into ValueSetReference objects
     """
-    def normalized_pages(s):
-        if PAGES_PATTERN.match(s or ''):
-            return s or ''
-
     #
     # create mappings to look up glottolog languoids matching names in justification files
     #
@@ -144,6 +144,9 @@ def justifications(args, languages):
         langs_by_hname[l.jsondata.get('hname')] = l
         langs_by_hid[l.hid] = l
         langs_by_name[l.name] = l
+
+    def normalize_pages(s):
+        return (s or '').strip().rstrip(',') or None
 
     for id_, type_ in [('fc', 'family'), ('sc', 'subclassification')]:
         for i, row in enumerate(dsv.reader(args.data_file('%s_justifications.tab' % type_))):
@@ -163,7 +166,7 @@ def justifications(args, languages):
             # TODO: look for [NOCODE_ppp] patterns as well!?
             #
 
-            refs = [(int(m.group('id')), normalized_pages(m.group('comment')))
+            refs = [(int(m.group('id')), normalize_pages(m.group('pages')))
                     for m in REF_PATTERN.finditer(row[2])]
 
             vs = None
