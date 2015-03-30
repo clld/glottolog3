@@ -31,10 +31,10 @@ def upgrade():
         '(SELECT 1 FROM source WHERE PK = ref.pk AND id = :id)', conn)
     del_source = sa.text('DELETE FROM source WHERE id = :id', conn)
     for id, bibkey, replacement in ID_BIBKEY_REPLACEMENT:
-        old_bk, rep_bk = (json.loads(select_jd.scalar(id=_))['bibtexkey']
+        old_bk, rep_bk = (json.loads(select_jd.scalar(id=_) or '{}').get('bibtexkey')
             for _ in (id, replacement))
         if not (bibkey == old_bk == rep_bk):
-            print('skipped %r' % (id, bibkey, replacement))
+            print('skipped %r' % ((id, bibkey, replacement),))
             continue
         print id, replacement
         for tab, u in unlink:
