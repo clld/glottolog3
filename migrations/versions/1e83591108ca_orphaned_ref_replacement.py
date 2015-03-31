@@ -1,15 +1,15 @@
 # coding=utf-8
 """orphaned ref replacement
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 1e83591108ca
+Revises: 6164f2b3e6b
+Create Date: 2015-03-31 11:38:50.770000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '1e83591108ca'
+down_revision = '6164f2b3e6b'
 
 import datetime
 import json
@@ -45,8 +45,6 @@ def upgrade():
         del_ref.execute(id=id)
         del_source.execute(id=id)
         insert_repl.execute(key='__Source_%s__' % id, value=replacement)
-
-    raise NotImplementedError
 
 
 def downgrade():
