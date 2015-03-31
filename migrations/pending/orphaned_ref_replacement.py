@@ -30,6 +30,9 @@ def upgrade():
     del_ref = sa.text('DELETE FROM ref WHERE EXISTS '
         '(SELECT 1 FROM source WHERE PK = ref.pk AND id = :id)', conn)
     del_source = sa.text('DELETE FROM source WHERE id = :id', conn)
+    insert_repl = sa.text('INSERT INTO config (created, updated, active, key, value) '
+        'SELECT now(), now(), TRUE, :key, :value '
+        'WHERE NOT EXISTS (SELECT 1 FROM config WHERE key = :key)', conn)
     for id, bibkey, replacement in ID_BIBKEY_REPLACEMENT:
         old_bk, rep_bk = (json.loads(select_jd.scalar(id=_) or '{}').get('bibtexkey')
             for _ in (id, replacement))
@@ -41,6 +44,7 @@ def upgrade():
         assert all(i.scalar(id=id) for i in isolated)
         del_ref.execute(id=id)
         del_source.execute(id=id)
+        insert_repl.execute(key='__Source_%s__' % id, value=replacement)
 
     raise NotImplementedError
 
