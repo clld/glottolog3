@@ -1,15 +1,15 @@
 # coding=utf-8
 """anga1289 renames
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 6164f2b3e6b
+Revises: 44501a0f88bb
+Create Date: 2015-03-31 11:08:18.697000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '6164f2b3e6b'
+down_revision = '44501a0f88bb'
 
 import datetime
 
