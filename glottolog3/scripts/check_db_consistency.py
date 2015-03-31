@@ -8,6 +8,7 @@ import six
 
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
+from clld.db.models import Config
 
 from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus,\
     TreeClosureTable, Language
@@ -112,7 +113,20 @@ class GlottologName(Check):
             .order_by(Languoid.id)
 
 
-def main(args):    
+class RefRedirects(Check):
+    """Redirects of reference ids target an unredirected id."""
+
+    def invalid_query(self, session):
+        return session.query(
+                sa.func.regexp_replace(Config.key, u'\D', '', u'g').label('id'),
+                sa.func.nullif(Config.value, u'__gone__').label('target'))\
+            .filter(Config.key.like(u'__Source_%%__'))\
+            .filter(session.query(sa.orm.aliased(Config))\
+                .filter_by(key=sa.func.format(u'__Source_%s__', Config.value)).exists())\
+            .order_by('id', 'target')
+
+
+def main(args):
     for cls in Check:
         check = cls()
         if check.invalid:
