@@ -46,6 +46,7 @@ def main(args):  # pragma: no cover
                 ma = attrs.pop('macroarea', None)
                 replacement = attrs.pop('replacement', None)
                 hname = attrs.pop('hname', None)
+                attrs.pop('globalclassificationcomment', None)  # ignore legacy
 
                 for name, enum in [('level', LanguoidLevel), ('status', LanguoidStatus)]:
                     if name in attrs:
@@ -54,8 +55,6 @@ def main(args):  # pragma: no cover
                 l = languoids.get(attrs['pk'])
                 if l:
                     for k, v in attrs.items():
-                        if k == 'globalclassificationcomment':
-                            continue
                         setattr(l, k, v)
                     if len(l.hid or '') == 3:
                         if not l.iso_code:

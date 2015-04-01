@@ -68,7 +68,7 @@ def split_families(fp):
         }
         branch = [unescape(n.strip().replace('_', ' ')) for n in line.split(',')]
         if branch[0] not in name_map:
-            return branch, 'established', ''
+            return branch, 'established'
         family = branch.pop(0)
         subfamily = None
         retired = False
@@ -87,7 +87,7 @@ def split_families(fp):
                 status += ' retired'
         if family == 'Spurious':
             family = 'Book keeping'
-        return nfilter([family, subfamily]), status, ', '.join(branch)
+        return nfilter([family, subfamily]), status
 
     family = None
     for line in fp.read().split('\n'):
@@ -118,12 +118,10 @@ def parse_families(filename, families, languages):
     """reads filename, appends parsed data to families and languages.
     """
     with codecs.open(filename, encoding='utf8') as fp:
-        for branch, leafs in split_families(fp):
-            branch, status, comment = branch
-
+        for (branch, status), leafs in split_families(fp):
             for code, name in leafs.items():
                 # record where in the tree a language is attached
-                languages[code] = [tuple(branch), status, name, comment]
+                languages[code] = [tuple(branch), status, name]
 
             for i in range(len(branch)):
                 p = tuple(branch[:i + 1])
@@ -306,7 +304,7 @@ def main(args):
         if code not in codes:
             maxid += 1
             ncodes[code] = maxid
-            hnode, status, name, comment = languages[code]
+            hnode, status, name = languages[code]
             # we have to insert a new H-language!
             newlangs[name] = (code, name in existingnames)
             attrs = languoid(
@@ -317,7 +315,6 @@ def main(args):
                 name=name,
                 hname=name,
                 status=status,
-                globalclassificationcomment=comment or None,
             )
             print '++', attrs
             languoids.append(attrs)
@@ -499,7 +496,7 @@ def main(args):
 
     # and updates of father_pks for languages:
     for l in languages:
-        hnode, status, name, comment = languages[l]
+        hnode, status, name = languages[l]
         id_ = codes.get(l, ncodes.get(l))
         attrs = languoid(id_, 'language', status=status)
         if id_ in lnames and name != lnames[id_]:
@@ -509,7 +506,6 @@ def main(args):
             #    print '%s\t%s' % (lnames[id_], name)
         if hnode:
             attrs['father_pk'] = branch_to_pk[hnode]
-        attrs['globalclassificationcomment'] = comment or None
         # look for hnames!
         if l in risolate_names:
             attrs['hname'] = risolate_names[l]

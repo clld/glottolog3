@@ -195,9 +195,6 @@ class Languoid(CustomModelMixin, Language):
     level = Column(LanguoidLevel.db_type())
     status = Column(LanguoidStatus.db_type())
 
-    classificationcomment = Column(Unicode)  # the justification from Harald
-    globalclassificationcomment = Column(Unicode)
-
     child_family_count = Column(Integer)
     child_language_count = Column(Integer)
     child_dialect_count = Column(Integer)
