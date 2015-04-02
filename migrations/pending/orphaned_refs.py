@@ -18,7 +18,34 @@ import sqlalchemy as sa
 
 
 def upgrade():
-    pass
+    conn = op.get_bind()
+    isolated = [sa.text('SELECT NOT EXISTS (SELECT 1 FROM %s WHERE EXISTS '
+        '(SELECT 1 FROM source WHERE pk = %s.source_pk AND id = :id))' % (tab, tab), conn)
+        for tab in ('languagesource', 'valuesetreference')]
+    isolated.append(sa.text('SELECT NOT EXISTS (SELECT 1 FROM '
+        "(SELECT pk, unnest(regexp_matches(description, '\*\*(\d+)\*\*', 'g')) AS ref_id "
+        "FROM valueset WHERE description != '') AS m "
+        'WHERE ref_id = :id)', conn))
+    unlink = [sa.text('DELETE FROM %s WHERE EXISTS '
+        '(SELECT 1 FROM source WHERE pk = %s.ref_pk AND id = :id)' % (tab, tab), conn)
+        for tab in ('refcountry', 'refdoctype', 'refmacroarea', 'refprovider')]
+    del_ref = sa.text('DELETE FROM ref WHERE EXISTS '
+        '(SELECT 1 FROM source WHERE PK = ref.pk AND id = :id)', conn)
+    del_source = sa.text('DELETE FROM source WHERE id = :id', conn)
+    insert_repl = sa.text('INSERT INTO config (created, updated, active, key, value) '
+        'SELECT now(), now(), TRUE, :key, :value '
+        'WHERE NOT EXISTS (SELECT 1 FROM config WHERE key = :key)', conn)
+
+    for id, replacement in ID_REPLACEMENT:
+        print id, replacement
+        assert all(i.scalar(id=id) for i in isolated)
+        for u in unlink:
+            u.execute(id=id)
+        del_ref.execute(id=id)
+        del_source.execute(id=id)
+        insert_repl.execute(key='__Source_%s__' % id, value=replacement)
+
+    raise NotImplementedError
 
 
 def downgrade():
