@@ -1,15 +1,15 @@
 # coding=utf-8
 """orphaned refs
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 42c3ba66574d
+Revises: 1c514da366b7
+Create Date: 2015-04-07 13:53:05.211000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '42c3ba66574d'
+down_revision = '1c514da366b7'
 
 import datetime
 
@@ -35,17 +35,17 @@ def upgrade():
     insert_repl = sa.text('INSERT INTO config (created, updated, active, key, value) '
         'SELECT now(), now(), TRUE, :key, :value '
         'WHERE NOT EXISTS (SELECT 1 FROM config WHERE key = :key)', conn)
+    update_trans = sa.text('UPDATE config SET updated = now(), value = :after '
+        'WHERE key LIKE :match AND VALUE = :before', conn)
 
     for id, replacement in ID_REPLACEMENT:
-        print id, replacement
         assert all(i.scalar(id=id) for i in isolated)
         for u in unlink:
             u.execute(id=id)
         del_ref.execute(id=id)
         del_source.execute(id=id)
         insert_repl.execute(key='__Source_%s__' % id, value=replacement)
-
-    raise NotImplementedError
+        update_trans.execute(match='__Source_%__', before=id, after=replacement)
 
 
 def downgrade():
