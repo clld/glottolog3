@@ -298,40 +298,58 @@ def update_reflang(args):
     print('unknown codes', unknown.keys())
 
 
-def recreate_treeclosure():
-    DBSession.execute('delete from treeclosuretable')
-    SQL = TreeClosureTable.__table__.insert()
-    ltable = Languoid.__table__
-
-    # we compute the ancestry for each single languoid
-    for lid, fid in DBSession.execute('select pk, father_pk from languoid').fetchall():
-        depth = 0
-        DBSession.execute(SQL, dict(child_pk=lid, parent_pk=lid, depth=depth))
-        tlf = None
-
-        # now follow up the line of ancestors
-        while fid:
-            tlf = fid
-            depth += 1
-            DBSession.execute(SQL, dict(child_pk=lid, parent_pk=fid, depth=depth))
-            fid = DBSession.execute(
-                sql.select([ltable.c.father_pk]).where(ltable.c.pk == fid)
-            ).fetchone()[0]
-
-        DBSession.execute(
-            'UPDATE languoid SET family_pk = :tlf WHERE pk = :lid', locals())
-
-    # we also pre-compute counts of descendants for each languoid:
-    for level in ['language', 'dialect', 'family']:
-        DBSession.execute("""\
-UPDATE languoid SET child_%(level)s_count = (
-    SELECT count(*)
-    FROM treeclosuretable as t, languoid as l
-    WHERE languoid.pk = t.parent_pk
-    AND languoid.pk != t.child_pk AND t.child_pk = l.pk AND l.level = '%(level)s'
-)""" % locals())
-
-    DBSession.execute('COMMIT')
+def recreate_treeclosure(session=None):
+    """Denormalize ancestry, top-level and descendant counts for languoids."""
+    if session is None:
+        session = DBSession
+    session.execute(TreeClosureTable.__table__.delete())
+    sql = ["""WITH RECURSIVE tree(child_pk, parent_pk, depth) AS (
+      SELECT pk, pk, 0 FROM languoid
+    UNION ALL
+      SELECT t.child_pk, p.father_pk, t.depth + 1
+      FROM languoid AS p
+      JOIN tree AS t ON p.pk = t.parent_pk
+      WHERE p.father_pk IS NOT NULL
+    )
+    INSERT INTO treeclosuretable (created, updated, active, child_pk, parent_pk, depth)
+    SELECT now(), now(), true, * FROM tree""",
+    """UPDATE languoid AS l SET family_pk = u.family_pk
+    FROM (WITH RECURSIVE tree(child_pk, parent_pk, depth) AS (
+      SELECT pk, father_pk, 1 FROM languoid
+    UNION ALL
+      SELECT t.child_pk, p.father_pk, t.depth + 1
+      FROM languoid AS p
+      JOIN tree AS t ON p.pk = t.parent_pk
+      WHERE p.father_pk IS NOT NULL
+    )
+    SELECT DISTINCT ON (child_pk) child_pk, parent_pk AS family_pk
+    FROM tree ORDER BY child_pk, depth DESC) AS u
+    WHERE l.pk = u.child_pk AND l.family_pk IS DISTINCT FROM u.family_pk""",
+    """UPDATE languoid AS l SET
+      child_family_count = u.child_family_count,
+      child_language_count = u.child_language_count,
+      child_dialect_count = u.child_dialect_count
+    FROM (WITH RECURSIVE tree(child_pk, parent_pk, level) AS (
+      SELECT pk, father_pk, level FROM languoid
+    UNION ALL
+      SELECT t.child_pk, p.father_pk, t.level
+      FROM languoid AS p
+      JOIN tree AS t ON p.pk = t.parent_pk
+      WHERE p.father_pk IS NOT NULL
+    )
+    SELECT pk,
+      count(nullif(tree.level != 'family', true)) AS child_family_count,
+      count(nullif(tree.level != 'language', true)) AS child_language_count,
+      count(nullif(tree.level != 'dialect', true)) AS child_dialect_count
+    FROM languoid LEFT JOIN tree ON pk = tree.parent_pk
+    GROUP BY pk) AS u
+    WHERE l.pk = u.pk AND (
+      l.child_family_count != u.child_family_count OR
+      l.child_language_count != u.child_language_count OR
+      l.child_dialect_count != u.child_dialect_count)"""]
+    for s in sql:
+        session.execute(s)
+    session.execute('COMMIT')
 
 
 def update_providers(args, filename='BIBFILES.ini'):
