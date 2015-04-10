@@ -232,7 +232,7 @@ def quicksearch(request):
         query = query.filter(Languoid.id == term)
         kind = 'Glottocode'
     else:
-        query = query.filter(Languoid.identifiers.any(and_(
+        query = query.filter(Languoid.active == True, Languoid.identifiers.any(and_(
             Identifier.type == u'name', Identifier.description == u'Glottolog',
             func.lower(Identifier.name).contains(term))))
         kind = 'name part'
