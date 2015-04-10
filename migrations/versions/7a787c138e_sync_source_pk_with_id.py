@@ -32,11 +32,14 @@ def upgrade(verbose=True):
     before_after = select_ba.execute().fetchall()
     if verbose:
         from itertools import groupby
+        def groupkey(key):
+            i, (b, a) = key
+            return i - b
         def consecutive(ba):
-            for k, g in groupby(enumerate(ba), lambda (i, (b, a)): i - b):
+            for k, g in groupby(enumerate(ba), groupkey):
                 group = [ba for i, ba in g]
                 yield group[0], group[-1]
-        print list(consecutive(before_after))
+        print(list(consecutive(before_after)))
             
     update_source_pks(conn, before_after)
 

@@ -40,7 +40,7 @@ def upgrade(verbose=True):
             if exists_empty(table, col).scalar():
                 changed = nullify_empty(table, col).execute().rowcount
                 if verbose:
-                    print '%s.%s\t%d' % (table, col, changed)
+                    print('%s.%s\t%d' % (table, col, changed))
 
 
 def downgrade():
