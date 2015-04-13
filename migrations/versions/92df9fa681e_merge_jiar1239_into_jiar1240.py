@@ -1,15 +1,15 @@
 # coding=utf-8
 """merge jiar1239 into jiar1240
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 92df9fa681e
+Revises: 27047e2c63d2
+Create Date: 2015-04-13 13:22:25.471000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '92df9fa681e'
+down_revision = '27047e2c63d2'
 
 import datetime
 import json
@@ -19,6 +19,7 @@ import sqlalchemy as sa
 
 
 MOVE = [
+    ('sida1238', 'jiar1239', 'zbua1234'),
     ('jinc1238', 'situ1239', 'situ1238'),
     ('lixi1238', 'situ1239', 'situ1238'),
     ('maer1238', 'situ1239', 'situ1238'),
@@ -31,7 +32,6 @@ MERGE = [
     ('caod1238', 'tsho1240'),
     ('ribu1240', 'zbua1234'),
     ('situ1239', 'situ1238'),
-    #('sida1238', ?
 ]
 
 
@@ -137,8 +137,6 @@ def upgrade():
         move_refs.execute(before=id, after=replacement)
         unlink_refs.execute(before=id, after=replacement)
 
-    raise NotImplementedError
-       
     for sql in RECREATE_TREECLOSURE:
         op.execute(sql)
 
