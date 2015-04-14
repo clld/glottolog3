@@ -11,7 +11,7 @@ from clld.db.meta import DBSession
 from clld.db.models import Config
 
 from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus,\
-   TreeClosureTable, Language, BOOKKEEPING, 
+    TreeClosureTable, Language, BOOKKEEPING
 
 
 class CheckMeta(type):
