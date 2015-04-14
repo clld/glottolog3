@@ -85,7 +85,6 @@ class FamilyChildren(Check):
 class FatherFamily(Check):
     """Languoids have correct top-level family."""
 
-
     def invalid_query(self, session):
         cte = session.query(Languoid.pk, Languoid.father_pk)\
             .cte(recursive=True)
