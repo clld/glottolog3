@@ -133,6 +133,23 @@ class GlottologName(Check):
             .order_by(Languoid.id)
 
 
+class UniqueName(Check):
+    """Among active languages main Glottolog names are unique."""
+
+    def invalid_query(self, session):
+        other = sa.orm.aliased(Languoid)
+        return session.query(Languoid)\
+            .filter_by(active=True,
+                status=LanguoidStatus.established,
+                level=LanguoidLevel.language)\
+            .filter(session.query(other).filter(other.pk != Languoid.pk)\
+                .filter_by(active=True,
+                    status=LanguoidStatus.established,
+                    level=LanguoidLevel.language,
+                    name=Languoid.name).exists())\
+            .order_by(Languoid.id)
+
+
 class RefRedirects(Check):
     """Redirects of reference ids target an unredirected id."""
 
