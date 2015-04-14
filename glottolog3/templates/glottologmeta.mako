@@ -66,7 +66,7 @@
                         <!--p>***# leaves in lff.txt + #Unclassified lof.txt + Mixed Languages in lof.txt + unattested Languages in lof.txt *** </p-->
                     </td>
                 </tr>
-                % for label in ['Unattested', 'Unclassifiable', 'Pidgin', 'Mixed Language', 'Speech Register', 'Artificial Language', 'Sign Language']:
+                % for label in special_families:
                     <tr>
                         <th>${h.link(request, special_families[label])}</th>
                         <td class="right">${number_of_languages[label]}</td>

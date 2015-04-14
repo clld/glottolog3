@@ -1,6 +1,7 @@
 from datetime import date
 import re
 import json
+from collections import OrderedDict
 
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
@@ -25,7 +26,7 @@ from glottolog3.models import (
 from glottolog3.config import CFG
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
-from glottolog3.models import Country
+from glottolog3.models import Country, SPECIAL_FAMILIES
 from glottolog3.adapters import get_selected_languages_map
 
 
@@ -71,16 +72,8 @@ def glottologmeta(request):
     }
     ql = q.filter(Languoid.hid != null())
     res['number_of_languages'] = {'all': ql.count()}
-    res['special_families'] = {}
-    for name in [
-        'Unattested',
-        'Unclassifiable',
-        'Pidgin',
-        'Mixed Language',
-        'Artificial Language',
-        'Speech Register',
-        'Sign Language',
-    ]:
+    res['special_families'] = OrderedDict()
+    for name in SPECIAL_FAMILIES:
         l = qt.filter(Language.name == name).one()
         res['special_families'][name] = l
         res['number_of_languages'][name] = l.child_language_count

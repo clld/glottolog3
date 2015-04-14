@@ -39,6 +39,7 @@ from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 from clld.util import nfilter, slug
 
+from glottolog3.models import BOOKKEEPING
 from glottolog3.lib.bibtex import unescape
 from glottolog3.lib.util import glottocode
 
@@ -86,7 +87,7 @@ def split_families(fp):
             if retired:
                 status += ' retired'
         if family == 'Spurious':
-            family = 'Book keeping'
+            family = BOOKKEEPING
         return nfilter([family, subfamily]), status
 
     family = None

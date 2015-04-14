@@ -174,6 +174,18 @@ class LanguoidStatus(DeclEnum):
     retired = 'retired', 'retired'
 
 
+SPECIAL_FAMILIES = (
+    u'Unattested',
+    u'Unclassifiable',
+    u'Pidgin',
+    u'Mixed Language',
+    u'Artificial Language',
+    u'Speech Register',
+    u'Sign Language',
+)
+BOOKKEEPING = u'Bookkeeping'
+
+
 @implementer(ILanguage)
 class Languoid(CustomModelMixin, Language):
     """
