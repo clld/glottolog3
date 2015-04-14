@@ -13,6 +13,8 @@ from clld.db.models import Config
 from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus,\
     TreeClosureTable, Language
 
+BOOKKEEPING = u'Book keeping'
+
 
 class CheckMeta(type):
 
@@ -85,6 +87,26 @@ class FamilyLanguages(Check):
                 child.level == LanguoidLevel.language))\
             .group_by(Language.pk, Languoid.pk)\
             .having(sa.func.count(child.pk) < 2)\
+            .order_by(Languoid.id)
+
+
+class SpuriousRetiredBookeeping(Check):
+    """Spurious retired languoids are under Bookeeping."""
+
+    def invalid_query(self, session):
+        return session.query(Languoid)\
+            .filter_by(status=LanguoidStatus.spurious_retired)\
+            .filter(~Languoid.father.has(name=BOOKKEEPING))\
+            .order_by(Languoid.id)
+
+
+class BookkeepingNoChildren(Check):
+    """Bookeeping languoids lack children."""
+
+    def invalid_query(self, session):
+        return session.query(Languoid)\
+            .filter(Languoid.father.has(name=BOOKKEEPING))\
+            .filter(Languoid.children.any())\
             .order_by(Languoid.id)
 
 
