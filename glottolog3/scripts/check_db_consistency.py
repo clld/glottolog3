@@ -8,10 +8,10 @@ import six
 
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
-from clld.db.models import Config
+from clld.db.models import Config, ValueSet
 
 from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus,\
-    TreeClosureTable, Language, BOOKKEEPING
+    TreeClosureTable, Language, BOOKKEEPING, Ref
 
 
 class CheckMeta(type):
@@ -227,6 +227,19 @@ class RefRedirects(Check):
             .filter(session.query(sa.orm.aliased(Config))\
                 .filter_by(key=sa.func.format(u'__Source_%s__', Config.value)).exists())\
             .order_by('id', 'target')
+
+
+class MarkupRefLinks(Check):
+    """Classification description source links are valid."""
+
+    def invalid_query(self, session):
+        vs_rid = sa.select([ValueSet.pk,
+            sa.func.unnest(sa.func.regexp_matches(
+                ValueSet.description, '\*\*(\d+)\*\*', 'g')).label('ref_id')]).alias()
+        return session.query(ValueSet)\
+            .filter(ValueSet.pk.in_(session.query(vs_rid.c.pk)\
+                .filter(~session.query(Ref).filter_by(id=vs_rid.c.ref_id).exists())))\
+            .order_by(ValueSet.id)
 
 
 def main(args):
