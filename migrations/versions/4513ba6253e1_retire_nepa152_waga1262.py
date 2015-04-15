@@ -1,15 +1,15 @@
 # coding=utf-8
-"""retire nepa1252 waga1262
+"""retire nepa152 waga1262
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 4513ba6253e1
+Revises: 5a0f695bcecc
+Create Date: 2015-04-15 18:41:42.999000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '4513ba6253e1'
+down_revision = '5a0f695bcecc'
 
 import datetime
 
@@ -53,14 +53,22 @@ def upgrade():
         'AND EXISTS (SELECT 1 FROM language WHERE id = :id) '
         'AND EXISTS (SELECT 1 FROM language WHERE id = :replacement)', conn)
 
-    move_iso = sa.text('UPDATE languageidentifier SET updated = now(), '
+    move_codes = sa.text('UPDATE languageidentifier AS li SET updated = now(), '
         'language_pk = (SELECT pk FROM language WHERE id = :after) '
-        'WHERE identifier_pk = (SELECT pk FROM identifier WHERE type = :type AND name = :iso) '
-        'AND language_pk = (SELECT pk FROM language WHERE id = :before) '
-        'AND EXISTS (SELECT 1 FROM language WHERE id = :before) '
-        'AND EXISTS (SELECT 1 FROM language WHERE id = :after) '
-        'AND EXISTS (SELECT 1 FROM identifier WHERE type = :type AND name = :iso)',
-        conn).bindparams(type='iso639-3')
+        'WHERE EXISTS (SELECT 1 FROM identifier WHERE pk = li.identifier_pk '
+        'AND type != :type AND name = :code) '
+        'AND language_pk = (SELECT pk FROM language WHERE id = :before) ',
+        conn).bindparams(type='name')
+    move_names = sa.text('UPDATE languageidentifier AS li SET updated = now(), '
+        'language_pk = (SELECT pk FROM language WHERE id = :after) '
+        'WHERE EXISTS (SELECT 1 FROM identifier WHERE pk = li.identifier_pk AND type = :type) '
+        'AND language_pk = (SELECT pk FROM language WHERE id = :before)',
+        conn).bindparams(type='name')
+
+    move_author_refs = sa.text('UPDATE languagesource AS ls SET updated = now(), '
+        'language_pk = (SELECT pk FROM language WHERE id = :after) '
+        'WHERE EXISTS (SELECT 1 FROM source WHERE pk = ls.source_pk AND author = :author) '
+        'AND language_pk = (SELECT pk FROM language WHERE id = :before)', conn)
 
     id, before, after = 'waga1262', 'suau1243', 'book1242'
     child_dialects = ['gama1252', 'nucl1501']
@@ -82,11 +90,9 @@ def upgrade():
     for dialect_id in child_dialects:
         move_lang.execute(id=dialect_id, before=id)
         move_uoid.execute(id=dialect_id, before=id, after=replacement)
-    move_iso.execute(iso='nep', before=id, after=iso_replacement)
-    # nep identifiers, iso cr ref -> east1436
-    # other identifiers, other refs -> nepa1254
-
-    raise NotImplementedError
+    move_codes.execute(code='nep', before=id, after=iso_replacement)
+    move_names.execute(before=id, after=replacement)
+    move_author_refs.execute(author='ISO 639-3 Registration Authority', before=id, after=iso_replacement)
 
     for sql in RECREATE_TREECLOSURE:
         op.execute(sql)
