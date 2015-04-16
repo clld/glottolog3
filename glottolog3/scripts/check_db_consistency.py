@@ -8,10 +8,11 @@ import six
 
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
-from clld.db.models import Config, ValueSet
+from clld.db.models import Config, Language, LanguageIdentifier, Identifier,\
+     ValueSet
 
-from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus,\
-    TreeClosureTable, Language, BOOKKEEPING, Identifier, Ref
+from glottolog3.models import BOOKKEEPING, Languoid, LanguoidLevel,\
+    LanguoidStatus, TreeClosureTable, Ref
 
 
 class CheckMeta(type):
@@ -213,20 +214,25 @@ class CleanName(Check):
 
 
 class UniqueName(Check):
-    """Among active languages main Glottolog names are unique."""
+    """Among active languages Glottolog names are unique."""
+
+    @staticmethod
+    def _ident_query(session, type=u'name', description=u'Glottolog'):
+        lang = sa.orm.aliased(Languoid)
+        ident = sa.orm.aliased(Identifier)
+        query = session.query(lang).filter_by(active=True,
+                status=LanguoidStatus.established, level=LanguoidLevel.language)\
+            .join(LanguageIdentifier, LanguageIdentifier.language_pk == lang.pk)\
+            .join(ident, sa.and_(LanguageIdentifier.identifier_pk == ident.pk,
+                ident.type == type, ident.description == description))
+        return lang, ident, query
 
     def invalid_query(self, session):
-        other = sa.orm.aliased(Languoid)
-        return session.query(Languoid)\
-            .filter_by(active=True,
-                status=LanguoidStatus.established,
-                level=LanguoidLevel.language)\
-            .filter(session.query(other).filter(other.pk != Languoid.pk)\
-                .filter_by(active=True,
-                    status=LanguoidStatus.established,
-                    level=LanguoidLevel.language,
-                    name=Languoid.name).exists())\
-            .order_by(Languoid.id)
+        lang, ident, query = self._ident_query(session)
+        other, other_ident, other_query = self._ident_query(session)
+        return query.filter(other_query.filter(other.pk != lang.pk,
+                ident.name == other_ident.name).exists())\
+            .order_by(lang.id)
 
 
 class RefRedirects(Check):
