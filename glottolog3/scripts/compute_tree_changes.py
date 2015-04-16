@@ -59,13 +59,14 @@ def split_families(fp):
         ancestors.
         """
         name_map = {
+            'Unattested',  # keep top-level family as subfamily
             'Unclassifiable',  # keep top-level family as subfamily
-            'Artificial Language',  # keep top-level family as subfamily
             'Pidgin',  # keep top-level family as subfamily
             'Mixed Language',  # keep top-level family as subfamily
-            'Unattested',  # keep top-level family as subfamily
+            'Artificial Language',  # keep top-level family as subfamily
             'Speech Register',  # keep top-level family as subfamily
-            'Spurious',  # book keeping 'Preliminary'
+            # FIXME: also 'Sign Language'?
+            'Spurious',  # bookkeeping 'Preliminary'
         }
         branch = [unescape(n.strip().replace('_', ' ')) for n in line.split(',')]
         if branch[0] not in name_map:
