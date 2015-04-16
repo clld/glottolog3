@@ -11,7 +11,7 @@ from clld.db.meta import DBSession
 from clld.db.models import Config, ValueSet
 
 from glottolog3.models import Languoid, LanguoidLevel, LanguoidStatus,\
-    TreeClosureTable, Language, BOOKKEEPING, Ref
+    TreeClosureTable, Language, BOOKKEEPING, Identifier, Ref
 
 
 class CheckMeta(type):
@@ -196,6 +196,19 @@ class GlottologName(Check):
         return session.query(Languoid)\
             .filter(~Languoid.identifiers.any(name=Languoid.name,
                 type=u'name', description=u'Glottolog'))\
+            .order_by(Languoid.id)
+
+
+class CleanName(Check):
+    """Glottolog names lack problematic characters."""
+
+    def invalid_query(self, session):
+        
+        return session.query(Languoid)\
+            .filter(Languoid.identifiers.any(sa.or_(
+                    Identifier.name.op('~')(ur'^\s|\s$'),
+                    Identifier.name.op('~')(ur'[`_*:\xa4\xab\xb6\xbc]'),
+                ), type=u'name', description=u'Glottolog'))\
             .order_by(Languoid.id)
 
 
