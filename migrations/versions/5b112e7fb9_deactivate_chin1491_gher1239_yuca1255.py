@@ -1,22 +1,26 @@
 # coding=utf-8
-"""deactivate chin1491 gher1239 yuca1255
+"""deactivate_chin1491_gher1239_yuca1255
 
-Revision ID: 
-Revises: 
-Create Date: 
+Revision ID: 5b112e7fb9
+Revises: c933cb8003
+Create Date: 2015-04-17 11:42:47.245000
 
 """
 
 # revision identifiers, used by Alembic.
-revision = ''
-down_revision = ''
+revision = '5b112e7fb9'
+down_revision = 'c933cb8003'
 
 import datetime
 
 from alembic import op
 import sqlalchemy as sa
 
-DEACTIVATE = ['chin1491', 'gher1239', 'yuca1255']
+ID_REPLACEMENT = [
+    ('chin1491', 'chin1493'),
+    ('gher1239', 'gher1240'),
+    ('yuca1255', 'maya1287'),
+]
 
 
 def upgrade():
@@ -28,11 +32,32 @@ def upgrade():
         'WHERE father_pk IS NOT NULL AND EXISTS (SELECT 1 FROM language '
         'WHERE pk = ll.pk AND id = :id )', conn)
 
-    for id in DEACTIVATE:
+    move_refs = sa.text('UPDATE languagesource AS ls SET updated = now(), '
+        'language_pk = u.language_pk FROM ('
+        'SELECT pk, source_pk, (SELECT pk FROM language WHERE id = :after) AS language_pk '
+        'FROM languagesource WHERE language_pk = (SELECT pk FROM language WHERE id = :before)) AS u '
+        'WHERE ls.pk = u.pk AND NOT EXISTS (SELECT 1 FROM languagesource '
+        'WHERE source_pk = u.source_pk AND language_pk = u.language_pk)', conn)
+    unlink_refs = sa.text('DELETE FROM languagesource AS ls '
+        'WHERE language_pk = (SELECT pk FROM language WHERE id = :before) ', conn)
+
+    supersede = sa.text('INSERT INTO superseded '
+        '(created, updated, active, languoid_pk, replacement_pk) '
+        'SELECT now(), now(), true, '
+            '(SELECT pk FROM language WHERE id = :id), '
+            '(SELECT pk FROM language WHERE id = :replacement) '
+        'WHERE NOT EXISTS (SELECT 1 FROM superseded '
+        'WHERE languoid_pk = (SELECT pk FROM language WHERE id = :id) '
+        'AND replacement_pk = (SELECT pk FROM language WHERE id = :replacement)) '
+        'AND EXISTS (SELECT 1 FROM language WHERE id = :id) '
+        'AND EXISTS (SELECT 1 FROM language WHERE id = :replacement)', conn)
+
+    for id, replacement in ID_REPLACEMENT:
         lang_deactivate.execute(id=id)
         uoid_deactivate.execute(id=id)
-
-    raise NotImplementedError
+        move_refs.execute(before=id, after=replacement)
+        unlink_refs.execute(before=id, after=replacement)
+        supersede.execute(id=id, replacement=replacement)
 
     for sql in RECREATE_TREECLOSURE:
         op.execute(sql)
