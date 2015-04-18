@@ -150,7 +150,7 @@ class ChildCounts(Check):
             .filter(parent.father_pk != None))
         return session.query(Languoid)\
             .outerjoin(cte, Languoid.pk == cte.c.father_pk)\
-            .group_by(Languoid)\
+            .group_by(Language.pk, Languoid.pk)\
             .having(sa.or_(
                 Languoid.child_family_count !=
                     sa.func.count(sa.func.nullif(cte.c.level != LanguoidLevel.family, True)),
