@@ -44,7 +44,7 @@ class Check(six.with_metaclass(CheckMeta, object)):
                 self.display()
             return False
         else:
-            self.invalid_count = ()
+            self.invalid = ()
             return True
 
     def display(self, number=25):
@@ -223,7 +223,6 @@ class CleanName(Check):
     """Glottolog names lack problematic characters."""
 
     def invalid_query(self, session):
-        
         return session.query(Languoid)\
             .filter(Languoid.identifiers.any(sa.or_(
                     Identifier.name.op('~')(ur'^\s|\s$'),
