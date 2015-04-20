@@ -305,6 +305,13 @@
         In such cases, the justificational value of the reference is on the (lack of) evidence and/or arguments found
         in the reference, not necessarily the interpretation of this state given in that reference.
     </p>
+                <p>
+        Even though the information given in the current version of Glottolog
+        is fairly substantial, we cannot guarantee that we have included all the
+        relevant information yet. We decided to release Glottolog early rather
+        than wait for the completed version, which will be evolving continually
+        anyway.
+            </p>
             </%util:section>
             <%util:section title="Names of families and subfamilies" prefix="">
     <p>
