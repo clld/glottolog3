@@ -11,8 +11,8 @@ from clld.db.meta import DBSession
 from clld.db.models import Config, Language, LanguageIdentifier, Identifier,\
      ValueSet
 
-from glottolog3.models import BOOKKEEPING, Languoid, LanguoidLevel,\
-    LanguoidStatus, TreeClosureTable, Ref
+from glottolog3.models import SPECIAL_FAMILIES, BOOKKEEPING,\
+    Languoid, LanguoidLevel, LanguoidStatus, TreeClosureTable, Ref
 
 
 class CheckMeta(type):
@@ -164,10 +164,11 @@ class ChildCounts(Check):
 class FamilyLanguages(Check):
     """Family has at least two languages."""
 
-    def invalid_query(self, session):
+    def invalid_query(self, session, exclude=SPECIAL_FAMILIES):
         child = sa.orm.aliased(Languoid, flat=True)
         return session.query(Languoid)\
             .filter_by(active=True, level=LanguoidLevel.family)\
+            .filter(Languoid.family.has(Languoid.name.notin_(exclude)))\
             .join(TreeClosureTable, TreeClosureTable.parent_pk == Languoid.pk)\
             .outerjoin(child, sa.and_(
                 TreeClosureTable.child_pk == child.pk,
