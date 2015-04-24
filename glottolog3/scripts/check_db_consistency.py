@@ -63,7 +63,7 @@ class Check(six.with_metaclass(CheckMeta, object)):
 class FamiliesDistinct(Check):
     """Each family node has a unique set of member languages."""
 
-    def invalid_query(self, session):
+    def invalid_query(self, session, exclude=u'Unclassified'):
         member = sa.orm.aliased(Languoid, flat=True)
         extent = sa.func.array(session.query(member.pk)\
             .filter_by(active=True, level=LanguoidLevel.language)\
@@ -71,7 +71,8 @@ class FamiliesDistinct(Check):
             .filter_by(parent_pk=Languoid.pk)\
             .order_by(member.pk).as_scalar())
         cte = session.query(Languoid.id, extent.label('extent'))\
-              .filter_by(active=True, level=LanguoidLevel.family).cte()
+            .filter_by(active=True, level=LanguoidLevel.family)\
+            .filter(~Languoid.name.startswith(exclude)).cte()
         dup = sa.orm.aliased(cte)
         return session.query(cte.c.id)\
             .filter(session.query(dup).filter(dup.c.id != cte.c.id,
