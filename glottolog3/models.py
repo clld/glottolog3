@@ -70,15 +70,15 @@ class Country(Base, IdNameDescriptionMixin):
 
 
 class Languoidmacroarea(Base):
-    __table_args__ = (UniqueConstraint('macroarea_pk', 'languoid_pk'),)
-    macroarea_pk = Column(Integer, ForeignKey('macroarea.pk'))
-    languoid_pk = Column(Integer, ForeignKey('languoid.pk'))
+    __table_args__ = (UniqueConstraint('languoid_pk', 'macroarea_pk'),)
+    macroarea_pk = Column(Integer, ForeignKey('macroarea.pk'), nullable=False)
+    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
 
 
 class Languoidcountry(Base):
-    __table_args__ = (UniqueConstraint('country_pk', 'languoid_pk'),)
-    country_pk = Column(Integer, ForeignKey('country.pk'))
-    languoid_pk = Column(Integer, ForeignKey('languoid.pk'))
+    __table_args__ = (UniqueConstraint('languoid_pk', 'country_pk'),)
+    country_pk = Column(Integer, ForeignKey('country.pk'), nullable=False)
+    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
 
 
 class Superseded(Base):
@@ -123,27 +123,27 @@ class Doctype(Base, IdNameDescriptionMixin):
 
 
 class Refdoctype(Base):
-    __table_args__ = (UniqueConstraint('doctype_pk', 'ref_pk'),)
-    doctype_pk = Column(Integer, ForeignKey('doctype.pk'))
-    ref_pk = Column(Integer, ForeignKey('ref.pk'))
+    __table_args__ = (UniqueConstraint('ref_pk', 'doctype_pk'),)
+    doctype_pk = Column(Integer, ForeignKey('doctype.pk'), nullable=False)
+    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
 
 
 class Refmacroarea(Base):
-    __table_args__ = (UniqueConstraint('macroarea_pk', 'ref_pk'),)
-    macroarea_pk = Column(Integer, ForeignKey('macroarea.pk'))
-    ref_pk = Column(Integer, ForeignKey('ref.pk'))
+    __table_args__ = (UniqueConstraint('ref_pk', 'macroarea_pk'),)
+    macroarea_pk = Column(Integer, ForeignKey('macroarea.pk'), nullable=False)
+    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
 
 
 class Refcountry(Base):
-    __table_args__ = (UniqueConstraint('country_pk', 'ref_pk'),)
-    country_pk = Column(Integer, ForeignKey('country.pk'))
-    ref_pk = Column(Integer, ForeignKey('ref.pk'))
+    __table_args__ = (UniqueConstraint('ref_pk', 'country_pk'),)
+    country_pk = Column(Integer, ForeignKey('country.pk'), nullable=False)
+    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
 
 
 class Refprovider(Base):
-    __table_args__ = (UniqueConstraint('provider_pk', 'ref_pk'),)
-    provider_pk = Column(Integer, ForeignKey('provider.pk'))
-    ref_pk = Column(Integer, ForeignKey('ref.pk'))
+    __table_args__ = (UniqueConstraint('ref_pk', 'provider_pk'),)
+    provider_pk = Column(Integer, ForeignKey('provider.pk'), nullable=False)
+    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
 
     @classmethod
     def get_stats(cls):

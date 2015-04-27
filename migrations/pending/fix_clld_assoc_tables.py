@@ -1,5 +1,5 @@
 # coding=utf-8
-"""fix assoc tables
+"""fix clld assoc tables
 
 Revision ID: 
 Revises: 
@@ -17,25 +17,19 @@ from alembic import op
 import sqlalchemy as sa
 
 UNIQUE_NULL = [
-    # clld
+    # TODO: make empty page reference description = '' in *reference
     ('contributioncontributor', ['contribution_pk', 'contributor_pk'], []),
-    ('contributionreference', ['contribution_pk', 'source_pk'], []),
+    ('contributionreference', ['contribution_pk', 'source_pk', 'description'], []),
     ('editor', ['dataset_pk', 'contributor_pk'], []),
     ('languageidentifier', ['language_pk', 'identifier_pk'], []),
     ('languagesource', ['language_pk', 'source_pk'], []),
-    ('sentencereference', ['sentence_pk', 'source_pk'], []),
+    ('sentencereference', ['sentence_pk', 'source_pk', 'description'], []),
     ('unitvalue', ['unit_pk', 'unitparameter_pk', 'unitdomainelement_pk'], ['unitdomainelement_pk']),
     ('value', ['valueset_pk', 'domainelement_pk'], ['domainelement_pk']),
     ('valuesentence', ['value_pk', 'sentence_pk'], []),
-    ('valueset', ['language_pk', 'parameter_pk'], []),
-    ('valuesetreference', ['valueset_pk', 'source_pk'], []),
-    # glottolog3 (reorder)
-    ('languoidcountry', ['languoid_pk', 'country_pk'], []),
-    ('languoidmacroarea', ['languoid_pk', 'macroarea_pk'], []),
-    ('refcountry', ['ref_pk', 'country_pk'], []),
-    ('refdoctype', ['ref_pk', 'doctype_pk'], []),
-    ('refmacroarea', ['ref_pk', 'macroarea_pk'], []),
-    ('refprovider', ['ref_pk', 'provider_pk'], []),
+    # TODO: revisit contribution in valueset docstring 
+    ('valueset', ['language_pk', 'parameter_pk', 'contribution_pk'], []),
+    ('valuesetreference', ['valueset_pk', 'source_pk', 'description'], []),
 ]
 
 UNIQUE = [(tab, cols) for tab, cols, nullable in UNIQUE_NULL]
@@ -54,7 +48,7 @@ def upgrade():
     violating = [(tab, cols) for tab, cols, rows in nulls if rows]
     if violating:
         for tab, cols, rows in violating:
-            print 'violating %s NOT NULL(%s): %d' % (tab, ', '.join(cols), len(rows))
+            print('violating %s NOT NULL(%s): %d' % (tab, ', '.join(cols), len(rows)))
         raise RuntimeError
 
     def select_duplicate(tab, cols):
@@ -67,7 +61,7 @@ def upgrade():
     violating = [(tab, cols, rows) for tab, cols, rows in duplicates if rows]
     if violating:
         for tab, cols, rows in violating:
-            print 'violating %s UNIQUE(%s): %d' % (tab, ', '.join(cols), len(rows))
+            print('violating %s UNIQUE(%s): %d' % (tab, ', '.join(cols), len(rows)))
         raise RuntimeError
 
     select_nullable = sa.text('SELECT attname FROM pg_attribute '
