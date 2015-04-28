@@ -281,6 +281,15 @@ class MarkupRefLinks(Check):
             .order_by(ValueSet.id)
 
 
+class RefPages(Check):
+    """References do not have zero/negative page count."""
+
+    def invalid_query(self, session):
+        return session.query(Ref)\
+            .filter(Ref.pages_int < 1)\
+            .order_by(Ref.pk)
+
+
 def main(args):
     for cls in Check:
         check = cls()
