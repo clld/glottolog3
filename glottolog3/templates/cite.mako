@@ -6,6 +6,10 @@
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}
 </blockquote>
+<p>Terms of map use:</p>
+<blockquote>The thunderforest base maps used by default on Glottolog are provided under the terms specified here:
+<br>
+${h.external_link('http://www.thunderforest.com/terms/')}</blockquote>
 <p>
     Academic publications which deal with Glottolog include:
     <ul class="unstyled">
