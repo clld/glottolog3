@@ -9,7 +9,7 @@
         <input type="hidden" name="__admin__" value="1"/>
         % endif
         <fieldset>
-            <legend>Name</legend>
+            <legend>Name (primary or alternative)</legend>
             <input type="text" name="name" id="inputName" placeholder="Name" value="${'' if message else params['name']}">
             <label class="radio">
                 <input type="radio" name="namequerytype" value="whole" ${'checked' if params['namequerytype'] == 'whole' else ''}>
