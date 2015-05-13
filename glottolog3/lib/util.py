@@ -6,7 +6,7 @@ from clld.util import slug
 from clld.db.meta import DBSession
 
 from glottolog3.models import Provider, Macroarea, Doctype, Languoid, LegacyCode
-
+from glottolog3.views import GLOTTOCODE_PATTERN
 
 PAGES_PATTERN = re.compile(':(?P<pages>[0-9]+(\-[0-9]+)?(,\s*[0-9]+(\-[0-9]+)?)*)')
 YEAR_PATTERN = re.compile('[0-9]{4}$')
@@ -74,6 +74,7 @@ def glottocode(name, conn, codes=None):
     number = str(number)
     assert len(number) == 4
     res = letters + number
+    assert GLOTTOCODE_PATTERN.match(res)
     if codes is not None:
         codes[res] = True
     return res
