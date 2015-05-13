@@ -19,7 +19,7 @@ from glottolog3.models import Ref, Languoid, TreeClosureTable, Provider, Languoi
 
 WORD_PATTERN = re.compile('[a-z]+')
 SQUARE_BRACKET_PATTERN = re.compile('\[(?P<content>[^\]]+)\]')
-CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_[\w\-]+)$')
+CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_[\w\-]+)|[a-z][a-z0-9]{3}[1-9]\d{3}$')
 ROMAN = '[ivxlcdmIVXLCDM]+'
 ROMANPATTERN = re.compile(ROMAN + '$')
 ARABIC = '[0-9]+'
@@ -217,8 +217,10 @@ def update_reflang(args):
 
     ignored, obsolete, changed, unknown = 0, 0, 0, {}
     languoid_map = {}
-    for l in DBSession.query(Languoid).filter(Languoid.hid != None):
-        languoid_map[l.hid] = l.pk
+    for l in DBSession.query(Languoid):
+        if l.hid:
+            languoid_map[l.hid] = l.pk
+        languoid_map[l.id] = l.pk
 
     lgcodes = {}
     for rec in Database.from_file(
