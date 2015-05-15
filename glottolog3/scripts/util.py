@@ -261,6 +261,8 @@ def update_reflang(args):
         remove = brugmann_noderefs['delete'].get(str(ref.pk), [])
 
         # keep relations to non-language languoids:
+        # FIXME: adapt this for bib-entries now referring to glottocodes of
+        #        families/dialects (e.g. add a sticky-bit to languagesource)
         langs = [
             l for l in ref.languages if
             (l.level != LanguoidLevel.language or not l.active) and l.pk not in remove]
