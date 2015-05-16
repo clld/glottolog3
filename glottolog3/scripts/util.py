@@ -356,7 +356,7 @@ def recreate_treeclosure(session=None):
     session.execute('COMMIT')
 
 
-def update_providers(args, filename='BIBFILES.ini'):
+def update_providers(args, filename='BIBFILES.ini', verbose=False):
     filepath = args.data_file(args.version, filename)
     if not filepath.exists():
         return
@@ -369,13 +369,30 @@ def update_providers(args, filename='BIBFILES.ini'):
     for section in p.sections():
         sectname = section[:-4] if section.endswith('.bib') else section
         id_ = slug(sectname)
-        name = p.get(section, 'title')
-        description = p.get(section, 'description')
-        abbr = p.get(section, 'abbr')
-        if id_ not in provider_map:
+        attrs = {
+            'name': p.get(section, 'title'),
+            'description': p.get(section, 'description'),
+            'abbr': p.get(section, 'abbr'),
+        }
+        if id_ in provider_map:
+            provider = provider_map[id_]
+            for a in list(attrs):
+                before, after = getattr(provider, a), attrs[a]
+                if before == after:
+                    del attrs[a]
+                else:
+                    setattr(provider, a, after)
+                    attrs[a] = (before, after)
+            if attrs:
+                args.log.info('updating provider %s %s' % (slug(id_), sorted(attrs)))
+            if verbose:
+                for a, (before, after) in attrs.items():
+                    before, after = (' '.join(_.split()) for _ in (before, after))
+                    if before != after:
+                        args.log.info('%s\n%r\n%r' % (a, before, after))
+        else:
             args.log.info('adding provider %s' % slug(id_))
-            DBSession.add(
-                Provider(id=id_, name=name, description=description, abbr=abbr))
+            DBSession.add(Provider(id=id_, **attrs))
 
 
 def update_refnames(args):
