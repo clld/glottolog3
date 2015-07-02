@@ -270,6 +270,7 @@ class Languoid(CustomModelMixin, Language):
             res['classification'] = [ancestor(l) for l in reversed(list(self.get_ancestors()))]
             if self.iso_code:
                 res[IdentifierType.iso.value] = self.iso_code
+            res['macroareas'] = {ma.id: ma.name for ma in self.macroareas}
         return res
 
     def get_geocoords(self):
