@@ -14,7 +14,7 @@ Glottolog update
 - copy files
 
     # FIXME: work on glottolog-data clone directly!
-    (clld)robert@astroman:~/venvs/clld/data/glottolog-data/scripts$ ./copy.sh 2.4
+    (clld)robert@astroman:~/venvs/clld/data/glottolog-data$ ./copy.sh 2.4
 
 - alembic upgrade head
 
@@ -31,12 +31,8 @@ Glottolog update
 
 - compute tree changes, update the tree and recompute the tree closure
 
-	python glottolog3/scripts/compute_tree_changes.py --version=2.4 development.ini
-        3830 matches
-        52 migrations
-        0 nomatches
-        219 new nodes
-        76 new languages
+	python glottolog3/scripts/compute_tree_changes.py development.ini
+	2015-07-14 12:18:58,186 INFO  [glottolog3][MainThread] Counter({'matches': 4031, 'new': 50, 'new_languages': 15, 'migrations': 15, 'nomatches': 0})
 
     Note: Problems with existing names for different hids must be fixed by migrations
     before import of a new tree.

@@ -5,12 +5,14 @@ import json
 from six.moves.configparser import RawConfigParser
 
 from sqlalchemy import sql, desc, not_, or_
+from path import path
 
 from clld.db.meta import DBSession
 from clld.util import slug
 from clld.lib.bibtex import Database
 from clld.db.models.common import Source, Language_data
 from clld.db.util import page_query, icontains
+from clld.scripts.util import parsed_args, ExistingDir
 
 from glottolog3.lib.util import get_map, roman_to_int
 from glottolog3.lib.bibtex import unescape
@@ -30,6 +32,14 @@ PAGES_PATTERN = re.compile(
     '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
 CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
 ART_NO_PATTERN = re.compile('\(art\.\s*[0-9]+\)')
+
+
+def get_args():
+    return parsed_args(
+        (("--data-dir",),
+         dict(
+             action=ExistingDir,
+             default=path('/home/robert/venvs/clld/data/glottolog-data/'))))
 
 
 def ca_trigger(s):
