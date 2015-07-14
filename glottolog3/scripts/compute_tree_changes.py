@@ -1,17 +1,28 @@
 """
 compare Harald's classification provided as files lff.txt and lof.txt with the current
 classification in the glottolog database.
+
+input:
+- glottolog-data/languoids/lff.txt
+- glottolog-data/languoids/lof.txt
+
+output:
+- glottolog-data/languoids/changes.json
 """
 from copy import copy
 import codecs
 import re
 from collections import OrderedDict, defaultdict, Counter, namedtuple
-import json
+
+from sqlalchemy.sql import select, and_
 
 from clld.db.meta import DBSession
+from clld.db.models.common import Language
 from clld.util import nfilter, slug, jsondump
 
-from glottolog3.models import BOOKKEEPING
+from glottolog3.models import (
+    BOOKKEEPING, Languoid, LanguoidLevel, TreeClosureTable, LanguoidStatus,
+)
 from glottolog3.lib.bibtex import unescape
 from glottolog3.lib.util import glottocode
 from glottolog3.scripts.util import get_args
@@ -76,12 +87,10 @@ def split_families(fp):
             name, code = line.strip().split('[')
             code = code.split(']')[0].replace('\\', '').replace('"', '').replace("'", '')
             code = code.replace('NOCODE-', 'NOCODE_')
-            assert code
             try:
                 assert len(code) == 3 or NOCODE_PATTERN.match(code)
             except:
-                print code
-                raise
+                raise ValueError(code)
             family[1][code] = unescape(name.strip().replace('_', ' '))
         else:
             if family:
@@ -225,7 +234,8 @@ def match_nodes(args,
                 # look for the new leafset with the biggest intersection with leafset
                 max_intersection = set([])
                 for nleafset in hh_leafsets:
-                    if len(nleafset.intersection(leafset)) > len(leafset.intersection(max_intersection)):
+                    if len(nleafset.intersection(leafset)) > len(
+                            leafset.intersection(max_intersection)):
                         max_intersection = nleafset
                 if max_intersection:
                     mleafset = max_intersection
@@ -241,52 +251,52 @@ def match_nodes(args,
 
 def main(args):
     stats = Counter(new=0, matches=0, migrations=0, nomatches=0)
+    l, ll = Language.__table__.alias('l'), Languoid.__table__.alias('ll')
+    gl_languoids = list(DBSession.execute(
+        select([l, ll], use_labels=True).where(l.c.pk == ll.c.pk)).fetchall())
 
     # we collect a list of changes which we will store in a JSON file.
     changes = []
 
-    hid_to_pk = {
-        row[0]: row[1] for row in DBSession.execute(
-        "select ll.hid, l.pk from languoid as ll, language as l where ll.pk = l.pk and ll.hid is not null")}
-
-    max_languoid_pk = DBSession.execute(
-        "select pk from languoid order by pk desc limit 1").fetchone()[0]
+    hid_to_pk = {row['ll_hid']: row['l_pk'] for row in gl_languoids if row['ll_hid']}
+    max_languoid_pk = max(*[row['l_pk'] for row in gl_languoids])
     new_glottocodes = {}
-
-    pk_to_name = {row[0]: row[1] for row in DBSession.execute("select pk, name from language")}
+    pk_to_name = {row['l_pk']: row['l_name'] for row in gl_languoids}
 
     # dict mapping branches (i.e. tuples of sub-family names) to dicts of H-languages
-    families = OrderedDict()
+    hh_families = OrderedDict()
 
     # dict mapping identifiers (i.e. hid) of H-languages to branches
-    languages = OrderedDict()
+    hh_languages = OrderedDict()
 
-    parse_families(args.data_dir.joinpath('languoids', 'lff.txt'), families, languages)
+    parse_families(
+        args.data_dir.joinpath('languoids', 'lff.txt'), hh_families, hh_languages)
 
     # handle isolates / collapse families with exactly one leaf:
     isolate_names = {}
     collapsed_names = {}
-    for key in families.keys():
-        if len(families[key]) == 1:
+    for key in hh_families.keys():
+        if len(hh_families[key]) == 1:
             if len(key) == 1:
                 # isolate
-                languages[families[key].keys()[0]][0] = None
-                isolate_names[key[0]] = families[key].keys()[0]  # map name to code
+                hh_languages[hh_families[key].keys()[0]][0] = None
+                isolate_names[key[0]] = hh_families[key].keys()[0]  # map name to code
             else:
-                languages[families[key].keys()[0]][0] = key[:-1]
-                collapsed_names[key[-1]] = families[key].keys()[0]
-            del families[key]
+                hh_languages[hh_families[key].keys()[0]][0] = key[:-1]
+                collapsed_names[key[-1]] = hh_families[key].keys()[0]
+            del hh_families[key]
 
     # now add the unclassifiabble, unattested, un-whatever
-    parse_families(args.data_dir.joinpath('languoids', 'lof.txt'), families, languages)
+    parse_families(
+        args.data_dir.joinpath('languoids', 'lof.txt'), hh_families, hh_languages)
 
     # we also want to be able to lookup families by name
     fname_to_branches = defaultdict(list)
-    for branch in families:
+    for branch in hh_families:
         fname_to_branches[branch[-1]].append(branch)
 
     new_hid_to_pk = {}
-    for code, (hnode, status, name) in languages.items():
+    for code, (hnode, status, name) in hh_languages.items():
         if code not in hid_to_pk:
             # we have to insert a new H-language!
             max_languoid_pk += 1
@@ -305,7 +315,7 @@ def main(args):
 
     duplicate_leafset_to_branch = {}
     leafset_to_branch = {}
-    for family, langs in families.items():
+    for family, langs in hh_families.items():
         leafs = get_leafset(hid for hid in langs.keys() if hid in hid_to_pk)
         if not leafs:
             args.log.info('Family with only new languages: %s, %s' % (family, langs))
@@ -318,7 +328,8 @@ def main(args):
             # branch without any changes in the set of leafs ...
             if not [n for n in family if n.startswith('Unclassified')]:
                 # ... or the full leafset contains new languages
-                assert [hid for hid in families[family[:-1]].keys() if hid in new_hid_to_pk]
+                assert [hid for hid in hh_families[family[:-1]].keys()
+                        if hid in new_hid_to_pk]
             fset, rset = set(family), set(leafset_to_branch[leafs])
             assert rset.issubset(fset)
             assert leafs not in duplicate_leafset_to_branch
@@ -337,17 +348,28 @@ def main(args):
 
     todo = []
 
-    # dict mapping (id, level, name) tuples for gl languoids of level family to tuples of leafs
     gl_family_to_leafset = {}
-    sql = "select l.pk, l.name, ll.level, ll.father_pk, l.jsondata from languoid as ll, language as l where ll.pk = l.pk and ll.level = 'family' and l.active = true"
-    for row in DBSession.execute(sql).fetchall():
-        leafs = [r[0] for r in DBSession.execute(
-            "select distinct l.hid from treeclosuretable as t, languoid as l where t.child_pk = l.pk and t.parent_pk = %s and l.hid is not null and l.status != 'provisional'"
-            % row[0])]
-        assert leafs
-        # 0 = pk, 1 = level, 2 = name, 3 = father_pk
-        glnode = GLNode(row[0], row[1], row[2], row[3], json.loads(row[4] or '{}').get('hname'))
-        gl_family_to_leafset[glnode] = get_leafset(leafs)
+
+    def select_leafs(pk):
+        l, tc = Languoid.__table__.alias('l'), TreeClosureTable.__table__.alias('tc')
+        return [r['l_hid'] for r in DBSession.execute(
+            select([l, tc], use_labels=True).where(and_(
+                l.c.pk == tc.c.child_pk,
+                l.c.hid != None,
+                l.c.status != LanguoidStatus.provisional,
+                tc.c.parent_pk == pk)))]
+
+    for row in gl_languoids:
+        if row['ll_level'] == LanguoidLevel.family and row['l_active']:
+            leafs = get_leafset(select_leafs(row['l_pk']))
+            assert leafs
+            glnode = GLNode(
+                row['l_pk'],
+                row['l_name'],
+                row['ll_level'].name,
+                row['ll_father_pk'],
+                row['l_jsondata'].get('hname'))
+            gl_family_to_leafset[glnode] = leafs
 
     # note: for legacy gl nodes, we map leaf-tuples to lists of matching nodes!
     leafset_to_gl_family = defaultdict(list)
@@ -382,14 +404,15 @@ def main(args):
             else:
                 branch_to_pk[m.hid] = m.pk
 
-    for hnode in sorted(families.keys(), key=lambda b: (len(b), b)):
+    for hnode in sorted(hh_families.keys(), key=lambda b: (len(b), b)):
         # loop through branches breadth first to determine what's to be inserted
         if hnode not in branch_to_pk:
-            t = get_leafset(families[hnode].keys())
+            t = get_leafset(hh_families[hnode].keys())
             if t in leafset_to_gl_family:
                 # the "Unclassified subfamily" special case from above:
                 if not [n for n in hnode if n.startswith('Unclassified')]:
-                    assert [hid for hid in families[hnode[:-1]].keys() if hid in new_hid_to_pk]
+                    assert [hid for hid in hh_families[hnode[:-1]].keys()
+                            if hid in new_hid_to_pk]
                 # make sure, the existing glottolog family for the set of leafs is mapped
                 # to some other node in the new classification:
                 assert leafset_to_gl_family[t][0].pk in [m.pk for m in todo if m.hid]
@@ -423,7 +446,8 @@ def main(args):
         else:
             attrs['active'] = False  # mark the languoid as obsolete.
             if getattr(m, 'pointer', False):
-                print '~~', m.pk, pk_to_name[m.pk].encode('utf8'), '->', ', '.join(m.pointer).encode('utf8')
+                print '~~', m.pk, pk_to_name[m.pk].encode('utf8'), '->', \
+                    ', '.join(m.pointer).encode('utf8')
                 stats.update(['migrations'])
                 attrs['replacement'] = branch_to_pk[m.pointer]
             else:
@@ -436,7 +460,7 @@ def main(args):
     rcollapsed_names = dict(zip(collapsed_names.values(), collapsed_names.keys()))
 
     # and updates of father_pks for languages:
-    for l, (hnode, status, name) in languages.items():
+    for l, (hnode, status, name) in hh_languages.items():
         id_ = hid_to_pk.get(l, new_hid_to_pk.get(l))
         attrs = languoid(id_, 'language', status=status)
         if id_ in pk_to_name and name != pk_to_name[id_]:
@@ -451,16 +475,14 @@ def main(args):
             attrs['hname'] = rcollapsed_names[l]
         changes.append(attrs)
 
-    for row in DBSession.execute(
-        "select l.pk, ll.hid, l.name from languoid as ll, language as l where ll.pk = l.pk and ll.hid like '%NOCODE_%'"
-    ).fetchall():
-        if row[1] not in languages:
+    for row in gl_languoids:
+        hid = row['ll_hid']
+        if hid and 'NOCODE' in hid and hid not in hh_languages:
             # languoids with Harald's private code that are no longer in use
-            attrs = languoid(
-                row[0], 'language', status='retired', active=False, father_pk=None)
-            changes.append(attrs)
+            changes.append(languoid(
+                row['l_pk'], 'language', status='retired', active=False, father_pk=None))
 
-    jsondump(changes, args.data_dir.joinpath('languoids', 'languoids.json'), indent=4)
+    jsondump(changes, args.data_dir.joinpath('languoids', 'changes.json'), indent=4)
 
 
 if __name__ == '__main__':

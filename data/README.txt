@@ -37,7 +37,7 @@ Glottolog update
     Note: Problems with existing names for different hids must be fixed by migrations
     before import of a new tree.
 
-    time python glottolog3/scripts/import_tree.py --version=2.4 development.ini
+    time python glottolog3/scripts/import_tree.py development.ini
         real	9m15.198s
 
 - computing changes again should yield only matches!

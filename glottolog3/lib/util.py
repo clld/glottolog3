@@ -1,6 +1,6 @@
 import re
 
-from sqlalchemy import or_, not_, select, func, cast, Integer, literal_column, union_all
+from sqlalchemy import select, func, cast, Integer, literal_column, union_all
 
 from clld.util import slug
 from clld.db.meta import DBSession
