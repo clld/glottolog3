@@ -2,7 +2,27 @@
 
 <h3>News</h3>
 
-<h4>Glottolog 2.4 - 20-03-2015</h4>
+<h4>Glottolog 2.5 - 2015-07-17</h4>
+
+<dl>
+    <dt>References</dt>
+    <dd>
+        We added references from three new providers:
+        <ul>
+            <li>2723 references from the <a href="/providers/bibliolux">Bibliographie zur luxemburgischen Linguistik</a></li>
+            <li>1018 references <a href="/providers/gj">collected by Guillaume Jacques</a></li>
+            <li>596 references from <a href="/providers/haspelmath">Martin Haspelmath's bibliography</a></li>
+        </ul>
+        Thanks for sharing!
+    </dd>
+    <dt>Languoids</dt>
+    <dd>
+        16 languages have been added and the classification has been changed (mostly locally), resulting in
+        53 new family nodes and 15 updated families.
+    </dd>
+</dl>
+
+<h4>Glottolog 2.4 - 2015-03-20</h4>
 
 <dl>
     <dt>References</dt>
