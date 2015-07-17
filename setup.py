@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 requires = [
-    'clld>=0.32.1',
+    'clld>=0.33.1',
     'clldmpg',
 ]
 

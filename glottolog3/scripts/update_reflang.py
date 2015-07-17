@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import transaction
-from clld.scripts.util import parsed_args
 
-from glottolog3.scripts.util import update_reflang
+from glottolog3.scripts.util import update_reflang, get_args
 
 
 if __name__ == '__main__':  # pragma: no cover
     with transaction.manager:
-        update_reflang(parsed_args((("--version",), dict(default=""))))
+        update_reflang(get_args())

@@ -301,6 +301,7 @@ def main(args):
             # we have to insert a new H-language!
             max_languoid_pk += 1
             new_hid_to_pk[code] = max_languoid_pk
+
             if name in pk_to_name.values():
                 args.log.warn('new code {1} for existing name {0}'.format(name, code))
             changes.append(languoid(

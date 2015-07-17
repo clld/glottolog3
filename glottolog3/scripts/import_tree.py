@@ -7,14 +7,16 @@ input:
 """
 import transaction
 
-from sqlalchemy import desc, and_
+from sqlalchemy import desc
 
 from clld.util import jsonload
 from clld.db.models.common import Identifier, LanguageIdentifier, IdentifierType
 from clld.db.meta import DBSession
 
 from glottolog3.models import Languoid, Superseded, LanguoidLevel, LanguoidStatus
-from glottolog3.scripts.util import recreate_treeclosure, get_args
+from glottolog3.scripts.util import (
+    recreate_treeclosure, get_args, glottolog_name, glottolog_names,
+)
 
 
 MAX_IDENTIFIER_PK = None
@@ -38,9 +40,8 @@ def main(args):  # pragma: no cover
         MAX_IDENTIFIER_PK = DBSession.query(
             Identifier.pk).order_by(desc(Identifier.pk)).first()[0]
 
-        gc_names = {i.name: i for i in DBSession.query(Identifier).filter(and_(
-            Identifier.type == 'name',
-            Identifier.description == IdentifierType.glottolog.description))}
+        gl_name = glottolog_name()
+        gl_names = glottolog_names()
 
         languoids = {l.pk: l for l in DBSession.query(Languoid)}
         for attrs in jsonload(args.data_dir.joinpath('languoids', 'changes.json')):
@@ -67,11 +68,11 @@ def main(args):  # pragma: no cover
                         None, l, name=attrs['hid'], type=IdentifierType.iso.value)
 
                 create_identifier(
-                    gc_names.get(l.name),
+                    gl_names.get(l.name),
                     l,
                     name=l.name,
-                    description=IdentifierType.glottolog.description,
-                    type='name')
+                    description=gl_name.description,
+                    type=gl_name.type)
 
             if hname:
                 l.update_jsondata(hname=hname)

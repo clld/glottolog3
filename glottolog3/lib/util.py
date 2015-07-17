@@ -31,8 +31,8 @@ def get_map(type_):
     """When resolving relations in source files to objects in the DB we have to work
     around some inconsistencies.
     """
-    _get_map = lambda cls, attr='name': dict(
-        (getattr(obj, attr), obj) for obj in DBSession.query(cls))
+    _get_map = lambda cls, attr='name': \
+        {getattr(obj, attr): obj for obj in DBSession.query(cls)}
     if type_ == Provider:
         map_ = _get_map(Provider, 'id')
         map_['ozbib2'] = map_['ozbib']

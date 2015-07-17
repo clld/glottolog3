@@ -30,4 +30,3 @@ def update(args):
         lang.update_jsondata(endangeredlanguages=BASE_URL + lang.hid)
 
     print 'assigned', count, 'urls'
-

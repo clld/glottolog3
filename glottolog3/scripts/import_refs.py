@@ -1,21 +1,27 @@
+# -*- coding: utf-8 -*-
+"""
+apply changes to the references in the db.
+
+input:
+- glottolog-data/scripts/monster-utf8.bib
+
+output:
+- glottolog-data/references/changes.json
+"""
 import re
-import json
+from collections import Counter
 
 import transaction
-from sqlalchemy.orm.attributes import get_history
 
-from clld.lib.bibtex import Database
-from clld.util import slug
-from clld.scripts.util import parsed_args
+from clld.util import slug, jsondump
 from clld.db.meta import DBSession
 from clld.db.models.common import Source
 
-from glottolog3.lib.util import roman_to_int
 from glottolog3.lib.bibtex import unescape
 from glottolog3.models import Ref, Provider, Macroarea, Doctype, Languoid
 from glottolog3.lib.util import get_map
 from glottolog3.scripts.util import (
-    update_providers, update_relationship, compute_pages, CA_PATTERN, ca_trigger,
+    update_providers, update_relationship, compute_pages, ca_trigger, get_args, get_bib,
 )
 
 NONREF_JSONDATA = {'gbs', 'internetarchive_id'}
@@ -160,18 +166,12 @@ CONVERTER = {
 
 PREF_YEAR_PATTERN = re.compile('\[(?P<year>(1|2)[0-9]{3})(\-[0-9]+)?\]')
 YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
-
 DOCTYPE_PATTERN = re.compile('(?P<name>[a-z\_]+)\s*(\((?P<comment>[^\)]+)\))?\s*(\;|$)')
 CODE_PATTERN = re.compile('\[(?P<code>[^\]]+)\]')
 
 
-#
-# TODO: implement three modes: compare, import, update
-#
 def main(args):  # pragma: no cover
-    bib = Database.from_file(args.data_file(args.version, 'refs.bib'), encoding='utf8')
-    count = 0
-    skipped = 0
+    stats = Counter(new=0, updated=0, skipped=0)
     changes = {}
 
     with transaction.manager:
@@ -181,29 +181,25 @@ def main(args):  # pragma: no cover
         macroarea_map = get_map(Macroarea)
         doctype_map = get_map(Doctype)
 
-        known_ids = set(r[0] for r in DBSession.query(Ref.pk))
-
         languoid_map = {}
         for l in DBSession.query(Languoid):
             if l.hid:
                 languoid_map[l.hid] = l
             languoid_map[l.id] = l
 
-        for i, rec in enumerate(bib):
+        for i, rec in enumerate(get_bib(args)):
             if i and i % 1000 == 0:
-                print i, 'records done', count, 'changed'
+                print i, 'records done', stats['updated'] + stats['new'], 'changed'
 
             if len(rec.keys()) < 6:
                 # not enough information!
-                skipped += 1
+                stats.update(['skipped'])
                 continue
 
             changed = False
             assert rec.get('glottolog_ref_id')
             id_ = int(rec.get('glottolog_ref_id'))
 
-            if args.mode != 'update' and id_ in known_ids:
-                continue
             ref = DBSession.query(Source).get(id_)
             update = True if ref else False
 
@@ -304,7 +300,7 @@ def main(args):  # pragma: no cover
             changed = changed or a or r
 
             src = [s.strip() for s in kw['jsondata'].get('src', '').split(',')]
-            prv = {provider_map(slug(s)) for s in src if s}
+            prv = {provider_map[slug(s)] for s in src if s}
             if set(ref.providers) != prv:
                 ref.providers = list(prv)
                 changed = True
@@ -316,13 +312,12 @@ def main(args):  # pragma: no cover
             changed = changed or a or r
 
             if not update:
+                stats.update(['new'])
                 DBSession.add(ref)
+            elif changed:
+                stats.update(['updated'])
 
-            if changed:
-                count += 1
-
-        print count, 'records updated or imported'
-        print skipped, 'records skipped because of lack of information'
+    args.log.info('%s' % stats)
 
     DBSession.execute("update source set description = title where description is null and title is not null;")
     DBSession.execute("update source set description = booktitle where description is null and booktitle is not null;")
@@ -339,14 +334,8 @@ def main(args):  # pragma: no cover
                 "update ref set endpage_int = %s where pk = %s" %
                 (_end, pk))
 
-    return changes
+    jsondump(changes, args.data_dir.joinpath('references', 'changes.json'))
 
 
 if __name__ == '__main__':
-    args = parsed_args(
-        (('--mode',), dict(default='insert')),
-        (("--version",), dict(default="2.0")),
-    )
-    res = main(args)
-    with open(args.data_file(args.version, 'refs.json'), 'w') as fp:
-        json.dump(res, fp)
+    main(get_args())

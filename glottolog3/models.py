@@ -236,8 +236,6 @@ class Languoid(CustomModelMixin, Language):
         if getattr(type_, 'value', type_) == IdentifierType.glottolog.value:
             return [
                 Identifier(name=self.id, type=IdentifierType.glottolog.value)]
-        #elif type_ == IdentifierType.iso and :
-        #    return
         return Language.get_identifier_objs(self, type_)
 
     def get_replacements(self):

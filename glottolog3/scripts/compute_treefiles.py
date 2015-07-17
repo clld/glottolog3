@@ -8,7 +8,8 @@ try:
     from Bio.Phylo import write
     from Bio.Phylo.BaseTree import Tree, Clade
 except ImportError:
-    pass
+    print('BioPython is required to create tree files.')
+    raise
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 from clld.db.models.common import Language

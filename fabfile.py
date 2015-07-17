@@ -1,4 +1,4 @@
-from fabric.api import task, local, cd, put, hosts, sudo
+from fabric.api import task, local, cd, put, hosts, sudo, execute
 
 from clldfabric.util import working_directory
 from clldfabric import tasks
@@ -15,8 +15,7 @@ def run_script(name):
 
 @hosts(tasks.APP.production)
 @task
-def recreate_treefiles():
-    run_script('compute_treefiles')
+def copy_treefiles():
     with working_directory('glottolog3/static/'):
         local('tar -czvf trees.tgz trees')
         put('trees.tgz', '/tmp')
@@ -25,3 +24,10 @@ def recreate_treefiles():
         sudo('mv /tmp/trees.tgz .')
         sudo('tar -xzvf trees.tgz')
         sudo('chown -R root:root trees')
+
+
+@hosts(tasks.APP.production)
+@task
+def recreate_treefiles():
+    run_script('compute_treefiles')
+    execute(copy_treefiles)

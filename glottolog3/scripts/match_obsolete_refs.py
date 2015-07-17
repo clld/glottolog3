@@ -1,30 +1,32 @@
 # -*- coding: utf-8 -*-
+from collections import Counter
+
 import transaction
-from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 from clld.db.models.common import Config, Source
 
-from glottolog3.scripts.util import match_obsolete_refs, get_obsolete_refs
-from glottolog3.models import Ref
+from glottolog3.scripts.util import match_obsolete_refs, get_args
 
 
 def main(args):
-    refs = get_obsolete_refs(args)
+    stats = Counter(hits=0, misses=0)
+    delete = []
     with transaction.manager:
-        matched = match_obsolete_refs(args, refs)
-
-        # TODO:
-        # - create bibtex file containing all refs to be removed!
-
-        for id_, repl in matched.items():
-            if not repl:
-                continue
-            ref = Ref.get(id_, default=None)
-            if ref is None:
-                continue
-            Config.add_replacement(ref, repl, session=DBSession, model=Source)
-            DBSession.delete(ref)
+        for ref, repl in match_obsolete_refs(args):
+            if repl:
+                print '%s --> %s' % (ref.id, repl.id)
+                delete.append((ref.id, repl.id))
+                stats.update(['hits'])
+            else:
+                stats.update(['misses'])
+    with transaction.manager:
+        for ref_id, repl_id in delete:
+            ref = Source.get(ref_id, default=None)
+            if ref:
+                Config.add_replacement(ref, repl_id, session=DBSession, model=Source)
+                DBSession.delete(ref)
+    args.log.info('%s' % stats)
 
 
 if __name__ == '__main__':  # pragma: no cover
-    main(parsed_args((("--version",), dict(default=""))))
+    main(get_args())

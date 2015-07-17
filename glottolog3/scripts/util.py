@@ -1,21 +1,22 @@
 from __future__ import unicode_literals, print_function
 import io
 import re
-import json
+from collections import Counter
+from itertools import groupby
 from six.moves.configparser import RawConfigParser
 
-from sqlalchemy import sql, desc, not_, or_
+from sqlalchemy import sql, desc, not_, or_, and_
+from sqlalchemy.orm import joinedload_all
 from path import path
 
 from clld.db.meta import DBSession
-from clld.util import slug
+from clld.util import slug, jsonload
 from clld.lib.bibtex import Database
-from clld.db.models.common import Source, Language_data
+from clld.db.models.common import Source, Language, LanguageIdentifier, Identifier
 from clld.db.util import page_query, icontains
 from clld.scripts.util import parsed_args, ExistingDir
 
 from glottolog3.lib.util import get_map, roman_to_int
-from glottolog3.lib.bibtex import unescape
 from glottolog3.models import Ref, Languoid, TreeClosureTable, Provider, LanguoidLevel
 
 
@@ -32,6 +33,17 @@ PAGES_PATTERN = re.compile(
     '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
 CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
 ART_NO_PATTERN = re.compile('\(art\.\s*[0-9]+\)')
+
+
+def glottolog_name(**kw):
+    return Identifier(type='name', description='Glottolog', **kw)
+
+
+def glottolog_names():
+    gl_name = glottolog_name()
+    return {i.name: i for i in DBSession.query(Identifier).filter(and_(
+        Identifier.type == gl_name.type,
+        Identifier.description == gl_name.description))}
 
 
 def get_args():
@@ -141,33 +153,15 @@ def update_relationship(col, new, log=None, log_only=False):
     return added, removed
 
 
-def get_obsolete_refs(args):
-    """compute all refs that no longer have an equivalent in the bib file.
-    """
-    bib = Database.from_file(args.data_file(args.version, 'refs.bib'), encoding='utf8')
-    known_ids = {rec['glottolog_ref_id']: 1 for rec in bib}
-    return [(row[0], row[1]) for row in
-            DBSession.query(Ref.id, Ref.name)
-            .filter(not_(icontains(Ref.name, 'ISO 639-3 Registration Authority')))
-            if row[0] not in known_ids]
+def match_obsolete_refs(args):
+    known_ids = {rec['glottolog_ref_id'] for rec in get_bib(args)}
+    refs = [row[0] for row in DBSession.query(Ref.id).filter(
+        not_(icontains(Ref.name, 'ISO 639-3 Registration Authority')))
+        if row[0] not in known_ids]
 
+    args.log.info('%s obsolete refs detected' % len(refs))
 
-def match_obsolete_refs(args, refs):
-    matched = {}
-
-    #
-    # TODO: optionally re-evaluate known-unmatched refs!
-    #
-    refs = [r[0] for r in refs]
-    count = 0
-    f, m = 0, 0
     for id_ in refs:
-        if id_ in matched:
-            continue
-        count += 1
-        if count > 1000:
-            print('1000 obsolete refs processed!')
-            break
         ref = Ref.get(id_)
         found = False
         if ref.description and len(ref.description) > 5:
@@ -176,32 +170,30 @@ def match_obsolete_refs(args, refs):
                     .filter(Source.description.contains(ref.description))\
                     .filter(or_(Source.author == ref.author, Source.year == ref.year))\
                     .limit(10):
-                print('++', ref.id, '->', match.id, '++', ref.author, '->', match.author, '++', ref.year, '->', match.year)
-                matched[ref.id] = match.id
+                print(
+                    '++ {0.id} -> {1.id} || {0.author} | {1.author} || {0.year} | {1.year}'
+                    .format(ref, match).encode('utf8'))
+                yield ref, match
                 found = True
                 break
-            if not found and ref.name and len(ref.name) > 5:
+            if ref.name and len(ref.name) > 5:
                 for match in DBSession.query(Ref)\
                         .filter(not_(Source.id.in_(refs)))\
                         .filter(Source.name == ref.name)\
                         .limit(10):
                     try:
                         if match.description and ref.description and slug(match.description) == slug(ref.description):
-                            print('++', ref.id, '->', match.id, '++', ref.description, '->', match.description)
-                            matched[ref.id] = match.id
+                            print(
+                                '++ {0.id} -> {1.id} || {0.description} | {1.description}'
+                                .format(ref, match).encode('utf8'))
+                            yield ref, match
                             found = True
                             break
                     except AssertionError:
                         continue
         if not found:
-            m += 1
-            print('--', ref.id, ref.name, ref.description)
-            matched[ref.id] = None
-        else:
-            f += 1
-    print(f, 'found')
-    print(m, 'missed')
-    return matched
+            print('-- {0.id} | {0.name} | {0.description}'.format(ref).encode('utf8'))
+            yield ref, None
 
 
 def get_codes(ref):
@@ -213,28 +205,94 @@ def get_codes(ref):
     - cul, aka
     - [cul, aka, NOCODE_Culina]
     """
+    #u'kln': 230, u'NOCODE_Hoa': 28, u'NOCODE_Eviya': 18,
+    # u'NOCODE_Quechua-Ecuatoriano-Unificado': 14,
+    # u'NOCODE_Kwadza': 11,
+    # u"NOCODE_Jenipapo-Kanind\\'e": 10,
+    # u'NOCODE_Sidi': 10,
+    # u'NOCODE_Nauo': 7,
+    # u'NOCODE_Quechua-Sureno-Unificado': 5,
+    # u'NOCODE_G\\"uenoa': 5,
+    # u'NOCODE_Ndambomo': 5,
+    # u'NOCODE_Osamayi': 4,
+    # u'kon': 4,
+    # u'NOCODE_Wurangung': 4,
+    # u'NOCODE_Kenunu': 3,
+    # u'kok': 2,
+    # u'luy': 2,
+    # u'bik': 2,
+    # u'iku': 2,
+    # u'NOCODE_Nymele': 2,
+    # u'NOCODE_Kuvale': 2,
+    # u'zha': 2,
+    # u'NOCODE_G\xfcenoa': 2,
+    # u'mrq/mqm': 1,
+    # u'NOCODE_Metombola': 1,
+    # u'gis/giz': 1,
+    # u'yzg/yln': 1,
+    # u'yyg': 1,
+    # u'sti/stt': 1,
+    # u'nxl/nni': 1,
+    # u'NOCODE_Jenipapo-Kanind\xe9': 1,
+    # u'zps/zpx': 1,
+    # u'gon': 1,
+    # u'gpb': 1,
+    # u'NOCODE_Esuma': 1,
+    # u'ethn': 1,
+    # u'doc/kmc': 1,
+    # u'dih?': 1,
+    # u'NOCODE_Boshof': 1,
+    # u'que': 1,
+    # u'NOCODE_Hacha': 1,
+    # u'afh': 1,
+    # u'NOCODE_Sakiriaba': 1,
+    # u'NOCODE_Mwele': 1,
+    # u'and all of the people speak Buginese': 1,
+    # u'mmc/maz': 1,
+    # u'NOCODE_Akuntsu': 1})
+    code_map = {
+        'NOCODE_Eviya': 'gev',
+        'NOCODE_Ndambomo': 'nxo',
+        'NOCODE_Osamayi': 'syx',
+    }
+
     # look at everything in square brackets
     for match in SQUARE_BRACKET_PATTERN.finditer(ref.language_note):
         # then split by comma, and look at the parts
         for code in [s.strip() for s in match.group('content').split(',')]:
             if CODE_PATTERN.match(code):
-                yield code
+                yield code_map.get(code, code)
+
+
+def get_bibkeys(bibrec):
+    if 'srctrickle' not in bibrec:
+        print(bibrec)
+        raise ValueError
+    return {provider: [rec[1] for rec in recs] for provider, recs in groupby(
+        [t.split('#', 1) for t in sorted(re.split('\s*,\s*', bibrec['srctrickle']))],
+        lambda p: p[0])}
+
+
+def get_bib(args):
+    return Database.from_file(args.data_dir.joinpath('scripts', 'monster-utf8.bib'))
 
 
 def update_reflang(args):
-    with open(args.data_file('brugmann_noderefs.json')) as fp:
-        brugmann_noderefs = json.load(fp)
+    stats = Counter()
+    brugmann_noderefs = jsonload(args.data_dir.joinpath('languoid_refs.json'))
 
-    ignored, obsolete, changed, unknown = 0, 0, 0, {}
     languoid_map = {}
-    for l in DBSession.query(Languoid):
+    for l in DBSession.query(Languoid).options(joinedload_all(
+        Language.languageidentifier, LanguageIdentifier.identifier
+    )):
         if l.hid:
             languoid_map[l.hid] = l.pk
+        elif l.iso_code:
+            languoid_map[l.iso_code] = l.pk
         languoid_map[l.id] = l.pk
 
     lgcodes = {}
-    for rec in Database.from_file(
-            args.data_file(args.version, 'refs.bib'), encoding='utf8'):
+    for rec in get_bib(args):
         lgcode = ''
         for f in 'lgcode lcode lgcde lgcoe lgcosw'.split():
             if rec.get(f):
@@ -244,7 +302,6 @@ def update_reflang(args):
             lgcode = '[' + lgcode + ']'
         lgcodes[rec.get('glottolog_ref_id', None)] = lgcode
 
-    #for ref in DBSession.query(Ref).order_by(desc(Source.pk)).limit(10000):
     for ref in page_query(
             DBSession.query(Ref).order_by(desc(Source.pk)),
             n=10000,
@@ -252,13 +309,13 @@ def update_reflang(args):
             verbose=True):
         # disregard iso change requests:
         if ref.description and ref.description.startswith('Change Request Number '):
-            ignored += 1
+            stats.update(['ignored'])
             continue
 
         if ref.id not in lgcodes:
             # remove all language relations for refs no longer in bib!
             update_relationship(ref.languages, [])
-            obsolete += 1
+            stats.update(['obsolete'])
             continue
 
         language_note = lgcodes[ref.id]
@@ -283,15 +340,14 @@ def update_reflang(args):
             if lpk not in langs_pk:
                 l = Languoid.get(lpk, default=None)
                 if l:
-                    #print('relation added according to brugmann data')
                     langs.append(l)
                     langs_pk.append(l.pk)
                 else:
-                    print('brugmann relation for non-existing languoid')
+                    args.log.warn('brugmann relation for non-existing languoid %s' % lpk)
 
         for code in set(get_codes(ref)):
             if code not in languoid_map:
-                unknown[code] = 1
+                stats.update([code])
                 continue
             lpk = languoid_map[code]
             if lpk in remove:
@@ -304,12 +360,9 @@ def update_reflang(args):
 
         a, r = update_relationship(ref.languages, langs)
         if a or r:
-            changed += 1
+            stats.update(['changed'])
 
-    print(ignored, 'ignored')
-    print(obsolete, 'obsolete')
-    print(changed, 'changed')
-    print('unknown codes', unknown.keys())
+    args.log.info('%s' % stats)
 
 
 def recreate_treeclosure(session=None):
@@ -366,11 +419,8 @@ def recreate_treeclosure(session=None):
     session.execute('COMMIT')
 
 
-def update_providers(args, filename='BIBFILES.ini', verbose=False):
-    filepath = args.data_file(args.version, filename)
-    if not filepath.exists():
-        return
-
+def update_providers(args, verbose=False):
+    filepath = args.data_dir.joinpath('references', 'bibtex', 'BIBFILES.ini')
     p = RawConfigParser()
     with io.open(filepath, encoding='utf-8-sig') as fp:
         p.readfp(fp)

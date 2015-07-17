@@ -14,12 +14,6 @@ def main(args):
         dataset.name = 'Glottolog %s' % args.version
         dataset.updated = datetime.utcnow().replace(tzinfo=pytz.utc)
 
-        seb = DBSession.query(Contributor)\
-            .filter(Contributor.name == 'Sebastian Nordhoff').first()
-        if seb:
-            seb.name = 'Sebastian Bank'
-            seb.id = 'sb'
-
 
 if __name__ == '__main__':  # pragma: no cover
     main(parsed_args((("--version",), dict(default=""))))

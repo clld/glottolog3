@@ -6,9 +6,20 @@ Updating the language-country relationships
 We only add new relationships for languages which so far have not been related to any
 country. This is to make sure the relationships determined by algorithms other than
 Harald's remain stable.
+
+input:
+- glottolog-data/languoids/lginfo.csv
+- glottolog-data/languoids/forkel_countries.tab
+- glottolog-data/languoids/forkel_family_justifications-utf8.tab
+- glottolog-data/languoids/forkel_subclassification_justifications-utf8.tab
+
+output:
+- should we append changes to glottolog-data/languoids/changes.json?
 """
 from __future__ import unicode_literals
 import re
+
+from sqlalchemy import true
 
 from clld.lib import dsv
 from clld.db.meta import DBSession
@@ -20,7 +31,9 @@ from glottolog3.models import (
     Languoid, Country, Macroarea, LanguoidLevel, TreeClosureTable,
 )
 from glottolog3.lib.util import get_map
-from glottolog3.scripts.util import update_relationship, WORD_PATTERN
+from glottolog3.scripts.util import (
+    update_relationship, WORD_PATTERN, get_args, get_bib, get_bibkeys,
+)
 
 REF_PATTERN = re.compile('\*\*(?P<id>\d+)\*\*(?::(?P<pages>[\divx\-, ]+))?')
 
@@ -28,7 +41,10 @@ REF_PATTERN = re.compile('\*\*(?P<id>\d+)\*\*(?::(?P<pages>[\divx\-, ]+))?')
 def get_lginfo(args, filter=None):
     return [
         (r.id, r) for r in
-        dsv.reader(args.data_file('lginfo.csv'), delimiter=',', namedtuples=True)
+        dsv.reader(
+            args.data_dir.joinpath('languoids', 'lginfo.csv'),
+            delimiter=',',
+            namedtuples=True)
         if filter is None or filter(r)]
 
 
@@ -51,7 +67,8 @@ def countries(args, languages):
     }
     count = 0
     countries = {}
-    for row in dsv.reader(args.data_file('countries.tab'), encoding='latin1'):
+    for row in dsv.reader(
+            args.data_dir.joinpath('languoids', 'forkel_countries.tab'), encoding='latin1'):
         hid, cnames = row[0], row[1:]
         if hid not in languages:
             languages[hid] = Languoid.get(hid, key='hid', default=None)
@@ -94,7 +111,7 @@ def macroareas(args, languages):
 
     for family in DBSession.query(Languoid)\
             .filter(Languoid.level == LanguoidLevel.family)\
-            .filter(Language.active == True):
+            .filter(Language.active == true()):
         mas = []
         for lang in DBSession.query(TreeClosureTable.child_pk)\
                 .filter(TreeClosureTable.parent_pk == family.pk):
@@ -128,6 +145,17 @@ def justifications(args, languages):
     - text goes into ValueSet.description
     - refs go into ValueSetReference objects
     """
+    hh_bibkey_to_glottolog_id = {}
+    for rec in get_bib(args):
+        for provider, bibkeys in get_bibkeys(rec).items():
+            if provider == 'hh':
+                for bibkey in bibkeys:
+                    hh_bibkey_to_glottolog_id[bibkey] = rec['glottolog_ref_id']
+                break
+
+    def substitute_hh_bibkeys(m):
+        return '**%s**' % hh_bibkey_to_glottolog_id[m.group('bibkey')]
+
     #
     # create mappings to look up glottolog languoids matching names in justification files
     #
@@ -135,12 +163,8 @@ def justifications(args, languages):
     langs_by_hname = {}
     langs_by_name = {}
 
-    for l in DBSession.query(Languoid).filter(Languoid.active == False):
-        langs_by_hname[l.jsondata.get('hname')] = l
-        langs_by_hid[l.hid] = l
-        langs_by_name[l.name] = l
-
-    for l in DBSession.query(Languoid).filter(Languoid.active == True):
+    # order by active to make sure, we active languoid overwrite the data of obsolete ones.
+    for l in DBSession.query(Languoid).order_by(Languoid.active):
         langs_by_hname[l.jsondata.get('hname')] = l
         langs_by_hid[l.hid] = l
         langs_by_name[l.name] = l
@@ -149,7 +173,8 @@ def justifications(args, languages):
         return (s or '').strip().rstrip(',') or None
 
     for id_, type_ in [('fc', 'family'), ('sc', 'subclassification')]:
-        for i, row in enumerate(dsv.reader(args.data_file('%s_justifications.tab' % type_))):
+        for i, row in enumerate(dsv.reader(
+                args.data_dir.joinpath('languoids', 'forkel_%s_justifications-utf8.tab' % type_))):
             name = row[0]
             name = name.replace('_', ' ') if not name.startswith('NOCODE') else name
             l = langs_by_hname.get(name, langs_by_hid.get(name, langs_by_name.get(name)))
@@ -161,13 +186,16 @@ def justifications(args, languages):
             comment = (row[_r].strip() or None) if len(row) > _r else None
             if comment and not WORD_PATTERN.search(comment):
                 comment = None
+            if comment:
+                comment = re.sub('\*\*(?P<bibkey>[^\*]+)\*\*', substitute_hh_bibkeys, comment)
 
             #
             # TODO: look for [NOCODE_ppp] patterns as well!?
             #
 
             refs = [(int(m.group('id')), normalize_pages(m.group('pages')))
-                    for m in REF_PATTERN.finditer(row[2])]
+                    for m in REF_PATTERN.finditer(
+                    re.sub('\*\*(?P<bibkey>[^\*]+)\*\*', substitute_hh_bibkeys, row[2]))]
 
             vs = None
             for _vs in l.valuesets:
@@ -190,7 +218,7 @@ def justifications(args, languages):
                 DBSession.flush()
             else:
                 if vs.description != comment:
-                    args.log.info('%s %s ~~ description' % (l.id, type_))
+                    args.log.info('%s %s ~~ description: %s ---> %s' % (l.id, type_, vs.description, comment))
                     vs.description = comment
 
             for r in vs.references:
@@ -204,9 +232,13 @@ def justifications(args, languages):
         args.log.info('%s %s' % (i, type_))
 
 
-def update(args):
+def main(args):
     languages = {}
     justifications(args, languages)
     countries(args, languages)
     macroareas(args, languages)
     coordinates(args, languages)
+
+
+if __name__ == '__main__':
+    main(get_args())

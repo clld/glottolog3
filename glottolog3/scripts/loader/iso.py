@@ -16,7 +16,7 @@ update
 
 Create the refs
 """
-import json
+from __future__ import unicode_literals
 from collections import defaultdict
 
 import transaction
@@ -56,11 +56,8 @@ def changerequests(args):
 
 
 def macrolanguages(args):
-    codes = dict(
-        (row[0], 1)
-        for row in DBSession.query(Languoid.hid).filter(Languoid.hid != None)
-        if len(row[0]) == 3)
-
+    codes = {row[0] for row in DBSession.query(Languoid.hid).filter(Languoid.hid != None)
+             if len(row[0]) == 3}
     macrolangs = defaultdict(list)
     for code in get_tab('macrolanguages'):
         if code.I_Id in codes:
