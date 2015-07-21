@@ -411,9 +411,9 @@ def recreate_treeclosure(session=None):
     FROM languoid LEFT JOIN tree ON pk = tree.parent_pk
     GROUP BY pk) AS u
     WHERE l.pk = u.pk AND (
-      l.child_family_count != u.child_family_count OR
-      l.child_language_count != u.child_language_count OR
-      l.child_dialect_count != u.child_dialect_count)"""]
+      COALESCE(l.child_family_count, -1) != u.child_family_count OR
+      COALESCE(l.child_language_count, -1) != u.child_language_count OR
+      COALESCE(l.child_dialect_count, -1) != u.child_dialect_count)"""]
     for s in sql:
         session.execute(s)
     session.execute('COMMIT')
