@@ -56,8 +56,13 @@ def main(args):  # pragma: no cover
             if l:
                 for k, v in attrs.items():
                     setattr(l, k, v)
+                #
+                # We do not assign ISO codes for existing languages, because it could be
+                # that the ISO code is now assigned to a family node, due to a change
+                # request, e.g. see https://github.com/clld/glottolog-data/issues/40
+                #
                 if len(l.hid or '') == 3 and not l.iso_code:
-                    create_identifier(None, l, name=l.hid, type=IdentifierType.iso.value)
+                    args.log.warn('Language with hid %s but no iso code!' % l.hid)
             else:
                 l = Languoid(**attrs)
                 DBSession.add(l)

@@ -462,8 +462,14 @@ def main(args):
 
     # and updates of father_pks for languages:
     for l, (hnode, status, name) in hh_languages.items():
-        id_ = hid_to_pk.get(l, new_hid_to_pk.get(l))
-        attrs = languoid(id_, 'language', status=status)
+        id_ = hid_to_pk.get(l)
+        if not id_:
+            id_ = new_hid_to_pk.get(l)
+            attrs = languoid(id_, 'language', status=status)
+        else:
+            attrs = languoid(id_, 'language', status=status)
+            # In case of existing languoids, we don't change the active flag!
+            del attrs['active']
         if id_ in pk_to_name and name != pk_to_name[id_]:
             if slug(pk_to_name[id_]) == slug(name):
                 attrs['name'] = name
