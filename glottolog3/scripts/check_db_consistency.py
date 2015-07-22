@@ -153,11 +153,11 @@ class ChildCounts(Check):
             .outerjoin(cte, Languoid.pk == cte.c.father_pk)\
             .group_by(Language.pk, Languoid.pk)\
             .having(sa.or_(
-                Languoid.child_family_count !=
+                sa.func.coalesce(Languoid.child_family_count, -1) !=
                     sa.func.count(sa.func.nullif(cte.c.level != LanguoidLevel.family, True)),
-                Languoid.child_language_count !=
+                sa.func.coalesce(Languoid.child_language_count, -1) !=
                     sa.func.count(sa.func.nullif(cte.c.level != LanguoidLevel.language, True)),
-                Languoid.child_dialect_count !=
+                sa.func.coalesce(Languoid.child_dialect_count, -1) !=
                     sa.func.count(sa.func.nullif(cte.c.level != LanguoidLevel.dialect, True))))\
             .order_by((Languoid.id))
 
