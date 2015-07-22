@@ -41,12 +41,11 @@ def languoid_link(req, languoid, active=True, classification=False):
 
 
 def change_request_link(cr_id, iso_code=None, label=None):
+    url = 'http://www.sil.org/iso639-3/chg_detail.asp?id={0}'
+    args = [cr_id]
     if iso_code:
-        url = 'http://www.sil.org/iso639-3/chg_detail.asp?id={0}&lang={1}'
-        args = (cr_id, iso_code)
-    else:
-        url = 'http://www.sil.org/iso639-3/chg_detail.asp?id={0}'
-        args = (cr_id,)
+        url += '&lang={1}'
+        args.append(iso_code)
     return HTML.a(label or cr_id, href=url.format(*args))
 
 
@@ -84,7 +83,7 @@ class ModelInstance(object):
         if appstruct is colander.null:
             return colander.null
         if not isinstance(appstruct, self.cls):
-            raise colander.Invalid(node, '%r is not a boolean' % appstruct)
+            raise colander.Invalid(node, '%r is not a %s' % (appstruct, self.cls))
         return getattr(appstruct, self.attr)
 
     def deserialize(self, node, cstruct):
@@ -104,7 +103,7 @@ class ModelInstance(object):
             raise colander.Invalid(node, 'no single result found')
         return value
 
-    def cstruct_children(self, node, cstruct):
+    def cstruct_children(self, node, cstruct):  # pragma: no cover
         return []
 
 
@@ -113,10 +112,10 @@ def get_params(params, **kw):
     :return: pair (appstruct, request params dict)
     """
     def default_params():
-        d = dict(biblio={})
-        for name in 'author year title editor journal address publisher'.split():
-            d['biblio'][name] = ''
-        return d
+        return {
+            'biblio': {
+                n: '' for n
+                in 'author year title editor journal address publisher'.split()}}
 
     reqparams = {}
     cstruct = default_params()
@@ -155,7 +154,7 @@ def get_params(params, **kw):
     schema.add(biblio)
     try:
         return schema.deserialize(cstruct), reqparams
-    except colander.Invalid:
+    except colander.Invalid:  # pragma: no cover
         return default_params(), {}
 
 
@@ -239,13 +238,13 @@ def format_classificationcomment(req, comment):
 
 
 def format_justifications(req, refs):
-    seen = {}
+    seen = set()
     r = []
     for ref in refs:
         key = (ref.source.pk, ref.description)
         if key in seen:
             continue
-        seen[key] = 1
+        seen.add(key)
         label = ref.source.name
         if ref.description:
             label += '[%s]' % ref.description
@@ -273,7 +272,7 @@ def normalize_language_explanation(chunk):
     chunks = chunk.split('=')
     left = '='.join(chunks[:-1]).strip()
     right = chunks[-1].strip()
-    if right.startswith('"') and right.endswith('=') and '[' not in right and '[' in left:
+    if right.startswith('"') and right.endswith('"') and '[' not in right and '[' in left:
         # case ii)
         return right[1:-1].strip() + ' [' + left.split('[', 1)[1]
     if '[' in right and '[' not in left:
@@ -352,7 +351,6 @@ def language_bigmap_html(request=None, context=None, **kw):
 
 
 def language_snippet_html(request=None, context=None, **kw):
-    source = None
-    if request.params.get('source'):
-        source = Source.get(request.params['source'])
-    return dict(source=source)
+    return dict(
+        source=Source.get(request.params['source'])
+        if request.params.get('source') else None)

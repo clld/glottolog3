@@ -1,5 +1,5 @@
 from clld.web.maps import Map, Layer, Legend
-from clld.web.adapters.geojson import GeoJson, pacific_centered_coordinates
+from clld.web.adapters.geojson import GeoJson
 from clld.web.util.htmllib import HTML, literal
 
 from glottolog3.models import LanguoidLevel
@@ -12,6 +12,14 @@ class Language(object):
         self.longitude = longitude
         self.latitude = latitude
         self.id = id_
+
+    @property
+    def __geo_interface__(self):
+        return {
+            'id': self.id,
+            'type': 'Feature',
+            'properties': {'name': self.name},
+            'geometry': {'type': 'Point', 'coordinates': (self.longitude, self.latitude)}}
 
     def __json__(self, req):
         return self.__dict__
@@ -37,9 +45,6 @@ class LanguoidGeoJson(GeoJson):
 
     def get_language(self, ctx, req, feature):
         return Language(*feature)
-
-    def get_coordinates(self, language):
-        return pacific_centered_coordinates(language)
 
 
 class LanguoidMap(Map):
@@ -100,3 +105,7 @@ class LanguoidMap(Map):
 
         for legend in super(LanguoidMap, self).get_legends():
             yield legend
+
+
+def includeme(config):
+    config.register_map('language', LanguoidMap)

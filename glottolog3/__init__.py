@@ -1,11 +1,10 @@
 from functools import partial
-from json import load
 
 from pyramid.httpexceptions import HTTPGone
+from pyramid.config import Configurator
 from sqlalchemy.orm import joinedload, joinedload_all
-from path import path
 from clld.interfaces import ICtxFactoryQuery
-from clld.web.app import menu_item, get_configurator, CtxFactoryQuery
+from clld.web.app import menu_item, CtxFactoryQuery
 from clld.web.adapters.base import adapter_factory, Index
 from clld.web.adapters.download import N3Dump, Download
 from clld.db.models.common import Language, Source, ValueSet, ValueSetReference
@@ -13,7 +12,6 @@ from clld.db.models.common import Language, Source, ValueSet, ValueSetReference
 import glottolog3
 from glottolog3 import views
 from glottolog3 import models
-from glottolog3 import maps
 from glottolog3 import adapters
 from glottolog3.config import CFG
 from glottolog3.interfaces import IProvider
@@ -57,15 +55,16 @@ def main(global_config, **settings):
         'providers': '/langdoc/langdocinformation',
     }
     settings['sitemaps'] = ['language', 'source']
-    config = get_configurator(
-        'glottolog3',
-        (GLCtxFactoryQuery(), ICtxFactoryQuery),
-        settings=settings,
-        routes=[
-            ('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml'),
-            ('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')])
+    config = Configurator(settings=settings)
+    #
+    # Note: The following routes must be registered before including the clld web app,
+    # because they are special cases of a more general route pattern registered there.
+    #
+    config.add_route('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml')
+    config.add_route('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')
 
     config.include('clldmpg')
+    config.registry.registerUtility(GLCtxFactoryQuery(), ICtxFactoryQuery)
     config.register_menu(
         ('dataset', partial(menu_item, 'dataset', label='Home')),
         ('languages', partial(menu_item, 'languages', label='Languages')),
@@ -78,43 +77,33 @@ def main(global_config, **settings):
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(
         adapter_factory('provider/index_html.mako', base=Index), IProvider)
-
-    config.include('glottolog3.datatables')
-    config.include('glottolog3.adapters')
     config.add_view(views.redirect_languoid_xhtml, route_name='languoid.xhtml')
     config.add_view(views.redirect_reference_xhtml, route_name='reference.xhtml')
-
     config.add_route_and_view('news', '/news', views.news, renderer='news.mako')
-
     config.add_route_and_view(
         'glottolog.meta',
         '/glottolog/glottologinformation',
         views.glottologmeta,
         renderer='glottologmeta.mako')
-
     config.add_route_and_view(
         'glottolog.families',
         '/glottolog/family',
         views.families,
         renderer='families.mako')
-
     config.add_route_and_view(
         'glottolog.iso',
         '/resource/languoid/iso/{id:[^/\.]+}',
         views.iso)
-
     config.add_route_and_view(
         'glottolog.languages',
         '/glottolog',
         views.languages,
         renderer='language/search_html.mako')
-
     config.add_route_and_view(
         'glottolog.childnodes',
         '/db/getchildlects',
         views.childnodes,
         renderer='json')
-
     config.add_route_and_view(
         'langdoc.complexquery',
         '/langdoc/complexquery',
@@ -128,8 +117,6 @@ def main(global_config, **settings):
             pp + name,
             getattr(views, name),
             renderer=name + '.mako')
-
-    config.register_map('language', maps.LanguoidMap)
 
     config.register_download(adapters.LanguoidCsvDump(
         models.Languoid, 'glottolog3', description="Languoids as CSV"))

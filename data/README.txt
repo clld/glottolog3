@@ -132,11 +132,14 @@ real	80m42.376s
     gzip glottolog3/static/download/glottolog.sql
 
     time python glottolog3/scripts/llod.py development.ini
-
-        runs almost 5h
+2015-07-17 17:28:44,219 INFO  [glottolog3][MainThread] ... finished
+{u'links:geonames': 10733, u'triples': 7393125, u'links:gold': 24333, u'links:lexvo': 7817, u'path': Path(u'/tmp/tmpiEXVz8'), u'links:dbpedia': 7817, u'resources': 393096}
+/home/robert/venvs/glottolog3/glottolog3/glottolog3/static/download/glottolog-dataset.n3
+>>> Make sure to upload the RDF dump to the production site.
+real	203m57.857s
 
     - deploy to production (copy treefiles and downloads first!?)
     fabg tasks.deploy:production
-    fabg tasks.copy_treefiles:production
+    fabg tasks.copy_treefiles
 
     - add dump of new version to glottolog-data

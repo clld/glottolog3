@@ -34,6 +34,17 @@ class Tests(TestWithApp):
         assert 'No matching languoids' in res
         res = self.app.get('/glottolog?name=xxxx')
         assert 'No matching languoids' in res
+        res = self.app.get('/glottolog?iso=x')
+        assert 'at least two characters' in res
+        self.app.get('/glottolog?search=deu', status=302)
+        self.app.get_html('/glottolog?search=')
+        self.app.get_html('/glottolog?search=en')
+        self.app.get_html('/glottolog?search=Deu')
+        self.app.get_html('/glottolog?search=%20')
+        self.app.get_html('/glottolog?search=abcdefg')
+        self.app.get('/glottolog?search=stan1295', status=302)
+        self.app.get('/glottolog?country=DE', status=302)
+        self.app.get('/glottolog?country=DEG')
 
     def test_languoidsfamily(self):
         res = self.app.get_dt('/glottolog/language?type=families')
@@ -78,14 +89,19 @@ class Tests(TestWithApp):
         res = self.app.get('/resource/languoid/iso/xxxx', status=404)
 
     def test_legacy(self):
-        res = self.app.get('/resource/languoid/id/zulu1241', status=410)
+        res = self.app.get('/resource/languoid/id/zulu1241.xhtml', status=301)
         res = self.app.get('/resource/languoid/id/zzzz9999', status=404)
-        res = self.app.get('/resource/reference/id/11', status=410)
+        res = self.app.get('/resource/languoid/id/zulu1241', status=410)
+        res = self.app.get('/resource/reference/id/11.xhtml', status=301)
         res = self.app.get('/resource/reference/id/0', status=404)
+        res = self.app.get('/resource/reference/id/11', status=410)
+        self.app.get('/credits', status=301)
 
     def test_language(self):
         res = self.app.get('/resource/languoid/id/stan1295.rdf')
+        res = self.app.get_json('/resource/languoid/id/stan1295.json')
         res = self.app.get('/resource/languoid/id/stan1295')
+        res = self.app.get('/resource/languoid/id/alba1269')
         res = self.app.get('/resource/languoid/id/nilo1235')
         res = self.app.get('/resource/languoid/id/stan1295.bigmap.html')
         res = self.app.get('/resource/languoid/id/chil1280.newick.txt')

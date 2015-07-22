@@ -130,7 +130,7 @@ def childnodes(request):
 
 
 def credits(request):
-    return HTTPFound(request.route_path('about'))
+    return HTTPMovedPermanently(location=request.route_url('about'))
 
 
 def glossary(request):
@@ -205,7 +205,7 @@ def getLanguoids(name=False,
 def quicksearch(request):
     message = None
     query = DBSession.query(Languoid)
-    term = request.params.get('search', '').strip()
+    term = request.params['search'].strip()
     titlecase = term.istitle()
     term = term.lower()
     params = {'iso': '', 'country': '',

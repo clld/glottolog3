@@ -1,8 +1,9 @@
-from six.moves import cStringIO as StringIO
+from __future__ import unicode_literals
 from xml.etree import cElementTree as et
 import codecs
 from itertools import cycle
 
+from six.moves import cStringIO as StringIO
 from path import path
 from sqlalchemy.orm import joinedload_all
 from pyramid.httpexceptions import HTTPFound
@@ -10,7 +11,7 @@ from pyramid.httpexceptions import HTTPFound
 from clld.interfaces import ILanguage, IIndex
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump
-from clld.web.adapters.geojson import pacific_centered_coordinates, GeoJsonLanguages
+from clld.web.adapters.geojson import GeoJsonLanguages
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier
 from clld.web.icon import ORDERED_ICONS
@@ -38,7 +39,7 @@ class LanguoidN3Dump(N3Dump):
 
     def query(self, req):
         return req.db.query(Language).options(joinedload_all(
-                Language.languageidentifier, LanguageIdentifier.identifier))\
+            Language.languageidentifier, LanguageIdentifier.identifier))\
             .order_by(Language.pk)
 
 
@@ -145,22 +146,20 @@ class PhyloXML(Representation):
 
 
 class GlottologGeoJsonLanguages(GeoJsonLanguages):
-    def _feature_properties(self, ctx, req, feature, language):
-        res = {'language': language.__json__(req, core=True)}
-        res.update(self.feature_properties(ctx, req, feature) or {})
+    def feature_properties(self, ctx, req, feature):
+        res = GeoJsonLanguages.feature_properties(self, ctx, req, feature)
+        language = self.get_language(ctx, req, feature)
+        res.update(language=language.__json__(req, core=True))
         return res
 
 
 class _GeoJsonSelectedLanguages(GeoJsonSelectedLanguages):
-    def get_coordinates(self, language):
-        return pacific_centered_coordinates(language)
-
-    def _feature_properties(self, ctx, req, feature, language):
-        res = {
-            'icon': ctx[language.family_pk],
-            'language': language.__json__(req, core=True),
-        }
-        res.update(self.feature_properties(ctx, req, feature) or {})
+    def feature_properties(self, ctx, req, feature):
+        res = GeoJsonSelectedLanguages.feature_properties(self, ctx, req, feature)
+        language = self.get_language(ctx, req, feature)
+        res.update(
+            icon=ctx[language.family_pk],
+            language=language.__json__(req, core=True))
         return res
 
 
