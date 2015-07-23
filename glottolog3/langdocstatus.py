@@ -9,7 +9,7 @@ from collections import defaultdict, namedtuple
 
 from pyramid.view import view_config
 from sqlalchemy.orm import aliased, joinedload
-from clld.web.adapters.geojson import GeoJson, pacific_centered_coordinates
+from clld.web.adapters.geojson import GeoJson
 from clld.web.maps import Map, Layer, Legend
 from clld.web.util.helpers import JS
 from clld.web.util.htmllib import HTML
@@ -96,9 +96,6 @@ class DescStatsGeoJson(GeoJson):
     def get_language(self, ctx, req, feature):
         return Language(
             0, feature.name, feature.longitude, feature.latitude, feature.id)
-
-    def get_coordinates(self, language):
-        return pacific_centered_coordinates(language)
 
 
 class DescStatsMap(Map):
