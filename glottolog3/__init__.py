@@ -66,12 +66,12 @@ def main(global_config, **settings):
     config.include('clldmpg')
     config.registry.registerUtility(GLCtxFactoryQuery(), ICtxFactoryQuery)
     config.register_menu(
-        ('dataset', partial(menu_item, 'dataset', label='Home')),
+        #('dataset', partial(menu_item, 'dataset', label='Home')),
         ('languages', partial(menu_item, 'languages', label='Languages')),
         ('families', partial(menu_item, 'glottolog.families', label='Families')),
-        ('search', partial(menu_item, 'glottolog.languages', label='L-Search')),
+        ('search', partial(menu_item, 'glottolog.languages', label='Language Search')),
         ('sources', partial(menu_item, 'sources', label='References')),
-        ('query', partial(menu_item, 'langdoc.complexquery', label='R-Search')),
+        ('query', partial(menu_item, 'langdoc.complexquery', label='Reference Search')),
         ('about', partial(menu_item, 'about', label='About')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
