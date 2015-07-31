@@ -356,6 +356,8 @@ class Languoid(CustomModelMixin, Language):
             gold_type = 'Dialect'
         if gold_type:
             yield 'rdf:type', 'http://purl.org/linguistics/gold/' + gold_type
+        if self.family:
+            yield 'skos:broader', request.resource_url(self.family)
         if self.father:
             yield 'skos:broader', request.resource_url(self.father)
         for child in self.children:
