@@ -15,6 +15,7 @@ from glottolog3 import models
 from glottolog3 import adapters
 from glottolog3.config import CFG
 from glottolog3.interfaces import IProvider
+from glottolog3.datatables import Providers
 
 
 class GLCtxFactoryQuery(CtxFactoryQuery):
@@ -132,4 +133,5 @@ def main(global_config, **settings):
     config.add_route(
         'langdocstatus.languages', '/langdoc/status/languages-{ed:[0-9]}-{sdt:[0-9]}')
     config.scan('glottolog3.langdocstatus')
+    config.register_datatable('providers', Providers)
     return config.make_wsgi_app()

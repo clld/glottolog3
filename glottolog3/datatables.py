@@ -12,7 +12,7 @@ from clld.web.datatables.source import Sources
 from clld.web.util.helpers import icon
 
 from glottolog3.models import (
-    Macroarea, Languoidmacroarea, Languoid, TreeClosureTable,
+    Macroarea, Languoid, TreeClosureTable,
     LanguoidLevel, LanguoidStatus, Provider, Refprovider, Doctype, Ref,
 )
 from glottolog3.util import getRefs, get_params, languoid_link, format_ca_icon
@@ -317,6 +317,5 @@ class Refs(Sources):
 
 
 def includeme(config):
-    config.register_datatable('providers', Providers)
     config.register_datatable('languages', Families)
     config.register_datatable('sources', Refs)
