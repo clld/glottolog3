@@ -36,6 +36,10 @@ class Tests(TestWithApp):
         assert 'No matching languoids' in res
         res = self.app.get('/glottolog?iso=x')
         assert 'at least two characters' in res
+        res = self.app.get('/glottolog?name=U')
+        assert 'at least two characters' in res
+        res = self.app.get('/glottolog?name=U&namequerytype=whole')
+        assert 'at least two characters' not in res
         self.app.get('/glottolog?search=deu', status=302)
         self.app.get_html('/glottolog?search=')
         self.app.get_html('/glottolog?search=en')
