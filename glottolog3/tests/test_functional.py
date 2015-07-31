@@ -105,8 +105,12 @@ class Tests(TestWithApp):
         self.app.get_xml('/resource/languoid/id/stan1295.rdf')
         self.assertEquals(
             len(self.app.parsed_body.findall(
+                './/{http://www.w3.org/2004/02/skos/core#}broaderTransitive')),
+            1)
+        self.assertEquals(
+            len(self.app.parsed_body.findall(
                 './/{http://www.w3.org/2004/02/skos/core#}broader')),
-            2)
+            1)
         res = self.app.get_json('/resource/languoid/id/stan1295.json')
         self.assertIn('classification', res)
         self.app.get('/resource/languoid/id/stan1295')
