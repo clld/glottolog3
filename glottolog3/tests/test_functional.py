@@ -17,6 +17,7 @@ class Tests(TestWithApp):
             self.app.get('/meta/' + name)
         for name in 'legal about news'.split():
             self.app.get('/' + name)
+        self.app.get_html('/langdoc/langdocinformation')
 
     def test_feeds(self):
         year = str(datetime.date.today().year)
