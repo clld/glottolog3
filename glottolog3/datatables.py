@@ -136,7 +136,7 @@ class Families(Languages):
         super(Families, self).__init__(req, model, **kw)
 
     def default_order(self):
-        return Language.created.desc()
+        return Language.created.desc(), Language.pk
 
     def db_model(self):
         return Languoid
