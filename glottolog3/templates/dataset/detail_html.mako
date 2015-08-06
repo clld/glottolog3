@@ -97,5 +97,13 @@
             Jouni Maho and SIL International. For more details, see the
             <a href="${request.route_url('home.credits')}" title="credits">Credits</a> page.
         </p>
+        <p>
+            The data published by Glottolog is curated in the public GitHub repository
+            ${h.external_link("https://github.com/clld/glottolog-data", label='clld/glottolog-data')}.
+        </p>
+        <p>
+            You may report errors you found in Glottolog using this repositories
+            ${h.external_link("https://github.com/clld/glottolog-data/issues", label='issue tracker')}.
+        </p>
     </div>
 </div>

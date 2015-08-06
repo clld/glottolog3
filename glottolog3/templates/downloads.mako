@@ -49,18 +49,14 @@
 </div>
 
 <%def name="sidebar()">
-    <%util:well title="Linked Data">
-    <p>
-        Glottolog is part of the
-        ${h.external_link("http://linguistics.okfn.org/resources/llod/", label='Linguistic Linked Open Data Cloud')}.
-        You can request RDF representations of the resources by adding a suitable extension
-        (like '.rdf' or '.n3') in the address bar (e.g.
-        <a href="${request.route_url('language', id='stan1295', ext='rdf')}">${request.route_url('language', id='stan1295', ext='rdf')}</a>),
-        or by using content negotiation. Glottolog makes use of popular ontologies such as Dublin Core.
-    </p>
-    <p>
-        <a href="${request.route_url('glottolog.iso', id='deu')}">${request.route_url('glottolog.iso', id='deu')}</a>
-        can be used to link to a language when the ISO 639-3 code is known, but the Glottocode is unknown.
-    </p>
+    <%util:well title="Glottolog Data">
+        <p>
+            The data published by Glottolog is curated in the public GitHub repository
+            ${h.external_link("https://github.com/clld/glottolog-data", label='clld/glottolog-data')}.
+        </p>
+        <p>
+            You may report errors you found in Glottolog using this repositories
+            ${h.external_link("https://github.com/clld/glottolog-data/issues", label='issue tracker')}.
+        </p>
     </%util:well>
 </%def>
