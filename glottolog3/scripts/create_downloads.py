@@ -1,6 +1,6 @@
 import sys
 
-from clld.scripts.util import create_downloads
+from clld.scripts.cli import create_downloads
 
 
 if __name__ == '__main__':
