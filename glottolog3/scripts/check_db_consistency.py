@@ -211,6 +211,27 @@ class IsolateInactive(Check):
             .order_by(Languoid.id)
 
 
+class UniqueIsoCode(Check):
+    """Active languoids do not share iso639-3 identifiers."""
+
+    @staticmethod
+    def _ident_query(session, type=u'iso639-3'):
+        lang = sa.orm.aliased(Languoid)
+        ident = sa.orm.aliased(Identifier)
+        query = session.query(lang).filter_by(active=True)\
+            .join(LanguageIdentifier, LanguageIdentifier.language_pk == lang.pk)\
+            .join(ident, sa.and_(LanguageIdentifier.identifier_pk == ident.pk,
+                ident.type == type))
+        return lang, ident, query
+
+    def invalid_query(self, session):
+        lang, ident, query = self._ident_query(session)
+        other, other_ident, other_query = self._ident_query(session)
+        return query.filter(other_query.filter(other.pk != lang.pk,
+                ident.name == other_ident.name).exists())\
+            .order_by(lang.id)
+
+
 class GlottologName(Check):
     """Languoid has its name as Glottolog identifier."""
 
