@@ -19,6 +19,7 @@ output:
 from __future__ import unicode_literals
 import re
 
+import transaction
 from sqlalchemy import true
 
 from clld.lib import dsv
@@ -233,11 +234,12 @@ def justifications(args, languages):
 
 
 def main(args):
-    languages = {}
-    justifications(args, languages)
-    countries(args, languages)
-    macroareas(args, languages)
-    coordinates(args, languages)
+    with transaction.manager:
+        languages = {}
+        justifications(args, languages)
+        countries(args, languages)
+        macroareas(args, languages)
+        coordinates(args, languages)
 
 
 if __name__ == '__main__':
