@@ -28,8 +28,8 @@ Glottolog update
 - compute tree changes, update the tree and recompute the tree closure
 
 	time python glottolog3/scripts/compute_tree_changes.py development.ini
-2015-07-16 10:05:46,563 INFO  [glottolog3][MainThread] Counter({'matches': 4031, 'new': 53, 'new_languages': 16, 'migrations': 15, 'nomatches': 0})
-real	0m29.211s
+2015-10-05 14:32:09,886 INFO  [glottolog3][MainThread] Counter({'matches': 4072, 'new': 25, 'migrations': 12, 'new_languages': 4, 'nomatches': 0})
+real	0m26.884s
 
     Note: Problems with existing names for different hids must be fixed by migrations
     (such as 325a611fee1c) before import of a new tree.
