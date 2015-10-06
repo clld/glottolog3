@@ -207,13 +207,13 @@ def justifications(args, languages):
             if not vs:
                 args.log.info('%s %s ++' % (l.id, type_))
                 vs = ValueSet(
-                    id='%s%s' % (type_, l.id),
+                    id='%s%s' % (id_, l.pk),
                     description=comment,
                     language=l,
                     parameter=Parameter.get(id_),
                     contribution=Contribution.first())
                 DBSession.add(Value(
-                    id='%s%s' % (type_, l.id),
+                    id='%s%s' % (id_, l.pk),
                     name='%s - %s' % (l.level, l.status),
                     valueset=vs))
                 DBSession.flush()

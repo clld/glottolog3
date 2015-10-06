@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from datetime import datetime
 
 import pytz
 import transaction
 from clld.scripts.util import parsed_args
-from clld.db.models.common import Dataset, Contributor
+from clld.db.models.common import Dataset
 from clld.db.meta import DBSession
 
 

@@ -153,49 +153,6 @@ def update_relationship(col, new, log=None, log_only=False):
     return added, removed
 
 
-def match_obsolete_refs(args):
-    known_ids = {rec['glottolog_ref_id'] for rec in get_bib(args)}
-    refs = [row[0] for row in DBSession.query(Ref.id).filter(
-        not_(icontains(Ref.name, 'ISO 639-3 Registration Authority')))
-        if row[0] not in known_ids]
-
-    args.log.info('%s obsolete refs detected' % len(refs))
-
-    for id_ in refs:
-        ref = Ref.get(id_)
-        found = False
-        if ref.description and len(ref.description) > 5:
-            for match in DBSession.query(Ref)\
-                    .filter(not_(Source.id.in_(refs)))\
-                    .filter(Source.description.contains(ref.description))\
-                    .filter(or_(Source.author == ref.author, Source.year == ref.year))\
-                    .limit(10):
-                print(
-                    '++ {0.id} -> {1.id} || {0.author} | {1.author} || {0.year} | {1.year}'
-                    .format(ref, match).encode('utf8'))
-                yield ref, match
-                found = True
-                break
-            if ref.name and len(ref.name) > 5:
-                for match in DBSession.query(Ref)\
-                        .filter(not_(Source.id.in_(refs)))\
-                        .filter(Source.name == ref.name)\
-                        .limit(10):
-                    try:
-                        if match.description and ref.description and slug(match.description) == slug(ref.description):
-                            print(
-                                '++ {0.id} -> {1.id} || {0.description} | {1.description}'
-                                .format(ref, match).encode('utf8'))
-                            yield ref, match
-                            found = True
-                            break
-                    except AssertionError:
-                        continue
-        if not found:
-            print('-- {0.id} | {0.name} | {0.description}'.format(ref).encode('utf8'))
-            yield ref, None
-
-
 def get_codes(ref):
     """detect language codes in a string
 
