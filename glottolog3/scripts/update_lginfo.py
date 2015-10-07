@@ -226,9 +226,11 @@ def justifications(args, languages):
                 DBSession.delete(r)
 
             for r, pages in refs:
-                    vs.references.append(ValueSetReference(
-                        source=Source.get(str(r)),
-                        description=pages))
+                # FIXME: we must make sure not to link sources which will subsequently be
+                # replaced!
+                vs.references.append(ValueSetReference(
+                    source=Source.get(str(r)),
+                    description=pages))
 
         args.log.info('%s %s' % (i, type_))
 

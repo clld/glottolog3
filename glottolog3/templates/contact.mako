@@ -2,7 +2,7 @@
 
 <h3>Contact ${h.contactmail(req, None, title='report a problem')}</h3>
     <div class="well">
-        <p>You can contact us via email at <a href="mailto:glottolog@eva.mpg.de">glottolog@eva.mpg.de.</a>
+        <p>You can contact us via email at <a href="mailto:${request.dataset.contact}">${request.dataset.contact}</a>.
         We are happy to receive additional bibliographies in any format, and feedback of any sort.</p>
         % if request.registry.settings.get('clld.github_repos') and request.registry.settings.get('clld.github_repos_data'):
         <% srepo = request.registry.settings['clld.github_repos'] %>
