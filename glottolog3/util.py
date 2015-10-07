@@ -241,14 +241,16 @@ def format_justifications(req, refs):
     seen = set()
     r = []
     for ref in refs:
-        key = (ref.source.pk, ref.description)
-        if key in seen:
-            continue
-        seen.add(key)
-        label = ref.source.name
-        if ref.description:
-            label += '[%s]' % ref.description
-        r.append(HTML.li(link(req, ref.source, label=label)))
+        print ref.pk
+        if ref.source:
+            key = (ref.source.pk, ref.description)
+            if key in seen:
+                continue
+            seen.add(key)
+            label = ref.source.name
+            if ref.description:
+                label += '[%s]' % ref.description
+            r.append(HTML.li(link(req, ref.source, label=label)))
     return HTML.ul(*r)
 
 

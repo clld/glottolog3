@@ -135,6 +135,7 @@ real	3m37.042s
 real	33m10.481s
 
     - run nosetests
+    - write changelog, i.e. templates/news.mako
     - create release of glottolog3
     - create release of glottolog-data
 
@@ -142,6 +143,8 @@ real	33m10.481s
 
     time python glottolog3/scripts/create_downloads.py development.ini
 real	80m42.376s
+
+    - move downloads to new dl dir on server
 
     pg_dump -x -O -f glottolog3/static/download/glottolog.sql glottolog3
     gzip glottolog3/static/download/glottolog.sql
