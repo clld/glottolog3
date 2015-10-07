@@ -2,6 +2,16 @@
 
 <h3>News</h3>
 
+<h4>Glottolog 2.6 - 2015-10-07</h4>
+
+<p>
+    This edition introduces only minor changes to both, languoids and references. Instead,
+    our focus was on improving the release procdures, and in particular aligning data
+    curation in ${h.external_link('https://github.com/clld/glottolog-data', label='glottolog-data')}
+    and publication at http://glottolog.org. We hope these improvements will allow for more
+    frequent updates of the published version of Glottolog in the future.
+</p>
+
 <h4>Glottolog 2.5 - 2015-07-17</h4>
 
 <dl>
