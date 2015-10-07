@@ -241,7 +241,6 @@ def format_justifications(req, refs):
     seen = set()
     r = []
     for ref in refs:
-        print ref.pk
         if ref.source:
             key = (ref.source.pk, ref.description)
             if key in seen:
