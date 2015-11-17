@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Limited dataset downloaded in XLS from
+Limited dataset downloaded in XML from
 http://www.unesco.org/culture/languages-atlas/index.php
-and exported to csv from LibreOffice
 """
 from __future__ import unicode_literals
+from xml.etree import cElementTree as et
 
 from clld.db.meta import DBSession
 from clld.db.models import common
-from clld.lib.dsv import reader
 from glottolog3.models import Languoid
 
 
-DATA_FILE = 'unesco_atlas_languages_limited_dataset.csv'
+DATA_FILE = 'unesco_atlas_languages_limited_dataset.xml'
 VITALITY_VALUES = [
     ('Vulnerable', 'most children speak the language, but it may be restricted to certain domains (e.g., home)'),
     ('Definitely endangered', 'children no longer learn the language as mother tongue in the home'),
@@ -57,7 +56,20 @@ def update(args):
                 number=number,
                 parameter=param)
     valuesets = {vs.id: vs for vs in param.valuesets}
-    for item in reader(args.data_file(DATA_FILE), dicts=True):
+
+    for record in et.parse(args.data_file(DATA_FILE)).findall('.//RECORD'):
+        item = {}
+        for attr in [
+            'ID',
+            'Name in English',
+            'Name in French',
+            'Name in Spanish',
+            'Countries',
+            'Country codes alpha 3',
+            'ISO639-3 codes',
+            'Degree of endangerment'
+        ]:
+            item[attr] = record.find(attr.replace(' ', '_')).text
         if item['ISO639-3 codes']:
             for code in item['ISO639-3 codes'].split(','):
                 code = code.strip()
