@@ -2,17 +2,10 @@
 <%namespace name="util" file="../util.mako"/>
 <% TxtCitation = h.get_adapter(h.interfaces.IRepresentation, ctx, request, ext='md.txt') %>
 
-<%block name="head">
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-        google.load("feeds", "1");
-    </script>
-</%block>
-
 <%def name="sidebar()">
-  ${util.feed('New Grammars', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=grammar&year=' + str(h.datetime.date.today().year), eid='grammars', linkTitle=True)}
-  ${util.feed('New Languages', 'http://glottolog.org/glottolog/language.atom?type=languages', eid='languoids', linkTitle=True)}
-  ${util.feed('New Dictionaries', 'http://glottolog.org/langdoc.atom?cq=1&doctypes=dictionary&year=' + str(h.datetime.date.today().year), eid='dictionaries', linkTitle=True)}
+  ${util.feed('New Grammars', request.route_url('sources_alt', ext='atom', _query=dict(cq=1, doctypes='grammar', year=str(h.datetime.date.today().year))), eid='grammars', linkTitle=True, numEntries=3)}
+  ${util.feed('New Languages', request.route_url('languages_alt', ext='atom', _query=dict(type='languages')), eid='languoids', linkTitle=True, numEntries=3)}
+  ${util.feed('New Dictionaries', request.route_url('sources_alt', ext='atom', _query=dict(cq=1, doctypes='dictionary', year=str(h.datetime.date.today().year))), eid='dictionaries', linkTitle=True, numEntries=3)}
 </%def>
 
 <div class="row-fluid">
