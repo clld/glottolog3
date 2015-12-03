@@ -5,6 +5,7 @@ apply changes to the classification in the db.
 input:
 - glottolog-data/languoids/changes.json
 """
+from __future__ import unicode_literals
 import transaction
 
 from sqlalchemy import desc

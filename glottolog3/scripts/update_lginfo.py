@@ -8,7 +8,7 @@ country. This is to make sure the relationships determined by algorithms other t
 Harald's remain stable.
 
 input:
-- glottolog-data/languoids/lginfo.csv
+- glottolog-data/languoids/forkel_lginfo.tab
 - glottolog-data/languoids/forkel_countries.tab
 - glottolog-data/languoids/forkel_family_justifications-utf8.tab
 - glottolog-data/languoids/forkel_subclassification_justifications-utf8.tab
@@ -16,8 +16,9 @@ input:
 output:
 - should we append changes to glottolog-data/languoids/changes.json?
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 import re
+from collections import Counter
 
 import transaction
 from sqlalchemy import true
@@ -43,13 +44,13 @@ def get_lginfo(args, filter=None):
     return [
         (r.id, r) for r in
         dsv.reader(
-            args.data_dir.joinpath('languoids', 'lginfo.csv'),
-            delimiter=',',
+            args.data_dir.joinpath('languoids', 'forkel_lginfo.tab'),
+            fieldnames=['id', 'longitude', 'latitude', 'macro_area', 'year'],
             namedtuples=True)
         if filter is None or filter(r)]
 
 
-def countries(args, languages):
+def countries(args, languages, stats):
     """update relations between languages and countries they are spoken in.
     """
     cname_map = {
@@ -66,7 +67,6 @@ def countries(args, languages):
         'Democratic Republic of the Congo': 'Congo, The Democratic Republic of the',
         'Micronesia': 'Micronesia, Federated States of',
     }
-    count = 0
     countries = {}
     for row in dsv.reader(
             args.data_dir.joinpath('languoids', 'forkel_countries.tab'), encoding='latin1'):
@@ -90,12 +90,10 @@ def countries(args, languages):
             c = countries[cname]
             if c.id not in [_c.id for _c in l.countries]:
                 l.countries.append(c)
-                count += 1
-
-    args.log.info('countries: %s relations added' % count)
+                stats.update(['countries'])
 
 
-def macroareas(args, languages):
+def macroareas(args, languages, stats):
     ma_map = get_map(Macroarea)
 
     # we store references to languages to make computation of cumulated macroareas for
@@ -107,8 +105,9 @@ def macroareas(args, languages):
         if not languages[hid]:
             continue
         lang_map[languages[hid].pk] = languages[hid]
-        update_relationship(
-            languages[hid].macroareas, [ma_map[info.macro_area]], log=args.log)
+        a, r = update_relationship(languages[hid].macroareas, [ma_map[info.macro_area]])
+        if a or r:
+            stats.update(['macroarea'])
 
     for family in DBSession.query(Languoid)\
             .filter(Languoid.level == LanguoidLevel.family)\
@@ -118,11 +117,13 @@ def macroareas(args, languages):
                 .filter(TreeClosureTable.parent_pk == family.pk):
             if lang[0] in lang_map:
                 mas.extend(lang_map[lang[0]].macroareas)
-        update_relationship(family.macroareas, mas, log=args.log)
+        a, r = update_relationship(family.macroareas, mas)
+        if a or r:
+            stats.update(['macroarea'])
     args.log.info('macroareas done')
 
 
-def coordinates(args, languages):
+def coordinates(args, languages, stats):
     diff = lambda x, y: abs(x - y) > 0.001
 
     for hid, info in get_lginfo(args, lambda x: x.longitude and x.latitude):
@@ -136,12 +137,14 @@ def coordinates(args, languages):
         if not language.latitude or not language.longitude:
             language.longitude, language.latitude = lon, lat
             args.log.info('++ %s' % language.id)
+            stats.update(['coordinates_new'])
         elif diff(language.longitude, lon) or diff(language.latitude, lat):
             language.longitude, language.latitude = lon, lat
             args.log.info('~~ %s' % language.id)
+            stats.update(['coordinates_changed'])
 
 
-def justifications(args, languages):
+def justifications(args, languages, stats):
     """
     - text goes into ValueSet.description
     - refs go into ValueSetReference objects
@@ -221,6 +224,7 @@ def justifications(args, languages):
                 if vs.description != comment:
                     args.log.info('%s %s ~~ description: %s ---> %s' % (l.id, type_, vs.description, comment))
                     vs.description = comment
+                    stats.update(['justifications-%s' % type_])
 
             for r in vs.references:
                 DBSession.delete(r)
@@ -236,12 +240,14 @@ def justifications(args, languages):
 
 
 def main(args):
+    stats = Counter()
     with transaction.manager:
         languages = {}
-        justifications(args, languages)
-        countries(args, languages)
-        macroareas(args, languages)
-        coordinates(args, languages)
+        justifications(args, languages, stats)
+        countries(args, languages, stats)
+        macroareas(args, languages, stats)
+        coordinates(args, languages, stats)
+    print(stats)
 
 
 if __name__ == '__main__':

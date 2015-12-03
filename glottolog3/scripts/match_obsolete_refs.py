@@ -19,6 +19,7 @@ def main(args):
             if ref:
                 Config.add_replacement(
                     ref, '%s' % repl_id, session=DBSession, model=Source)
+                # FIXME: "redirect" relations, e.g. from valuesetreference as well!
                 DBSession.delete(ref)
     args.log.info('%s replacements' % len(repls))
 

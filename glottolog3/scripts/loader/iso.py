@@ -34,7 +34,7 @@ from glottolog3.models import (
 )
 
 
-HTML = 'http://www.sil.org/iso639-3/chg_requests.asp?order=CR_Number&chg_status=past'
+HTML = 'http://www-01.sil.org/iso639-3/chg_requests.asp?order=CR_Number&chg_status=past'
 JSON = 'sil-cr.json'
 
 

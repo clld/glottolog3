@@ -4,7 +4,7 @@ Glottolog update
 
 - create directory for new version of files
 
-	(clld)robert@astroman:~/venvs/clld/glottolog3$ mkdir data/2.6
+	(clld)robert@astroman:~/venvs/clld/glottolog3$ mkdir data/2.7
 
 - alembic upgrade head
 
@@ -12,7 +12,7 @@ Glottolog update
 
 - dump current version
 
-	pg_dump -x -O -f data/2.6/glottolog3-before-update.sql glottolog3
+	pg_dump -x -O -f data/2.7/glottolog3-before-update.sql glottolog3
     upload downloads of last version + sql dump
 
 - update glottolog-data:
@@ -23,7 +23,7 @@ Glottolog update
 
 - check consistency
 
-    python glottolog3/scripts/check_db_consistency.py development.ini > data/2.6/consistency_before.log
+    python glottolog3/scripts/check_db_consistency.py development.ini > data/2.7/consistency_before.log
 
 - compute tree changes, update the tree and recompute the tree closure
 
@@ -45,8 +45,8 @@ real	5m49.269s
 - update refs: First we have to update the data from iso because this may create additional
   refs corresponding to ISO change requests.
 
-    python glottolog3/scripts/load.py development.ini 2.6 iso download
-    time python glottolog3/scripts/load.py development.ini 2.6 iso update
+    python glottolog3/scripts/load.py development.ini 2.7 iso download
+    time python glottolog3/scripts/load.py development.ini 2.7 iso update
 matched 23 of 59 macrolangs
 real	1m59.957s
 
@@ -69,8 +69,8 @@ real	10m30.581s
 2015-07-16 12:02:15,224 INFO  [glottolog3][MainThread] countries: 17 relations added
 real	3m7.182s
 
-    cp -r data/2.4/unesco/ data/2.6
-    time python glottolog3/scripts/load.py development.ini 2.6 unesco update
+    cp -r data/2.7/unesco/ data/2.7
+    time python glottolog3/scripts/load.py development.ini 2.7 unesco update
 assigned 2719 unesco urls
 missing iso codes: {u'qec': 1, u'qee': 1, u'qed': 1, u'sal': 1, u'qei': 1, u'qej': 1, u'qem': 1, u'qel': 1,
                     u'qvr': 1, u'suf': 1, u'muw': 1, u'gon': 1, u'qhu': 1, u'jap': 1, u'zza': 1, u'wck': 1,
@@ -81,17 +81,17 @@ real	0m49.173s
     #
     # TODO: run ... download for all data sources below!?
     #
-    time python glottolog3/scripts/load.py development.ini 2.6 ethnologue update
+    time python glottolog3/scripts/load.py development.ini 2.7 ethnologue update
 385 iso codes have no ethnologue code
 1164 of 4097 families have an exact counterpart in ethnologue!
 real	0m36.368s
 
-    time python glottolog3/scripts/load.py development.ini 2.6 endangeredlanguages update
+    time python glottolog3/scripts/load.py development.ini 2.7 endangeredlanguages update
 2015-07-16 12:11:56,693 INFO  [rdflib][MainThread] RDFLib Version: 4.2.0
 assigned 2848 urls
 real	0m2.337s
 
-    time python glottolog3/scripts/load.py development.ini 2.6 languagelandscape update
+    time python glottolog3/scripts/load.py development.ini 2.7 languagelandscape update
 assigned 366 languagelandscape urls
 real	0m3.298s
 
@@ -119,14 +119,14 @@ real	64m40.647s
 
 - check consistency
 
-    python glottolog3/scripts/check_db_consistency.py development.ini > data/2.6/consistency_after.log
+    python glottolog3/scripts/check_db_consistency.py development.ini > data/2.7/consistency_after.log
 
 - tests
     - feeds of new languages and new grammars!
 
 - update version number!
 
-	python glottolog3/scripts/update_version.py --version=2.6 development.ini
+	python glottolog3/scripts/update_version.py --version=2.7 development.ini
 
     time python glottolog3/scripts/compute_treefiles.py development.ini
 real	3m37.042s
@@ -134,20 +134,22 @@ real	3m37.042s
 	time python glottolog3/scripts/langdocstatus.py development.ini
 real	33m10.481s
 
+    pg_dump -x -O -f glottolog3/static/download/glottolog.sql glottolog3
+    gzip glottolog3/static/download/glottolog.sql
+
+
     - run nosetests
     - write changelog, i.e. templates/news.mako
     - create release of glottolog3
+    - add dump of new version to glottolog-data
+    - push changes to glottolog-data
     - create release of glottolog-data
-
     - create downloads for new version
 
     time python glottolog3/scripts/create_downloads.py development.ini
 real	80m42.376s
 
     - move downloads to new dl dir on server
-
-    pg_dump -x -O -f glottolog3/static/download/glottolog.sql glottolog3
-    gzip glottolog3/static/download/glottolog.sql
 
     time python glottolog3/scripts/llod.py development.ini
 2015-07-17 17:28:44,219 INFO  [glottolog3][MainThread] ... finished
@@ -160,4 +162,4 @@ real	203m57.857s
     fabg tasks.deploy:production
     fabg tasks.copy_treefiles
 
-    - add dump of new version to glottolog-data
+    - tweet
