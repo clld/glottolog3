@@ -7,8 +7,8 @@
   <div class="pull-right">
     <form class="navbar-form form-search" role="search" action="${request.route_url('glottolog.languages')}">
       <div class="input-append">
-        <input type="text" class="search-query input-medium" placeholder="pr. Name / glcode / iso" name="search" id="site-search-input">
-        <button id="site-search-button" class="btn" type="submit"><i class="icon-search"></i></button>
+        <input tabindex="1" type="text" class="search-query input-medium" placeholder="pr. Name / glcode / iso" name="search" id="site-search-input">
+        <button tabindex="2" id="site-search-button" class="btn" type="submit"><i class="icon-search"></i></button>
       </div>
     </form>
   </div>

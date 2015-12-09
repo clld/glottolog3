@@ -10,27 +10,27 @@
         % endif
         <fieldset>
             <legend>Name (primary or alternative)</legend>
-            <input type="text" name="name" id="inputName" placeholder="Name" value="${'' if message else params['name']}">
+            <input tabindex="3" type="text" name="name" id="inputName" placeholder="Name" value="${'' if message else params['name']}">
             <label class="radio">
-                <input type="radio" name="namequerytype" value="whole" ${'checked' if params['namequerytype'] == 'whole' else ''}>
+                <input tabindex="3" type="radio" name="namequerytype" value="whole" ${'checked' if params['namequerytype'] == 'whole' else ''}>
                 match whole name
             </label>
             <label class="radio">
-                <input type="radio" name="namequerytype" value="part" ${'checked' if params['namequerytype'] == 'part' else ''}>
+                <input tabindex="3" type="radio" name="namequerytype" value="part" ${'checked' if params['namequerytype'] == 'part' else ''}>
                 match part of name
             </label>
             <label class="checkbox">
-                <input type="checkbox" name="multilingual" ${'checked' if params['multilingual'] else ''}> include non-English names
+                <input tabindex="3" type="checkbox" name="multilingual" ${'checked' if params['multilingual'] else ''}> include non-English names
             </label>
-            <button type="submit" class="btn">Submit</button>
+            <button tabindex="3" type="submit" class="btn">Submit</button>
         </fieldset>
     </form>
     <form>
         <fieldset>
             <legend>ISO 639-3</legend>
             <div class="input-append">
-                <input class="input-small" type="text" name="iso" id="inputIso" value="${'' if message else params['iso']}" placeholder="abc">
-                <button type="submit" class="btn">Submit</button>
+                <input tabindex="3" class="input-small" type="text" name="iso" id="inputIso" value="${'' if message else params['iso']}" placeholder="abc">
+                <button tabindex="3" type="submit" class="btn">Submit</button>
             </div>
         </fieldset>
     </form>
@@ -38,8 +38,8 @@
         <fieldset>
             <legend>Glottocode</legend>
             <div class="input-append">
-                <input class="input-small" type="text" name="alnum" id="inputAlnum" placeholder="abcd1234">
-                <button type="submit" class="btn">Submit</button>
+                <input tabindex="3" class="input-small" type="text" name="alnum" id="inputAlnum" placeholder="abcd1234">
+                <button tabindex="3" type="submit" class="btn">Submit</button>
             </div>
         </fieldset>
     </form>
@@ -47,8 +47,8 @@
         <fieldset>
             <legend>Country</legend>
             <div class="input-append">
-                <input type="text" name="country" data-provide="typeahead" data-source="${countries}" placeholder="DE">
-                <button class="btn" type="submit">Submit</button>
+                <input tabindex="3" type="text" name="country" data-provide="typeahead" data-source="${countries}" placeholder="DE">
+                <button tabindex="3" class="btn" type="submit">Submit</button>
             </div>
         </fieldset>
     </form>
