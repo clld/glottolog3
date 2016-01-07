@@ -1,15 +1,5 @@
 from setuptools import setup, find_packages
 
-requires = [
-    'clld>=1.7.1',
-    'clldmpg>=1.0.0',
-]
-
-tests_require = [
-    'Webtest',
-    'mock==1.0',
-]
-
 setup(
     name='glottolog3',
     version='0.0',
@@ -28,8 +18,15 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=requires,
-    tests_require=tests_require,
+    install_requires=[
+        'clldutils',
+        'clld>=1.7.1,<2.0.0',
+        'clldmpg>=1.1.1',
+    ],
+    tests_require=[
+        'Webtest',
+        'mock==1.0',
+    ],
     test_suite="glottolog3",
     entry_points="""\
     [paste.app_factory]
