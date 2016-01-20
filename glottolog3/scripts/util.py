@@ -5,15 +5,16 @@ from collections import Counter
 from itertools import groupby
 from six.moves.configparser import RawConfigParser
 
-from sqlalchemy import sql, desc, not_, or_, and_
+from sqlalchemy import desc, and_
 from sqlalchemy.orm import joinedload_all
 from path import path
 
+from clldutils.misc import slug
+from clldutils.jsonlib import load as jsonload
 from clld.db.meta import DBSession
-from clld.util import slug, jsonload
 from clld.lib.bibtex import Database
 from clld.db.models.common import Source, Language, LanguageIdentifier, Identifier
-from clld.db.util import page_query, icontains
+from clld.db.util import page_query
 from clld.scripts.util import parsed_args, ExistingDir
 
 from glottolog3.lib.util import get_map, roman_to_int
@@ -162,51 +163,6 @@ def get_codes(ref):
     - cul, aka
     - [cul, aka, NOCODE_Culina]
     """
-    #u'kln': 230, u'NOCODE_Hoa': 28, u'NOCODE_Eviya': 18,
-    # u'NOCODE_Quechua-Ecuatoriano-Unificado': 14,
-    # u'NOCODE_Kwadza': 11,
-    # u"NOCODE_Jenipapo-Kanind\\'e": 10,
-    # u'NOCODE_Sidi': 10,
-    # u'NOCODE_Nauo': 7,
-    # u'NOCODE_Quechua-Sureno-Unificado': 5,
-    # u'NOCODE_G\\"uenoa': 5,
-    # u'NOCODE_Ndambomo': 5,
-    # u'NOCODE_Osamayi': 4,
-    # u'kon': 4,
-    # u'NOCODE_Wurangung': 4,
-    # u'NOCODE_Kenunu': 3,
-    # u'kok': 2,
-    # u'luy': 2,
-    # u'bik': 2,
-    # u'iku': 2,
-    # u'NOCODE_Nymele': 2,
-    # u'NOCODE_Kuvale': 2,
-    # u'zha': 2,
-    # u'NOCODE_G\xfcenoa': 2,
-    # u'mrq/mqm': 1,
-    # u'NOCODE_Metombola': 1,
-    # u'gis/giz': 1,
-    # u'yzg/yln': 1,
-    # u'yyg': 1,
-    # u'sti/stt': 1,
-    # u'nxl/nni': 1,
-    # u'NOCODE_Jenipapo-Kanind\xe9': 1,
-    # u'zps/zpx': 1,
-    # u'gon': 1,
-    # u'gpb': 1,
-    # u'NOCODE_Esuma': 1,
-    # u'ethn': 1,
-    # u'doc/kmc': 1,
-    # u'dih?': 1,
-    # u'NOCODE_Boshof': 1,
-    # u'que': 1,
-    # u'NOCODE_Hacha': 1,
-    # u'afh': 1,
-    # u'NOCODE_Sakiriaba': 1,
-    # u'NOCODE_Mwele': 1,
-    # u'and all of the people speak Buginese': 1,
-    # u'mmc/maz': 1,
-    # u'NOCODE_Akuntsu': 1})
     code_map = {
         'NOCODE_Eviya': 'gev',
         'NOCODE_Ndambomo': 'nxo',

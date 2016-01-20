@@ -2,19 +2,13 @@
 from __future__ import unicode_literals
 import re
 
-import sqlalchemy as sa
+from sqlalchemy import func, select
 import transaction
 from clld.db.meta import DBSession
 from clld.db.models.common import Config, ValueSet
 
 from glottolog3.models import Ref
 from glottolog3.scripts.util import get_args
-
-
-#class MarkupRefLinks(Check):
-#    """Classification description source links are valid."""
-#
-#    def invalid_query(self, session):
 
 
 class RedirectMap(dict):
@@ -59,9 +53,9 @@ def main(args):
                 new = m.group('id')
             return '**%s**' % new
 
-        vs_rid = sa.select([
+        vs_rid = select([
             ValueSet.pk,
-            sa.func.unnest(sa.func.regexp_matches(
+            func.unnest(func.regexp_matches(
                 ValueSet.description, '\*\*(\d+)\*\*', 'g')).label('ref_id')]).alias()
         for vs in DBSession.query(ValueSet) \
                 .filter(ValueSet.pk.in_(

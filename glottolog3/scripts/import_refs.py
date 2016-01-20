@@ -13,7 +13,8 @@ from collections import Counter
 
 import transaction
 
-from clld.util import slug, jsondump
+from clldutils.misc import slug
+from clldutils.jsonlib import dump as jsondump
 from clld.db.meta import DBSession
 from clld.db.models.common import Source
 

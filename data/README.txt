@@ -63,11 +63,8 @@ real	9m47.243s
 real	10m30.581s
 
     time python glottolog3/scripts/update_lginfo.py development.ini
-2015-07-16 12:02:10,547 WARNI [glottolog3][MainThread] unknown country name in countries.tab: Taiwan
-2015-07-16 12:02:11,964 WARNI [glottolog3][MainThread] unknown hid in countries.tab: NOCODE_G\"uenoa
-2015-07-16 12:02:13,951 WARNI [glottolog3][MainThread] unknown hid in countries.tab: NOCODE_Jenipapo-Kanind\'e
-2015-07-16 12:02:15,224 INFO  [glottolog3][MainThread] countries: 17 relations added
-real	3m7.182s
+Counter({u'justifications-subclassification': 64, u'macroarea': 46, u'coordinates_changed': 13, u'countries': 7, u'coordinates_new': 6, u'justifications-family': 5})
+real	3m49.131s
 
     cp -r data/2.7/unesco/ data/2.7
     time python glottolog3/scripts/load.py development.ini 2.7 unesco update

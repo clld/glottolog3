@@ -19,7 +19,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'clldutils',
+        'clldutils>=0.5',
         'clld>=1.7.1,<2.0.0',
         'clldmpg>=1.1.1',
     ],

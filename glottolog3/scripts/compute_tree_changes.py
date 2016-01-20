@@ -363,7 +363,12 @@ def main(args):
     for row in gl_languoids:
         if row['ll_level'] == LanguoidLevel.family and row['l_active']:
             leafs = get_leafset(select_leafs(row['l_pk']))
-            assert leafs
+            if not leafs:
+                args.log.warn('no leafs! %s' % row)
+                #
+                # TODO: these languoids must be deactivated, and removed from the tree!
+                #
+                continue
             glnode = GLNode(
                 row['l_pk'],
                 row['l_name'],

@@ -25,7 +25,7 @@ from bs4 import BeautifulSoup as bs
 from sqlalchemy import desc
 
 from clld.db.meta import DBSession
-from clld.db.models.common import Language, Identifier, IdentifierType
+from clld.db.models.common import Language, Identifier, IdentifierType, LanguageIdentifier
 from clld.lib.bibtex import EntryType
 from clld.lib.iso import get_tab
 
@@ -151,10 +151,15 @@ def update(args):
             if leafs == isoleafs:
                 if mid not in [c.name for c in family.identifiers
                                if c.type == IdentifierType.iso.value]:
-                    family.codes.append(Identifier(
+                    identifier = Identifier(
+                        pk=max_identifier_pk + 1,
                         id=str(max_identifier_pk + 1),
                         name=mid,
-                        type=IdentifierType.iso.value))
+                        type=IdentifierType.iso.value)
+                    DBSession.add(identifier)
+                    DBSession.flush()
+                    DBSession.add(LanguageIdentifier(
+                        identifier_pk=identifier.pk, language_pk=family.pk))
                     max_identifier_pk += 1
                 matched += 1
                 found = True
