@@ -201,6 +201,7 @@ CFG = {
             'href': lambda l: "http://www.endangeredlanguages.com/lang/"
             + l.iso_code,
             'rdf': "rdfs:seeAlso",
+            'logo': 'ELP.png',
             'condition': lambda l: l.iso_code,
         },
         {
