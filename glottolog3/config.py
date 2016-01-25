@@ -221,7 +221,7 @@ CFG = {
         #    'logo': "musico.png"
         #},
         {
-            'name': 'languagelandscapes',
+            'name': 'Language Landscape',
             'href': lambda l: l.jsondata['languagelandscape'],
             'rdf': "rdfs:seeAlso",
             'condition': lambda l: 'languagelandscape' in l.jsondata,
