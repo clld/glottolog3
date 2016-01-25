@@ -41,7 +41,7 @@ def languoid_link(req, languoid, active=True, classification=False):
 
 
 def change_request_link(cr_id, iso_code=None, label=None):
-    url = 'http://www.sil.org/iso639-3/chg_detail.asp?id={0}'
+    url = 'http://www-01.sil.org/iso639-3/chg_detail.asp?id={0}'
     args = [cr_id]
     if iso_code:
         url += '&lang={1}'
