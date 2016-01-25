@@ -165,10 +165,12 @@ GLOTTOLOG3.Tree = (function(){
 
     return {
         init: function(eid, data, nid) {
-            $('#'+eid).tree({autoOpen: false, data: data, onCreateLi: GLOTTOLOG3.Tree.node});
+            var e = $('#'+eid);
+            e.tree({autoOpen: false, data: data, onCreateLi: GLOTTOLOG3.Tree.node});
             if (nid){
                 GLOTTOLOG3.Tree.open(eid, nid);
             }
+            e.unbind('contextmenu');
         },
         node: function(node, li) {
             var title = li.find('.jqtree-title');
