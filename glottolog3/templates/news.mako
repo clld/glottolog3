@@ -2,11 +2,44 @@
 
 <h3>News</h3>
 
+<h4>Glottolog 2.7 - 2016-01-26</h4>
+
+<dl>
+    <dt>References</dt>
+    <dd>
+        <p>
+            We added references from a new provider:
+        </p>
+        <p>
+            All
+            <a href="${request.route_url('sources', _query=dict(sSearch_8='langsci'))}">
+                2802 references
+            </a>
+            cited in books published by
+            ${h.external_link('http://langsci-press.org/', label='Language Science Press')}
+            have been added to Glottolog. These references will be curated and added to in the
+            future by the Language Science Team.
+        </p>
+    </dd>
+    <dt>Languoids</dt>
+    <dd>
+        <a href="${request.route_url('languages_alt', ext='atom', _query=dict(type='languages'))}">
+            8 languages
+        </a>
+        have been added and the classification has been changed (mostly locally), resulting in
+        <a href="${request.route_url('languages_alt', ext='atom', _query=dict(type='families'))}">
+            23 new family nodes
+        </a>
+        and 7 updated families.
+    </dd>
+</dl>
+
+
 <h4>Glottolog 2.6 - 2015-10-07</h4>
 
 <p>
     This edition introduces only minor changes to both, languoids and references. Instead,
-    our focus was on improving the release procdures, and in particular aligning data
+    our focus was on improving the release procedures, and in particular aligning data
     curation in ${h.external_link('https://github.com/clld/glottolog-data', label='glottolog-data')}
     and publication at http://glottolog.org. We hope these improvements will allow for more
     frequent updates of the published version of Glottolog in the future.

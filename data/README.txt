@@ -23,13 +23,15 @@ Glottolog update
 
 - check consistency
 
+	only 2.7:
+		alembic upgrade head
+		python glottolog3/scripts/recreate_treeclosure.py development.ini
     python glottolog3/scripts/check_db_consistency.py development.ini > data/2.7/consistency_before.log
 
 - compute tree changes, update the tree and recompute the tree closure
 
 	time python glottolog3/scripts/compute_tree_changes.py development.ini
-2015-10-05 14:32:09,886 INFO  [glottolog3][MainThread] Counter({'matches': 4072, 'new': 25, 'migrations': 12, 'new_languages': 4, 'nomatches': 0})
-real	0m26.884s
+2016-01-20 15:06:48,537 INFO  [glottolog3][MainThread] Counter({'matches': 4091, 'new': 23, 'new_languages': 8, 'migrations': 7, 'nomatches': 0})
 
     Note: Problems with existing names for different hids must be fixed by migrations
     (such as 325a611fee1c) before import of a new tree.
@@ -40,48 +42,46 @@ real	5m49.269s
 - computing changes again should yield only matches!
 
     python glottolog3/scripts/compute_tree_changes.py development.ini
-2015-10-05 14:41:19,991 INFO  [glottolog3][MainThread] Counter({'matches': 4097, 'new': 0, 'nomatches': 0, 'migrations': 0})
+2016-01-20 15:13:38,106 WARNI [glottolog3][MainThread] no leafs! (35802, {u'hname': u'West Palaungic'}, u'custom', u'pala1335', u'Palaung-Riang', None, None, None, None, datetime.datetime(2016, 1, 20, 15, 7, 32, 185563, tzinfo=psycopg2.tz.FixedOffsetTimezone(offset=60, name=None)), True, datetime.datetime(2013, 5, 2, 21, 32, 10, 849467, tzinfo=psycopg2.tz.FixedOffsetTimezone(offset=120, name=None)), 1, 35802, None, 105149, 104956, <family>, <established>, 0, 0, 0)
+2016-01-20 15:13:54,803 INFO  [glottolog3][MainThread] Counter({'matches': 4112, 'new': 0, 'nomatches': 0, 'migrations': 0})
 
 - update refs: First we have to update the data from iso because this may create additional
   refs corresponding to ISO change requests.
 
     python glottolog3/scripts/load.py development.ini 2.7 iso download
     time python glottolog3/scripts/load.py development.ini 2.7 iso update
-matched 23 of 59 macrolangs
+matched 24 of 59 macrolangs
 real	1m59.957s
 
     time python glottolog3/scripts/import_refs.py development.ini
-2015-10-05 17:24:16,208 INFO  [glottolog3][MainThread] Counter({'updated': 69510, 'new': 1263, 'skipped': 204})
-real	77m46.819s
+2016-01-20 16:17:14,470 INFO  [glottolog3][MainThread] Counter({'updated': 63492, 'new': 4470, 'skipped': 204})
+real	57m49.631s
 
 	time python glottolog3/scripts/ia.py development.ini
-2015-10-05 18:46:27,772 INFO  [glottolog3][MainThread] assigned internet archive identifiers for 1489 out of 271075 sources
-real	9m47.243s
+2016-01-20 16:36:43,193 INFO  [glottolog3][MainThread] assigned internet archive identifiers for 1489 out of 275369 sources
+real	10m27.608s
 
 	time python glottolog3/scripts/gbs.py development.ini
-2015-10-05 20:45:48,812 INFO  [glottolog3][MainThread] assigned gbs ids for 9991 out of 271075 sources
-real	10m30.581s
+2016-01-20 16:48:53,302 INFO  [glottolog3][MainThread] assigned gbs ids for 9990 out of 275369 sources
+real	11m21.013s
 
     time python glottolog3/scripts/update_lginfo.py development.ini
-Counter({u'justifications-subclassification': 64, u'macroarea': 46, u'coordinates_changed': 13, u'countries': 7, u'coordinates_new': 6, u'justifications-family': 5})
-real	3m49.131s
+Counter({u'justifications-subclassification': 71, u'macroarea': 60, u'coordinates_changed': 13, u'coordinates_new': 8, u'countries': 8, u'justifications-family': 8})
+real	3m14.868s
 
     cp -r data/2.7/unesco/ data/2.7
     time python glottolog3/scripts/load.py development.ini 2.7 unesco update
 assigned 2719 unesco urls
-missing iso codes: {u'qec': 1, u'qee': 1, u'qed': 1, u'sal': 1, u'qei': 1, u'qej': 1, u'qem': 1, u'qel': 1,
-                    u'qvr': 1, u'suf': 1, u'muw': 1, u'gon': 1, u'qhu': 1, u'jap': 1, u'zza': 1, u'wck': 1,
-                    u'qan': 1, u'qnt': 1, u'qsa': 1, u'nrn': 1, u'get': 1, u'qln': 1, u'qhj': 1, u'nky': 1,
-                    u'qlb': 1, u'wpb': 1, u'cif': 1, u'slb': 1}
-real	0m49.173s
+missing iso codes: {u'qec': 1, u'qee': 1, u'qed': 1, u'sal': 1, u'qei': 1, u'qej': 1, u'qem': 1, u'qel': 1, u'qvr': 1, u'suf': 1, u'muw': 1, u'gon': 1, u'qhu': 1, u'jap': 1, u'zza': 1, u'wck': 1, u'qan': 1, u'qnt': 1, u'qsa': 1, u'nrn': 1, u'get': 1, u'qln': 1, u'qhj': 1, u'nky': 1, u'qlb': 1, u'wpb': 1, u'cif': 1, u'slb': 1}
+real	0m52.702s
 
     #
     # TODO: run ... download for all data sources below!?
     #
     time python glottolog3/scripts/load.py development.ini 2.7 ethnologue update
-385 iso codes have no ethnologue code
-1164 of 4097 families have an exact counterpart in ethnologue!
-real	0m36.368s
+388 iso codes have no ethnologue code
+1159 of 4114 families have an exact counterpart in ethnologue!
+real	0m36.688s
 
     time python glottolog3/scripts/load.py development.ini 2.7 endangeredlanguages update
 2015-07-16 12:11:56,693 INFO  [rdflib][MainThread] RDFLib Version: 4.2.0
@@ -89,28 +89,33 @@ assigned 2848 urls
 real	0m2.337s
 
     time python glottolog3/scripts/load.py development.ini 2.7 languagelandscape update
-assigned 366 languagelandscape urls
-real	0m3.298s
+assigned 367 languagelandscape urls
+real	0m2.773s
 
     time python glottolog3/scripts/update_alternative_names.py development.ini
 2015-10-06 08:51:23,301 INFO  [glottolog3][MainThread] Counter()
 real	0m14.727s
 
     time python glottolog3/scripts/update_reflang.py development.ini
-2015-10-06 09:56:22,845 INFO  [glottolog3][MainThread] Counter({
-    u'changed': 5282, u'obsolete': 1183, u'ignored': 1000,
-    u'kln': 183, u'NOCODE_Hoa': 22, u'NOCODE_Quechua-Ecuatoriano-Unificado': 14,
-    u"NOCODE_Jenipapo-Kanind\\'e": 9, u'NOCODE_Sidi': 9, u'NOCODE_Kwadza': 8,
-    u'NOCODE_Quechua-Sureno-Unificado': 5, u'NOCODE_G\\"uenoa': 5, u'kok': 2, u'NOCODE_Nauo': 2,
-    u'bik': 2, u'iku': 2, u'NOCODE_Kenunu': 2, u'NOCODE_Kuvale': 2, u'NOCODE_G\xfcenoa': 2,
-    u'NOCODE_Wurangung': 2, u'NOCODE_Metombola': 1, u'yyg': 1, u'NOCODE_Jenipapo-Kanind\xe9': 1,
-    u'zps/zpx': 1, u"ils ne comptent que jusqu'\\`a deux": 1, u'afh': 1, u'kon': 1,
-    u'though Goedhart states that their accent is quite distinctive.': 1, u'NOCODE_Boshof': 1,
-    u'que': 1, u'mrq/mqm': 1, u'NOCODE_Sakiriaba': 1, u'NOCODE_Mwele': 1, u'and all of the people speak Buginese': 1,
-    u'mmc/maz': 1, u'imperfect speaker of a Harakmbut variety with Pano contamination': 1})
+2016-01-26 10:39:44,054 INFO  [glottolog3][MainThread] Counter(
+{u'changed': 3830, u'obsolete': 2388, u'ignored': 1000,
+u'kln': 183, u'NOCODE_Hoa': 22, u'NOCODE_Quechua-Ecuatoriano-Unificado': 14,
+u"NOCODE_Jenipapo-Kanind\\'e": 9, u'NOCODE_Sidi': 9, u'NOCODE_Kwadza': 8, u'NOCODE_G\\"uenoa': 6,
+u'NOCODE_Quechua-Sureno-Unificado': 5, u'kok': 2, u'NOCODE_Nauo': 2, u'bik': 2, u'iku': 2,
+u'NOCODE_Kenunu': 2, u'NOCODE_Kuvale': 2, u'NOCODE_G\xfcenoa': 2, u'NOCODE_Wurangung': 2,
+u'cultivator)': 1, u'yyg': 1, u'NOCODE_Jenipapo-Kanind\xe9': 1, u'zps/zpx': 1,
+u"ils ne comptent que jusqu'\\`a deux": 1, u'digger and navvy)': 1, u'afh': 1, u'kon': 1,
+u'NOCODE_Metombola': 1, u'though Goedhart states that their accent is quite distinctive.': 1,
+u'NOCODE_Boshof': 1, u'que': 1, u'mrq/mqm': 1, u'NOCODE_Sakiriaba': 1, u'NOCODE_Mwele': 1,
+u'and all of the people speak Buginese': 1, u'mmc/maz': 1,
+u'imperfect speaker of a Harakmbut variety with Pano contamination': 1})
 real	64m40.647s
 
+
     time python glottolog3/scripts/match_obsolete_refs.py development.ini
+2016-01-26 10:52:50,007 INFO  [glottolog3][MainThread] 219 replacements
+real	0m27.111s
+
     time python glottolog3/scripts/fix_consistency.py development.ini
 
 
