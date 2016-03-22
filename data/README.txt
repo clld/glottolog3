@@ -161,7 +161,10 @@ real	80m42.376s
 real	203m57.857s
 
     - deploy to production (copy treefiles and downloads first!?)
-    fabg tasks.deploy:production
-    fabg tasks.copy_treefiles
+    fab tasks.deploy:production
+    fab copy_treefiles
+    copy downloads from download/2.7 to download
+
+	- update github releases with DOI from ZENODO
 
     - tweet

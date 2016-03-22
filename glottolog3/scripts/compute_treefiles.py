@@ -108,6 +108,8 @@ def main(args):  # pragma: no cover
             lang.name.replace(',', '/').replace('(', '{').replace(')', '}'), lang.id)
         if lang.hid and len(lang.hid) == 3:
             label += '[%s]' % lang.hid
+        if lang.level == LanguoidLevel.language:
+            label += '-l-'
         return label
 
     with transaction.manager:

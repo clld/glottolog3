@@ -95,7 +95,7 @@ def mkdir(lang, triggers, parent=None):
             altnames[name.description].add(n)
 
         for prov, names in altnames.items():
-            md.set('altnames', prov, names or None)
+            md.set('altnames', prov, sorted(list(names)) or None)
 
         _triggers = OrderedDict()
         for type_ in triggers:
