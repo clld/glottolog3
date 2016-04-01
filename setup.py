@@ -21,7 +21,7 @@ setup(
     install_requires=[
         'clldutils>=0.5',
         'clld>=1.7.1,<2.0.0',
-        'clldmpg>=1.1.1',
+        'clldmpg>=1.1.1,<2.0.0',
         'newick>=0.4',
     ],
     tests_require=[

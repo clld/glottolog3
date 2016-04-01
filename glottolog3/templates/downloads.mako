@@ -24,6 +24,11 @@
                     </a>
                 </dd>
                 <dd>
+                    <a href="${request.static_url('glottolog3:static/download/languages-and-dialects-geo.csv')}">
+                        Languages and dialects with geographic information in CSV format
+                    </a>
+                </dd>
+                <dd>
                     <a href="${request.route_url('resourcemap', _query=dict(rsc='language'))}">
                         Mapping of Glottocodes to ISO 639-3 codes (and others) in JSON format
                     </a>
@@ -52,11 +57,11 @@
     <%util:well title="Glottolog Data">
         <p>
             The data published by Glottolog is curated in the public GitHub repository
-            ${h.external_link("https://github.com/clld/glottolog-data", label='clld/glottolog-data')}.
+            ${h.external_link("https://github.com/clld/glottolog", label='clld/glottolog')}.
         </p>
         <p>
             You may report errors you found in Glottolog using this repositories
-            ${h.external_link("https://github.com/clld/glottolog-data/issues", label='issue tracker')}.
+            ${h.external_link("https://github.com/clld/glottolog/issues", label='issue tracker')}.
         </p>
     </%util:well>
 </%def>
