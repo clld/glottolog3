@@ -395,6 +395,7 @@
         <li class="itemize">To Mark Donohue for many points of dicussion re Papuan and Austronesian languages </li>
         <li class="itemize">To Matthew Dryer for many points of dicussion re Papuan and other languages </li>
         <li class="itemize">To Roger Blench for all things Nigerian and beyond </li>
+        <li class="itemize">To Tom Güldemann the 'bald eagle' of African language classification </li>
         <li class="itemize">To Bonny Sands for help with access to various valuable documents </li>
         <li class="itemize">To Mikael Parkvall for help with &ldquo;Creole&rdquo; language classification </li>
         <li class="itemize">To Willem Adelaar for many points of discussion re South American languages </li>
