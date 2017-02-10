@@ -393,6 +393,7 @@
     <ul class="itemize1">
         <li class="itemize">To Tim Usher for many points of dicussion re Papuan languages </li>
         <li class="itemize">To Mark Donohue for many points of dicussion re Papuan and Austronesian languages </li>
+        <li class="itemize">To Hilário de Sousa and Andy Hsiu for many points of dicussion and clarification regarding languages in the Sinosphere</li>
         <li class="itemize">To Matthew Dryer for many points of dicussion re Papuan and other languages </li>
         <li class="itemize">To Roger Blench for all things Nigerian and beyond </li>
         <li class="itemize">To Tom Güldemann the 'bald eagle' of African language classification </li>
