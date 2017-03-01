@@ -10,7 +10,6 @@ import transaction
 
 from sqlalchemy import desc
 
-from clld.util import jsonload
 from clld.db.models.common import Identifier, LanguageIdentifier, IdentifierType
 from clld.db.meta import DBSession
 
@@ -21,6 +20,20 @@ from glottolog3.scripts.util import (
 
 
 MAX_IDENTIFIER_PK = None
+
+
+def update_languoid(lang_db, lang_repos):
+    for key in [
+        'l_longitude',
+        'l_latitude',
+        'l_name',
+        'll_hid',
+        # TODO: iso code, level
+    ]:
+        attr = key.split('_', 1)[1]
+        if lang_db[key] != getattr(lang_repos, attr):
+            pass
+            #print('{0} {1}: {2} --> {3}'.format(code, attr, lang_db[key], getattr(lang_repos, attr)))
 
 
 def create_identifier(identifier, l, **kw):
@@ -35,6 +48,12 @@ def create_identifier(identifier, l, **kw):
 
 
 def main(args):  # pragma: no cover
+    #
+    #
+    # FIXME: Don't remove languoids from Bookkeeping book1242 !!!!!
+    #
+    #
+    #
     global MAX_IDENTIFIER_PK
 
     with transaction.manager:
@@ -45,6 +64,7 @@ def main(args):  # pragma: no cover
         gl_names = glottolog_names()
 
         languoids = {l.pk: l for l in DBSession.query(Languoid)}
+
         for attrs in jsonload(args.data_dir.joinpath('languoids', 'changes.json')):
             replacement = attrs.pop('replacement', None)
             hname = attrs.pop('hname', None)

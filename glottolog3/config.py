@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from clld.lib.bibtex import Record
-from clld.util import slug
+from clldutils.misc import slug
 
 
 CFG = {

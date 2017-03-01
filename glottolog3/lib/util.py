@@ -2,7 +2,7 @@ import re
 
 from sqlalchemy import select, func, cast, Integer, literal_column, union_all
 
-from clld.util import slug
+from clldutils.misc import slug
 from clld.db.meta import DBSession
 
 from glottolog3.models import Provider, Macroarea, Doctype, Languoid, LegacyCode

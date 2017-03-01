@@ -3,8 +3,6 @@
 Project related model.
 """
 from string import capwords
-from datetime import datetime
-from copy import copy
 
 from zope.interface import implementer
 
@@ -13,10 +11,7 @@ from sqlalchemy import (
     String,
     Unicode,
     Integer,
-    Boolean,
     ForeignKey,
-    Float,
-    DateTime,
     desc,
     UniqueConstraint,
     and_,
@@ -26,16 +21,12 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql.expression import func
-from sqlalchemy.ext.hybrid import hybrid_property
 
 from clld.interfaces import ISource, ILanguage
 from clld.db.meta import DBSession, Base, CustomModelMixin
 from clld.db.models.common import (
     Language, Source, HasSourceMixin, IdNameDescriptionMixin, IdentifierType, Identifier,
 )
-from clld.web.util.htmllib import literal
-from clld.lib import bibtex
-from clld.util import UnicodeMixin
 from clld.util import DeclEnum
 
 from glottolog3.interfaces import IProvider
@@ -141,9 +132,10 @@ class Refcountry(Base):
 
 
 class Refprovider(Base):
-    __table_args__ = (UniqueConstraint('ref_pk', 'provider_pk'),)
+    __table_args__ = (UniqueConstraint('ref_pk', 'provider_pk', 'key'),)
     provider_pk = Column(Integer, ForeignKey('provider.pk'), nullable=False)
     ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
+    key = Column(Unicode)
 
     @classmethod
     def get_stats(cls):
@@ -458,6 +450,7 @@ class Ref(CustomModelMixin, Source):
     normalizededitorstring = Column(Unicode)
     ozbib_id = Column(Integer)
     language_note = Column(Unicode)
+    srctrickle = Column(Unicode)
 
     #: store the trigger for computerized assignment of languages
     ca_language_trigger = Column(Unicode)
@@ -534,6 +527,13 @@ class TreeClosureTable(Base):
 
 class LegacyCode(Base):
     id = Column(String, unique=True)
+    version = Column(String)
+
+    def url(self, req):
+        return req.static_url(
+            req.registry.settings['clld.files'].joinpath(
+                'glottolog-{0}'.format(self.version), '{0}.html'.format(self.id)
+            ).as_posix())
 
 
 class LegacyRef(Base):

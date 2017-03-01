@@ -97,10 +97,10 @@
             <p><strong>Retired in ISO 639-3:</strong>
             ${u.linkify_iso_codes(request, iso_retirement['remedy'] or '', class_='iso639-3')}</p>
             <ul class="inline">
-                % if iso_retirement['cr']:
-                <li><strong>Change request:</strong> ${u.change_request_link(iso_retirement['cr'],  iso_retirement['iso'])}</li>
+                % if iso_retirement['change_request']:
+                <li><strong>Change request:</strong> ${u.change_request_link(iso_retirement['change_request'],  iso_retirement['code'])}</li>
                 % endif
-                <li><strong>ISO 639-3:</strong> ${iso_retirement['iso']}</li>
+                <li><strong>ISO 639-3:</strong> ${iso_retirement['code']}</li>
                 <li><strong>Name:</strong> ${iso_retirement['name']}</li>
                 % if iso_retirement['reason']:
                 <li><strong>Reason:</strong> ${iso_retirement['reason']}</li>

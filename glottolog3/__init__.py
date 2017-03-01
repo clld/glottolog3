@@ -1,7 +1,8 @@
 from functools import partial
 
-from pyramid.httpexceptions import HTTPGone
+from pyramid.httpexceptions import HTTPGone, HTTPMovedPermanently
 from pyramid.config import Configurator
+from pyramid.response import Response
 from sqlalchemy.orm import joinedload, joinedload_all
 from clld.interfaces import ICtxFactoryQuery
 from clld.web.app import menu_item, CtxFactoryQuery
@@ -32,9 +33,9 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
     def __call__(self, model, req):
         if model == Language:
             # responses for no longer supported legacy codes
-            legacy = req.db.query(models.LegacyCode).filter_by(id=req.matchdict['id'])
-            if req.db.query(legacy.exists()).scalar():
-                raise HTTPGone()
+            legacy = models.LegacyCode.get(req.matchdict['id'], default=None)
+            if legacy:
+                raise HTTPMovedPermanently(location=legacy.url(req))
         elif model == Source:
             legacy = req.db.query(models.LegacyRef).filter_by(id=req.matchdict['id'])
             if req.db.query(legacy.exists()).scalar():
@@ -65,6 +66,13 @@ def main(global_config, **settings):
     config.add_route('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')
 
     config.include('clldmpg')
+    config.add_route_and_view(
+        'robots',
+        '/robots.txt',
+        lambda req: Response(
+            'Sitemap: {0}\nUser-agent: *\nDisallow: /files/\n'.format(
+                req.route_url('sitemapindex')),
+            content_type='text/plain'))
     config.registry.registerUtility(GLCtxFactoryQuery(), ICtxFactoryQuery)
     config.register_menu(
         #('dataset', partial(menu_item, 'dataset', label='Home')),

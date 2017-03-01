@@ -52,7 +52,7 @@ def get_args():
         (("--data-dir",),
          dict(
              action=ExistingDir,
-             default=path('/home/robert/venvs/clld/data/glottolog-data/'))))
+             default=path('/home/shh.mpg.de/forkel/venvs/glottolog3/glottolog/'))))
 
 
 def ca_trigger(s):
@@ -192,7 +192,6 @@ def get_bib(args):
 
 def update_reflang(args):
     stats = Counter()
-    brugmann_noderefs = jsonload(args.data_dir.joinpath('languoid_refs.json'))
 
     languoid_map = {}
     for l in DBSession.query(Languoid).options(joinedload_all(
@@ -220,11 +219,6 @@ def update_reflang(args):
             n=10000,
             commit=True,
             verbose=True):
-        # disregard iso change requests:
-        if ref.description and ref.description.startswith('Change Request Number '):
-            stats.update(['ignored'])
-            continue
-
         if ref.id not in lgcodes:
             # remove all language relations for refs no longer in bib!
             update_relationship(ref.languages, [])
@@ -238,38 +232,22 @@ def update_reflang(args):
         else:
             ref.language_note = language_note
 
-        remove = brugmann_noderefs['delete'].get(str(ref.pk), [])
-
         # keep relations to non-language languoids:
         # FIXME: adapt this for bib-entries now referring to glottocodes of
         #        families/dialects (e.g. add a sticky-bit to languagesource)
         langs = [
             l for l in ref.languages if
-            (l.level != LanguoidLevel.language or not l.active) and l.pk not in remove]
+            (l.level != LanguoidLevel.language or not l.active)]
         langs_pk = [l.pk for l in langs]
-
-        # add relations from filemaker data:
-        for lpk in brugmann_noderefs['create'].get(str(ref.pk), []):
-            if lpk not in langs_pk:
-                l = Languoid.get(lpk, default=None)
-                if l:
-                    langs.append(l)
-                    langs_pk.append(l.pk)
-                else:
-                    args.log.warn('brugmann relation for non-existing languoid %s' % lpk)
 
         for code in set(get_codes(ref)):
             if code not in languoid_map:
                 stats.update([code])
                 continue
             lpk = languoid_map[code]
-            if lpk in remove:
-                print(ref.name, ref.id, '--', l.name, l.id)
-                print('relation removed according to brugmann data')
-            else:
-                if lpk not in langs_pk:
-                    langs.append(DBSession.query(Languoid).get(lpk))
-                    langs_pk.append(lpk)
+            if lpk not in langs_pk:
+                langs.append(DBSession.query(Languoid).get(lpk))
+                langs_pk.append(lpk)
 
         a, r = update_relationship(ref.languages, langs)
         if a or r:
@@ -279,7 +257,15 @@ def update_reflang(args):
 
 
 def recreate_treeclosure(session=None):
-    """Denormalize ancestry, top-level and descendant counts for languoids."""
+    """
+    Denormalize ancestry, top-level and descendant counts for languoids.
+
+    Recreates treeclosuretable and updates the following attributes of languoids:
+    - family_pk
+    - child_family_count
+    - child_language_count
+    - child_dialect_count
+    """
     if session is None:
         session = DBSession
     session.execute(TreeClosureTable.__table__.delete())
