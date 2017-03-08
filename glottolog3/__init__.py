@@ -33,10 +33,24 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
     def __call__(self, model, req):
         if model == Language:
             # responses for no longer supported legacy codes
-            legacy = models.LegacyCode.get(req.matchdict['id'], default=None)
-            if legacy:
-                raise HTTPMovedPermanently(location=legacy.url(req))
+            if not models.Languoid.get(req.matchdict['id'], default=None):
+                legacy = models.LegacyCode.get(req.matchdict['id'], default=None)
+                if legacy:
+                    raise HTTPMovedPermanently(location=legacy.url(req))
+            #
+            # FIXME: how to serve HTTP 410 for legacy codes?
+            #
         elif model == Source:
+            if ':' in req.matchdict['id']:
+                prov, key = req.matchdict['id'].split(':', 1)
+                ref = req.db.query(models.Source)\
+                    .join(models.Refprovider)\
+                    .join(models.Provider)\
+                    .filter(models.Refprovider.key == key)\
+                    .filter(models.Provider.id == prov)\
+                    .first()
+                if ref:
+                    raise HTTPMovedPermanently(location=req.route_url('source', id=ref.id))
             legacy = req.db.query(models.LegacyRef).filter_by(id=req.matchdict['id'])
             if req.db.query(legacy.exists()).scalar():
                 raise HTTPGone()

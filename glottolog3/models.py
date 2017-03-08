@@ -9,6 +9,8 @@ from zope.interface import implementer
 from sqlalchemy import (
     Column,
     String,
+    Date,
+    Boolean,
     Unicode,
     Integer,
     ForeignKey,
@@ -20,6 +22,7 @@ from sqlalchemy import (
     Index,
 )
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.sql.expression import func
 
 from clld.interfaces import ISource, ILanguage
@@ -30,6 +33,10 @@ from clld.db.models.common import (
 from clld.util import DeclEnum
 
 from glottolog3.interfaces import IProvider
+
+
+def github(path):
+    return 'https://github.com/clld/glottolog/blob/master/{0}'.format(path)
 
 
 @implementer(IProvider)
@@ -47,6 +54,10 @@ class Provider(Base, IdNameDescriptionMixin):
     refurl = Column(Unicode)
     # ... using the content of the bibfield attribute of a Ref instance.
     bibfield = Column(Unicode)
+
+    @property
+    def github_url(self):
+        return github('references/bibtex/{0}.bib'.format(self.id))
 
 
 class Macroarea(Base, IdNameDescriptionMixin):
@@ -119,6 +130,23 @@ class Refdoctype(Base):
     ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
 
 
+class Refprovider(Base):
+    __table_args__ = (UniqueConstraint('ref_pk', 'provider_pk', 'id'),)
+    provider_pk = Column(Integer, ForeignKey('provider.pk'), nullable=False)
+    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
+    id = Column(Unicode, unique=True, nullable=False)
+
+    @classmethod
+    def get_stats(cls):
+        return {
+            row[0]: row[1] for row in
+            DBSession.query(Provider.pk, func.count(cls.ref_pk).label('c'))
+                .filter(Provider.pk == cls.provider_pk)
+                .group_by(Provider.pk)
+                .order_by(desc('c'))
+                .all()}
+
+
 class Refmacroarea(Base):
     __table_args__ = (UniqueConstraint('ref_pk', 'macroarea_pk'),)
     macroarea_pk = Column(Integer, ForeignKey('macroarea.pk'), nullable=False)
@@ -131,23 +159,6 @@ class Refcountry(Base):
     ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
 
 
-class Refprovider(Base):
-    __table_args__ = (UniqueConstraint('ref_pk', 'provider_pk', 'key'),)
-    provider_pk = Column(Integer, ForeignKey('provider.pk'), nullable=False)
-    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
-    key = Column(Unicode)
-
-    @classmethod
-    def get_stats(cls):
-        return {
-            row[0]: row[1] for row in
-            DBSession.query(Provider.pk, func.count(cls.ref_pk).label('c'))
-            .filter(Provider.pk == cls.provider_pk)
-            .group_by(Provider.pk)
-            .order_by(desc('c'))
-            .all()}
-
-
 #-----------------------------------------------------------------------------
 # specialized common mapper classes
 #-----------------------------------------------------------------------------
@@ -158,12 +169,29 @@ class LanguoidLevel(DeclEnum):
 
 
 class LanguoidStatus(DeclEnum):
-    established = 'established', 'established'
-    spurious = 'spurious', 'spurious'
-    spurious_retired = 'spurious retired', 'spurious retired'
-    unattested = 'unattested', 'unattested'
-    provisional = 'provisional', 'provisional'
-    retired = 'retired', 'retired'
+    safe = \
+        'safe', \
+        'language is spoken by all generations; ' \
+        'intergenerational transmission is uninterrupted.'
+    vulnerable = \
+        'vulnerable',\
+        'most children speak the language, but it may be restricted to certain '\
+        'domains (e.g., home).'
+    definite = \
+        'definitely endangered',\
+        'children no longer learn the language as mother tongue in the home.'
+    severe = \
+        'severely endangered',\
+        'language is spoken by grandparents and older generations; while the parent ' \
+        'generation may understand it, they do not speak it to children or among ' \
+        'themselves'
+    critical = \
+        'critically endangered',\
+        'the youngest speakers are grandparents and older, and they speak the language ' \
+        'partially and infrequently'
+    extinct = \
+        'extinct',\
+        'there are no speakers left since the 1950s'
 
 
 SPECIAL_FAMILIES = (
@@ -198,6 +226,8 @@ class Languoid(CustomModelMixin, Language):
 
     level = Column(LanguoidLevel.db_type())
     status = Column(LanguoidStatus.db_type())
+    bookkeeping = Column(Boolean, default=False)
+    newick = Column(Unicode)
 
     child_family_count = Column(Integer)
     child_language_count = Column(Integer)
@@ -248,6 +278,13 @@ class Languoid(CustomModelMixin, Language):
                 TreeClosureTable.depth > 0))\
             .filter(TreeClosureTable.child_pk == self.pk)\
             .order_by(TreeClosureTable.depth)
+
+    @property
+    def github_url(self):
+        path = [self.id]
+        for l in self.get_ancestors():
+            path.append(l.id)
+        return github('languoids/tree/{0}/md.ini'.format('/'.join(reversed(path))))
 
     def __json__(self, req=None, core=False):
         def ancestor(l):
@@ -425,6 +462,7 @@ class Ref(CustomModelMixin, Source):
     title -> description
     """
     pk = Column(Integer, ForeignKey('source.pk'), primary_key=True)
+    fts = Column(TSVECTOR)
 
     field_labels = [
         ('author', 'author'),
@@ -452,18 +490,14 @@ class Ref(CustomModelMixin, Source):
     language_note = Column(Unicode)
     srctrickle = Column(Unicode)
 
+    gbid = Column(Unicode)
+    iaid = Column(Unicode)
+
     #: store the trigger for computerized assignment of languages
     ca_language_trigger = Column(Unicode)
 
     #: store the trigger for computerized assignment of doctype
     ca_doctype_trigger = Column(Unicode)
-
-    providers = relationship(
-        Provider,
-        secondary=Refprovider.__table__,
-        order_by='Provider.id',
-        backref=backref(
-            'refs', order_by='Source.author, Source.year, Source.description'))
 
     doctypes = relationship(
         Doctype,
@@ -485,6 +519,15 @@ class Ref(CustomModelMixin, Source):
         order_by='Country.name',
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
+
+    providers = relationship(
+        Provider,
+        secondary=Refprovider.__table__,
+        order_by='Provider.id',
+        backref=backref(
+            'refs', order_by='Source.author, Source.year, Source.description'))
+
+    bibkeys = relationship(Refprovider)
 
     def __rdf__(self, request):
         """
@@ -518,6 +561,9 @@ class Ref(CustomModelMixin, Source):
         return res
 
 
+Refprovider.ref = relationship(Ref)
+
+
 class TreeClosureTable(Base):
     __table_args__ = (UniqueConstraint('parent_pk', 'child_pk'),)
     parent_pk = Column(Integer, ForeignKey('languoid.pk'))
@@ -538,3 +584,26 @@ class LegacyCode(Base):
 
 class LegacyRef(Base):
     id = Column(String, unique=True)
+
+
+class EthnologueComment(Base):
+    comment = Column(Unicode)
+    code = Column(Unicode)
+    type = Column(Unicode)
+    affected = Column(Unicode)
+    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
+    languoid = relationship(
+        Languoid, backref=backref('ethnologue_comment', uselist=False))
+
+
+class ISORetirement(Base, IdNameDescriptionMixin):
+    # id -> ISO code
+    # name -> name
+    # description -> comment
+    effective = Column(Date)
+    reason = Column(Unicode)
+    change_request = Column(Unicode)  # how to link? it is a bibtex key in iso6393.bib or None
+    remedy = Column(Unicode)
+    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
+    languoid = relationship(
+        Languoid, backref=backref('iso_retirement', uselist=False))

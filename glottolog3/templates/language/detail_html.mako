@@ -13,11 +13,11 @@
 <div class="row-fluid">
     <div class="span8">
         <div style="float: right; margin-top: 20px;">${h.alt_representations(req, ctx, doc_position='left', exclude=['bigmap.html', 'snippet.html'])|n}</div>
-        <h3>${level}: <span class="level-${ctx.level.value}">${ctx}</span> ${h.contactmail(req, ctx, title='report a problem')}</h3>
-        % if request.admin:
-        <a href="http://vmext24-203.gwdg.de/glottologcurator/languages/${ctx.id}" class="btn"><i class="icon icon-wrench"> </i> glottologcurator</a>
-        % endif
-        % if ctx.active:
+        <h3>
+            ${level}: <span class="level-${ctx.level.value}">${ctx}</span>
+            ${h.contactmail(req, ctx, title='report a problem')}
+            ${u.github_link(ctx)}
+        </h3>
         <div class="well well-small" style="overflow: visible;">
             <ul class="inline pull-right">
                 <li>${h.button(h.icon('screenshot', inverted=True), 'open ' + ctx.name, title="open current node", onclick="GLOTTOLOG3.Tree.open('tree', '"+ctx.id+"', true)", class_='btn-info btn-mini')}</li>
@@ -39,7 +39,7 @@
             % endif
             % if ctx.fc:
                 <h5>Comments on family membership</h5>
-                <p>${u.format_classificationcomment(request, ctx.fc.description)}</p>
+                <p>${u.md(request, ctx.fc.description)}</p>
             % endif
             % if ctx.screfs:
                 <h5 title="${u'The references cited contain arguments for the placement of the node {0} with respect to its parents or the subclassification of the daughters of {0}.'.format(ctx.name)}">
@@ -49,7 +49,7 @@
             % endif
             % if ctx.sc:
                 <h5>Comments on subclassification</h5>
-                <p>${u.format_classificationcomment(request, ctx.sc.description)}</p>
+                <p>${u.md(request, ctx.sc.description)}</p>
             % endif
 
         </div>
@@ -58,60 +58,18 @@
         GLOTTOLOG3.Tree.init('tree', ${h.dumps(ctx.jqtree(icon_map))|n}, '${ctx.id}');
     });
         </script>
-        % else:
+        % if ctx.family and ctx.family.name == 'Bookkeeping':
         <div class="alert">
-            <h4>Superseded Languoid</h4>
-            <p>
-                This languoid is no longer part of the Glottolog classification.
-            </p>
-            <% repl = list(ctx.get_replacements()) %>
-            % if repl:
-            <p>You may want to look at the following languoids for relevant information.</p>
-            % endif
-            <ul>
-                % for l, r in repl:
-                <li>${u.languoid_link(request, l)}${' [' + r + ']' if r else ''}</li>
-                % endfor
-            </ul>
-        </div>
-        % endif
-
-        % if ctx.status and ctx.status != u.LanguoidStatus.established:
-        <div class="alert">
-            % if ctx.status.value == 'spurious':
-            This entry is spurious. This means either that the language denoted cannot be asserted
-            to be/have been a language distinct from all others, or that the language denoted is
-            covered in another entry.
-            % elif ctx.status.value == 'spurious retired':
             This entry has been retired and is featured here only for bookkeeping purposes. Either
             the entry has been replaced with one or more more accurate entries or it has been retired
             because it was based on a misunderstanding to begin with.
-            % else:
-            This language is ${ctx.status}.
-            % endif
         </div>
         % endif
-        % if 'iso_retirement' in ctx.jsondata and ctx.jsondata['iso_retirement']['iso'] == ctx.iso_code:
-        <% iso_retirement = ctx.jsondata['iso_retirement'] %>
-        <div class="alert alert-info">
-            <p><strong>Retired in ISO 639-3:</strong>
-            ${u.linkify_iso_codes(request, iso_retirement['remedy'] or '', class_='iso639-3')}</p>
-            <ul class="inline">
-                % if iso_retirement['change_request']:
-                <li><strong>Change request:</strong> ${u.change_request_link(iso_retirement['change_request'],  iso_retirement['code'])}</li>
-                % endif
-                <li><strong>ISO 639-3:</strong> ${iso_retirement['code']}</li>
-                <li><strong>Name:</strong> ${iso_retirement['name']}</li>
-                % if iso_retirement['reason']:
-                <li><strong>Reason:</strong> ${iso_retirement['reason']}</li>
-                % endif
-                <li><strong>Effective:</strong> ${iso_retirement['effective']}</li>
-            </ul>
-            % if iso_retirement['comment']:
-            <p><strong>Excerpt from change request document:</strong></p>
-            <blockquote><small>${iso_retirement['comment']}</small></blockquote>
-            % endif
-        </div>
+        % if ctx.ethnologue_comment:
+            ${u.format_ethnologue_comment(req, ctx)|n}
+        % endif
+        % if ctx.iso_retirement:
+            ${u.format_iso_retirement(req, ctx)|n}
         % endif
     </div>
 

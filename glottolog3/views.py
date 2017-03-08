@@ -6,7 +6,7 @@ from collections import OrderedDict
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
-from sqlalchemy import and_, true, false, null
+from sqlalchemy import and_, true, false, null, or_
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
@@ -59,10 +59,7 @@ def iso(request):
 
 
 def glottologmeta(request):
-    q = DBSession.query(Languoid)\
-        .filter(Language.active == true())\
-        .filter(Languoid.status.in_(
-            (LanguoidStatus.established, LanguoidStatus.unattested)))
+    q = DBSession.query(Languoid)
     qt = q.filter(Languoid.father_pk == null())
     res = {
         'last_update': DBSession.query(Language.updated)
@@ -70,7 +67,7 @@ def glottologmeta(request):
         'number_of_families': qt.filter(Languoid.level == LanguoidLevel.family).count(),
         'number_of_isolates': qt.filter(Languoid.level == LanguoidLevel.language).count(),
     }
-    ql = q.filter(Languoid.hid != null())
+    ql = q.filter(Languoid.level == LanguoidLevel.language)
     res['number_of_languages'] = {'all': ql.count()}
     res['special_families'] = OrderedDict()
     for name in SPECIAL_FAMILIES:
@@ -183,10 +180,13 @@ def getLanguoids(name=False,
 
     if name:
         namequeryfilter = {
-            "regex": func.lower(Identifier.name).like(name.lower()),
-            "part": func.lower(Identifier.name).contains(name.lower()),
-            "whole": func.lower(Identifier.name) == name.lower(),
-        }[namequerytype if namequerytype in ('regex', 'whole') else 'part']
+            "part": or_(
+                func.lower(Identifier.name).contains(name.lower()),
+                func.unaccent(Identifier.name).contains(func.unaccent(name))),
+            "whole": or_(
+                func.lower(Identifier.name) == name.lower(),
+                func.unaccent(Identifier.name) == func.unaccent(name)),
+        }[namequerytype if namequerytype == 'whole' else 'part']
 
         crit = [Identifier.type == 'name', namequeryfilter]
         if not multilingual:
@@ -225,9 +225,16 @@ def quicksearch(request):
         query = query.filter(Languoid.id == term)
         kind = 'Glottocode'
     else:
-        query = query.filter(Languoid.active == True, Languoid.identifiers.any(and_(
-            Identifier.type == u'name', Identifier.description == u'Glottolog',
-            func.lower(Identifier.name).contains(term))))
+        _query = query.filter(func.lower(Languoid.name) == term)
+        if _query.count() != 0:
+            query = _query
+        else:
+            query = query.filter(
+                Languoid.identifiers.any(and_(
+                    Identifier.type == u'name',
+                    Identifier.description == u'Glottolog',
+                    func.lower(Identifier.name).contains(term))))
+
         kind = 'name part'
         params['name'] = term
 

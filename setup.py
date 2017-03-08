@@ -19,9 +19,11 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'clld>=3.2.0',
+        'clldutils>=1.9.4',
+        'clld>=3.2.2',
         'clldmpg>=2.0.0',
         'newick>=0.4',
+        'markdown',
     ],
     tests_require=[
         'Webtest',

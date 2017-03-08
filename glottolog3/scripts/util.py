@@ -1,24 +1,15 @@
 from __future__ import unicode_literals, print_function
-import io
 import re
-from collections import Counter
-from itertools import groupby
-from six.moves.configparser import RawConfigParser
 
 from sqlalchemy import desc, and_
-from sqlalchemy.orm import joinedload_all
 from path import path
 
-from clldutils.misc import slug
-from clldutils.jsonlib import load as jsonload
 from clld.db.meta import DBSession
-from clld.lib.bibtex import Database
-from clld.db.models.common import Source, Language, LanguageIdentifier, Identifier
-from clld.db.util import page_query
+from clld.db.models.common import Identifier
 from clld.scripts.util import parsed_args, ExistingDir
 
-from glottolog3.lib.util import get_map, roman_to_int
-from glottolog3.models import Ref, Languoid, TreeClosureTable, Provider, LanguoidLevel
+from glottolog3.lib.util import roman_to_int
+from glottolog3.models import Ref, TreeClosureTable
 
 
 WORD_PATTERN = re.compile('[a-z]+')
@@ -135,25 +126,6 @@ def compute_pages(pages):
     return (start, end, number if number > 0 else None)
 
 
-def update_relationship(col, new, log=None, log_only=False):
-    added, removed = 0, 0
-    old = set(item for item in col)
-    new = set(new)
-    for item in old - new:
-        removed += 1
-        if not log_only:
-            col.remove(item)
-        if log:
-            log.info('--')
-    for item in new - old:
-        added += 1
-        if not log_only:
-            col.append(item)
-        if log:
-            log.info('++')
-    return added, removed
-
-
 def get_codes(ref):
     """detect language codes in a string
 
@@ -175,85 +147,6 @@ def get_codes(ref):
         for code in [s.strip() for s in match.group('content').split(',')]:
             if CODE_PATTERN.match(code):
                 yield code_map.get(code, code)
-
-
-def get_bibkeys(bibrec):
-    if 'srctrickle' not in bibrec:
-        print(bibrec)
-        raise ValueError
-    return {provider: [rec[1] for rec in recs] for provider, recs in groupby(
-        [t.split('#', 1) for t in sorted(re.split('\s*,\s*', bibrec['srctrickle']))],
-        lambda p: p[0])}
-
-
-def get_bib(args):
-    return Database.from_file(args.data_dir.joinpath('scripts', 'monster-utf8.bib'))
-
-
-def update_reflang(args):
-    stats = Counter()
-
-    languoid_map = {}
-    for l in DBSession.query(Languoid).options(joinedload_all(
-        Language.languageidentifier, LanguageIdentifier.identifier
-    )):
-        if l.hid:
-            languoid_map[l.hid] = l.pk
-        elif l.iso_code:
-            languoid_map[l.iso_code] = l.pk
-        languoid_map[l.id] = l.pk
-
-    lgcodes = {}
-    for rec in get_bib(args):
-        lgcode = ''
-        for f in 'lgcode lcode lgcde lgcoe lgcosw'.split():
-            if rec.get(f):
-                lgcode = rec[f]
-                break
-        if len(lgcode) == 3 or lgcode.startswith('NOCODE_'):
-            lgcode = '[' + lgcode + ']'
-        lgcodes[rec.get('glottolog_ref_id', None)] = lgcode
-
-    for ref in page_query(
-            DBSession.query(Ref).order_by(desc(Source.pk)),
-            n=10000,
-            commit=True,
-            verbose=True):
-        if ref.id not in lgcodes:
-            # remove all language relations for refs no longer in bib!
-            update_relationship(ref.languages, [])
-            stats.update(['obsolete'])
-            continue
-
-        language_note = lgcodes[ref.id]
-        trigger = ca_trigger(language_note)
-        if trigger:
-            ref.ca_language_trigger, ref.language_note = trigger
-        else:
-            ref.language_note = language_note
-
-        # keep relations to non-language languoids:
-        # FIXME: adapt this for bib-entries now referring to glottocodes of
-        #        families/dialects (e.g. add a sticky-bit to languagesource)
-        langs = [
-            l for l in ref.languages if
-            (l.level != LanguoidLevel.language or not l.active)]
-        langs_pk = [l.pk for l in langs]
-
-        for code in set(get_codes(ref)):
-            if code not in languoid_map:
-                stats.update([code])
-                continue
-            lpk = languoid_map[code]
-            if lpk not in langs_pk:
-                langs.append(DBSession.query(Languoid).get(lpk))
-                langs_pk.append(lpk)
-
-        a, r = update_relationship(ref.languages, langs)
-        if a or r:
-            stats.update(['changed'])
-
-    args.log.info('%s' % stats)
 
 
 def recreate_treeclosure(session=None):
@@ -316,42 +209,6 @@ def recreate_treeclosure(session=None):
     for s in sql:
         session.execute(s)
     session.execute('COMMIT')
-
-
-def update_providers(args, verbose=False):
-    filepath = args.data_dir.joinpath('references', 'bibtex', 'BIBFILES.ini')
-    p = RawConfigParser()
-    with io.open(filepath, encoding='utf-8-sig') as fp:
-        p.readfp(fp)
-
-    provider_map = get_map(Provider)
-    for section in p.sections():
-        sectname = section[:-4] if section.endswith('.bib') else section
-        id_ = slug(sectname)
-        attrs = {
-            'name': p.get(section, 'title'),
-            'description': p.get(section, 'description'),
-            'abbr': p.get(section, 'abbr'),
-        }
-        if id_ in provider_map:
-            provider = provider_map[id_]
-            for a in list(attrs):
-                before, after = getattr(provider, a), attrs[a]
-                if before == after:
-                    del attrs[a]
-                else:
-                    setattr(provider, a, after)
-                    attrs[a] = (before, after)
-            if attrs:
-                args.log.info('updating provider %s %s' % (slug(id_), sorted(attrs)))
-            if verbose:
-                for a, (before, after) in attrs.items():
-                    before, after = (' '.join(_.split()) for _ in (before, after))
-                    if before != after:
-                        args.log.info('%s\n%r\n%r' % (a, before, after))
-        else:
-            args.log.info('adding provider %s' % slug(id_))
-            DBSession.add(Provider(id=id_, **attrs))
 
 
 def update_refnames(args):

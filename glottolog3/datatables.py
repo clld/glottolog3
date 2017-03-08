@@ -5,6 +5,7 @@ from sqlalchemy.orm import aliased, joinedload, subqueryload, contains_eager
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
+from clld.db import fts
 from clld.db.models.common import Language, LanguageSource, Source
 from clld.web.datatables.base import DataTable, Col, DetailsRowLinkCol, LinkCol
 from clld.web.datatables.language import Languages
@@ -44,7 +45,7 @@ class NameCol(Col):
 
 class StatusCol(Col):
     def __init__(self, dt, name, **kw):
-        kw['sFilter'] = LanguoidStatus.established.value
+        #kw['sFilter'] = LanguoidStatus.
         kw['choices'] = get_distinct_values(Languoid.status)
         super(StatusCol, self).__init__(dt, name, **kw)
 
@@ -136,14 +137,13 @@ class Families(Languages):
         super(Families, self).__init__(req, model, **kw)
 
     def default_order(self):
-        return Language.created.desc(), Language.pk
+        return Language.updated.desc(), Language.pk
 
     def db_model(self):
         return Languoid
 
     def base_query(self, query):
-        query = query.filter(Language.active == True)\
-            .filter(Languoid.status == LanguoidStatus.established)\
+        query = query \
             .outerjoin(self.top_level_family, self.top_level_family.pk == Languoid.family_pk)\
             .options(
                 contains_eager(Languoid.family, alias=self.top_level_family),
@@ -251,6 +251,31 @@ class DirectAssignmentCol(Col):
         return ''
 
 
+class FtsCol(Col):
+    __kw__ = dict(bSortable=False)
+
+    def format(self, item):
+        return '+'
+
+    def search(self, qs):
+        return fts.search(self.model_col, qs)
+
+
+class BibkeyCol(Col):
+    def order(self):
+        return Refprovider.id
+
+    def search(self, qs):
+        return icontains(Refprovider.id, qs)
+
+    def format(self, item):
+        for bibkey in item.bibkeys:
+            prov, bibkey = bibkey.id.split(':', 1)
+            if prov == self.dt.provider.id:
+                return bibkey
+        return ''
+
+
 class Refs(Sources):
     def __init__(self, req, *args, **kw):
         if 'cq' in kw:
@@ -259,6 +284,13 @@ class Refs(Sources):
             self.complexquery = get_params(req.params)
         else:
             self.complexquery = None
+
+        if 'provider' in kw:
+            self.provider = kw['provider']
+        elif 'provider' in req.params:
+            self.provider = Provider.get(req.params['provider'])
+        else:
+            self.provider = None
         super(Refs, self).__init__(req, *args, **kw)
         if self.language:
             self.language_sources = [s.pk for s in self.language.sources]
@@ -269,12 +301,15 @@ class Refs(Sources):
         return Source.updated.desc(), Source.pk.desc()
 
     def col_defs(self):
-        cols = [
-            DetailsRowLinkCol(self, 'd'),
+        cols = [DetailsRowLinkCol(self, 'd', button_text='citation')]
+        if self.provider:
+            cols.append(BibkeyCol(self, 'key'))
+        cols.extend([
             LinkCol(self, 'name'),
             Col(self, 'description', sTitle='Title'),
+            FtsCol(self, 'fts', model_col=Ref.fts),
             CaCol(self, 'ca_language'),
-        ]
+        ])
 
         if not self.complexquery:
             cols.append(Col(self, 'year', model_col=Source.year_int))
@@ -282,7 +317,8 @@ class Refs(Sources):
 
         cols.append(DoctypeCol(self, 'doctype'))
         cols.append(CaCol(self, 'ca_doctype'))
-        cols.append(ProviderCol(self, 'provider'))
+        if not self.provider:
+            cols.append(ProviderCol(self, 'provider'))
         if self.language:
             cols.append(DirectAssignmentCol(
                 self, 'd',
@@ -296,7 +332,10 @@ class Refs(Sources):
         return Ref
 
     def base_query(self, query):
-        query = query.options(joinedload(Ref.doctypes), joinedload(Ref.providers))
+        query = query.options(joinedload(Ref.doctypes))
+        if not self.provider:
+            query = query.options(joinedload(Ref.providers))
+
         if self.language:
             subquery = DBSession.query(LanguageSource)\
                 .filter_by(source_pk=Ref.pk)\
@@ -306,6 +345,11 @@ class Refs(Sources):
             query = query.filter(subquery.exists())
         elif self.complexquery:
             query = getRefs(self.complexquery[0])
+        elif self.provider:
+            query = query.join(Refprovider, and_(
+                Refprovider.provider_pk == self.provider.pk,
+                Refprovider.ref_pk == Ref.pk))\
+                .options(joinedload(Ref.bibkeys))
         return query
 
     def xhr_query(self):
@@ -313,6 +357,8 @@ class Refs(Sources):
         if self.complexquery:
             query['cq'] = '1'
             query.update(self.complexquery[1])
+        if self.provider:
+            query['provider'] = self.provider.id
         return query
 
 

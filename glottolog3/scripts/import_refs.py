@@ -294,23 +294,11 @@ def main(args):  # pragma: no cover
             originator = ref.author or ref.editor or 'Anonymous'
             ref.name = '%s %s' % (originator, ref.year or 'n.d.')
 
-            a, r = update_relationship(
-                ref.macroareas,
-                [macroarea_map[name] for name in
-                 set(filter(None, [s.strip() for s in kw['jsondata'].get('macro_area', '').split(',')]))])
-            changed = changed or a or r
-
             src = [s.strip() for s in kw['jsondata'].get('src', '').split(',')]
             prv = {provider_map[slug(s)] for s in src if s}
             if set(ref.providers) != prv:
                 ref.providers = list(prv)
                 changed = True
-
-            a, r = update_relationship(
-                ref.doctypes,
-                [doctype_map[m.group('name')] for m in
-                 DOCTYPE_PATTERN.finditer(kw['jsondata'].get('hhtype', ''))])
-            changed = changed or a or r
 
             if not update:
                 stats.update(['new'])

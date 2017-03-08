@@ -1,52 +1,45 @@
-from json import dumps
+from __future__ import unicode_literals
 import re
 from itertools import cycle
 
 import colander
-
+from markdown import markdown
+from markupsafe import Markup
 from clld.db.meta import DBSession
 from clld.db.models.common import Language, Source, LanguageSource
 from clld.db.util import icontains
 from clld.web.adapters.download import download_dir, download_asset_spec
-from clld.web.util.helpers import link, icon
+from clld.web.util.helpers import link, icon, button
 from clld.web.util.htmllib import HTML, literal
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
+from pyglottolog.objects import Reference
 
 from glottolog3.models import (
-    Languoid, Provider, Ref,
+    Languoid, Provider, Ref, Refprovider,
     Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
     LanguoidStatus,
 )
 from glottolog3.maps import LanguoidMap
 
 
-REF_PATTERN = re.compile('\*\*(?P<id>[0-9]+)\*\*')
 LANG_PATTERN = re.compile('\[(?P<id>[^\]]+)\]')
 ISO_PATTERN = re.compile(r'\[(?P<iso>[a-z]{3})\]')
 
 
+def github_link(ctx):
+    return button(
+        icon('pencil'), title="see on GitHub", href=ctx.github_url, class_='btn-mini')
+
+
 def languoid_link(req, languoid, active=True, classification=False):
     link_attrs = {}
-    if languoid.status and languoid.status.value:
-        link_attrs['class'] = 'Language ' + languoid.status.value
-    if languoid.status and languoid.status != LanguoidStatus.established:
-        link_attrs['title'] = '%s - %s' % (languoid.name, languoid.status.description)
     content = [link(req, languoid, **link_attrs) if active else languoid.name]
     if classification:
         if languoid.fc or languoid.sc:
             content.append(
                 icon("icon-info-sign", title="classification comment available"))
     return HTML.span(*content, **dict(class_="level-" + languoid.level.value))
-
-
-def change_request_link(cr_id, iso_code=None, label=None):
-    url = 'http://www-01.sil.org/iso639-3/chg_detail.asp?id={0}'
-    args = [cr_id]
-    if iso_code:
-        url += '&lang={1}'
-        args.append(iso_code)
-    return HTML.a(label or cr_id, href=url.format(*args))
 
 
 def linkify_iso_codes(request, text, class_=None, route_name='glottolog.iso'):
@@ -62,14 +55,17 @@ def linkify_iso_codes(request, text, class_=None, route_name='glottolog.iso'):
 
 
 def old_downloads(req):
-    for version in sorted(download_dir('glottolog3').dirs()):
-        number = version.basename()
-        dls = []
-        for f in version.files():
-            dls.append((
-                f.basename(),
-                req.static_url(download_asset_spec('glottolog3', number, f.basename()))))
-        yield number, dls
+    for version in sorted(download_dir('glottolog3').iterdir()):
+        if version.is_dir():
+            number = version.name
+            dls = []
+            for f in version.iterdir():
+                if f.is_file():
+                    dls.append((
+                        f.name,
+                        req.static_url(
+                            download_asset_spec('glottolog3', number, f.name))))
+            yield number, dls
 
 
 class ModelInstance(object):
@@ -213,28 +209,20 @@ def format_comment(req, comment):
     sources = {}
     pos = 0
     comment = comment.replace('~', ' ')
-    for match in REF_PATTERN.finditer(comment):
+    for match in Reference.pattern.finditer(comment):
         preceding = comment[pos:match.start()]
         parts.append(preceding)
-        add_braces = \
-            (preceding.strip().split() or ['aaa'])[-1] not in ['in', 'of', 'per', 'by']
-        if add_braces:
-            parts.append('(')
-        parts.append(match.group('id'))
-        sources[match.group('id')] = None
-        if add_braces:
-            parts.append(')')
+        parts.append(match.group('key'))
+        sources[match.group('key')] = None
+        if match.group('pages'):
+            parts.append(':{0}'.format(match.group('pages')))
         pos = match.end()
     parts.append(comment[pos:])
 
-    for source in DBSession.query(Source).filter(Source.id.in_(sources.keys())):
-        sources[source.id] = source
+    for rp in DBSession.query(Refprovider).filter(Refprovider.id.in_(sources.keys())):
+        sources[rp.id] = rp.ref
 
-    return HTML.p(*[link(req, sources[p]) if p in sources else p for p in parts] )
-
-
-def format_classificationcomment(req, comment):
-    return format_comment(req, comment)
+    return ' '.join(link(req, sources[p]) if p in sources else p for p in parts)
 
 
 def format_justifications(req, refs):
@@ -355,3 +343,53 @@ def language_snippet_html(request=None, context=None, **kw):
     return dict(
         source=Source.get(request.params['source'])
         if request.params.get('source') else None)
+
+
+def md(req, s, small=False):
+    res = linkify_iso_codes(req, s)
+    res = format_comment(req, res)
+    res = markdown(res, extensions=['markdown.extensions.tables'])
+    if small:
+        res = res.replace('<p>', '<p><small>').replace('</p>', '</small></p>')
+    return Markup(res.replace('<table>', '<table class="table">'))
+
+
+def infobox(*content):
+    return HTML.div(
+        HTML.button(
+            '\xd7', **{'type': "button", 'class': "close", 'data-dismiss': "alert"}),
+        *content,
+        **{'class': "alert alert-success"})
+
+
+def format_ethnologue_comment(req, lang):
+    return infobox(md(req, lang.ethnologue_comment.comment))
+
+
+def format_iso_retirement(req, lang):
+    ir = lang.iso_retirement
+    _md, comment = [], ''
+    if ir.description:
+        comment = HTML.div(
+            HTML.p(HTML.strong("Excerpt from change request document:")),
+            HTML.blockquote(md(req, ir.description, small=True)))
+
+    if ir.change_request:
+        _md.append((
+            'Change request:',
+            link(
+                req,
+                Refprovider.get('iso6393:{0}'.format(ir.change_request)).ref,
+                label=ir.change_request)))
+    _md.append(('ISO 639-3:', ir.id))
+    _md.append(('Name:', ir.name))
+    if ir.reason:
+        _md.append(('Reason:', ir.reason))
+    _md.append(('Effective:', ir.effective))
+
+    return infobox(
+        HTML.p(
+            HTML.strong("Retired in ISO 639-3: "),
+            linkify_iso_codes(req, ir.remedy, class_='iso639-3')),
+        HTML.ul(*[HTML.li(HTML.strong(dt), Markup('&nbsp;'), dd) for dt, dd in _md], **{'class': 'inline'}),
+        comment)

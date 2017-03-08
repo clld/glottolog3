@@ -2,8 +2,9 @@
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "sources" %>
 
-<h2>Provider ${ctx.name}</h2>
+<h3>Provider ${ctx.name} ${u.github_link(ctx)}</h3>
 
-<p>
-    ${ctx.description}
-</p>
+<div class="alert alert-success">
+    ${u.md(req, ctx.description)}
+</div>
+${request.get_datatable('sources', h.models.Source, provider=ctx).render()}

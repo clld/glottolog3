@@ -2,13 +2,14 @@
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "sources" %>
 
+<%block name="title">${ctx.name}</%block>
 
 <h3>${ctx.name}  ${h.contactmail(req, ctx, title='report a problem')}</h3>
 ##<abbr class="unapi-id" title="${h.urlescape(request.resource_url(ctx))}"></abbr>
 ${ctx.coins(request)|n}
 
 % if ctx.jsondata.get('thanks'):
-<div class="alert alert-info">
+<div class="alert alert-success">
     This record was contributed by ${ctx.jsondata['thanks']}.
 </div>
 % endif
@@ -27,6 +28,11 @@ ${ctx.coins(request)|n}
             % if ctx.datadict().get('Additional_information'):
             <p>
                 ${ctx.datadict().get('Additional_information')}
+            </p>
+            % endif
+            % if ctx.author == 'ISO 639-3 Registration Authority':
+            <p>
+                ${h.external_link(ctx.howpublished)}
             </p>
             % endif
             % if ctx.url:

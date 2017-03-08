@@ -16,29 +16,70 @@ T = Template("""\
     <head>
         <meta charset="utf-8">
         <title>Glottolog ${version} - ${lang.text}</title>
+        <link href="/clld-static/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/clld-static/css/bootstrap-responsive.min.css" rel="stylesheet">
+        <link href="/static/project.css" rel="stylesheet">
     </head>
     <body>
-        <h1>Glottolog ${version}</h1>
-        <h2>${lang.text}</h2>
+        <div class="navbar navbar-static-top navbar-inverse">
+            <div class="navbar-inner">
+                <div class="container-fluid">
+                    <a class="brand active" style="color: white !important" title="Glottolog ${version}">Glottolog ${version}</a>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row-fluid" style="margin-top: 10px;">
+                <div class="span12">
+                    <div class="alert alert-error">
+                        You are browsing an outdated version of Glottolog. The current
+                        version can be found at
+                        <a href="http://glottolog.org">http://glottolog.org</a>.
+                    </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="span8">
+                    <h3>${lang.level.capitalize() + ': ' if lang.level else ''}<span class="level-${lang.level}">${lang.name}</span> [${lang.id}]</h3>
 
-        <h3>Classification</h3>
-        ${clf|n}
+                    % if replacements:
+                    <div class="alert">
+                        This languoid is no longer part of the Glottolog classification.
+                        You may want to look at the following languoids for relevant information.
+                    </div>
+                    <ul>
+                        % for r in replacements:
+                        <li>${r}</li>
+                        % endfor
+                    </ul>
+                    % endif
 
-        % if identifiers:
-        <h3>Identifiers</h3>
-        <ul>
-            % for i in identifiers:
-            <li>${i}</li>
-            % endfor
-        </ul>
-        % endif
+                    % if clf:
+                    <h4>Classification</h4>
+                    ${clf|n}
+                    % endif
 
-        <h3>Other Versions</h3>
-        <ul>
-            % for v in versions:
-            <li>${v|n}</li>
-            % endfor
-        </ul>
+                    % if identifiers:
+                    <h4>Identifiers</h4>
+                    <ul>
+                        % for i in identifiers:
+                        <li>${i}</li>
+                        % endfor
+                    </ul>
+                    % endif
+                </div>
+                <div class="span4">
+                    <div class="well well-small">
+                        <h4>Other Versions</h4>
+                        <ul>
+                            % for v in versions:
+                            <li>${v|n}</li>
+                            % endfor
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     </body>
 </html>
 """)
@@ -58,12 +99,18 @@ class L(UnicodeMixin):
     pk = attr.ib()
     id = attr.ib()
     name = attr.ib()
-    level = attr.ib()
-    fpk = attr.ib()
     version = attr.ib()
+    level = attr.ib(default=None)
+    fpk = attr.ib(default=None)
+    replacements = attr.ib(default=attr.Factory(list))
 
     def __unicode__(self):
-        return '{0.name} [{0.id}] {0.level}'.format(self)
+        res = '{0.name} [{0.id}]'.format(self)
+        if self.level:
+            res += ' {0.level}'.format(self)
+        if self.replacements:
+            res += ' superseded'
+        return res
 
     @property
     def text(self):
@@ -75,7 +122,7 @@ class L(UnicodeMixin):
 
     @property
     def cross_version_link(self):
-        return '<a href="../glottolog-{0.version}/{0.id}.html">{0} in Glottolog {0.version}</a>'.format(self)
+        return '<a href="../glottolog-{0.version}/{0.id}.html">[{0.id}] in Glottolog {0.version}</a>'.format(self)
 
 
 @attr.s
@@ -124,9 +171,11 @@ def dump(version, all_langs, identifiers):
             T.render_unicode(
                 version=version,
                 lang=lang,
-                clf=reduce(wrap, clf),
+                clf=reduce(wrap, clf) if not lang.replacements else '',
                 versions=versions,
                 identifiers=identifiers.get(lang.pk, []),
+                replacements=[all_langs[version][lid].link for lid in lang.replacements
+                              if lid in all_langs[version]],
                 wrap=wrap,
                 link_list=link_list,
             )
@@ -140,10 +189,21 @@ if __name__ == '__main__':
     for version in versions:
         db = create_engine('postgresql://robert@/glottolog-{0}'.format(version))
         langs[version] = {
-            r['id']: L(r['pk'], r['id'], r['name'], r['level'], r['father_pk'], version)
+            r['id']: L(r['pk'], r['id'], r['name'], version, r['level'], r['father_pk'])
             for r in db.execute("""\
 select l.pk, l.id, l.name, ll.level, ll.father_pk
 from language as l, languoid as ll where l.pk = ll.pk and l.active = true""")}
+
+        for r in db.execute("""\
+select l.pk, l.id, l.name, string_agg(ll.id, ' ') as replacements
+from language as l, language as ll, superseded as s
+where l.pk = s.languoid_pk and ll.pk = s.replacement_pk
+group by l.pk, l.id, l.name
+            """):
+            if r['id'] not in langs[version]:
+                langs[version][r['id']] = L(
+                    r['pk'], r['id'], r['name'], version, replacements=r['replacements'].split())
+
         identifiers[version] = [
             I(r['language_pk'], r['name'], r['description'], r['type']) for r in
             db.execute("""\

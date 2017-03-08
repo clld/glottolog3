@@ -175,34 +175,25 @@ CFG = {
         {
             'name': 'WALS',
             'hrefs': lambda l: ["http://wals.info/languoid/lect/wals_code_"
-            + i.name for i in l.get_identifier_objs('WALS')],
-            'condition': lambda l: l.get_identifier('WALS'),
+            + i.name for i in l.get_identifier_objs('wals')],
+            'condition': lambda l: l.get_identifier('wals') and '/' not in l.get_identifier('wals'),
             'rdf': "owl:sameAs",
             'logo': "wals.png"
         },
         {
-            'name': 'WALSgenus',
-            'href': lambda l: "http://wals.info/languoid/genus/"
-            + slug(l.get_identifier('WALSgenus')),
-            'condition': lambda l: l.get_identifier('WALSgenus'),
-            'rdf': "owl:sameAs",
-            'logo': "wals.png"
-        },
-        {
-            'name': 'WALSfamily',
-            'href': lambda l: "http://wals.info/languoid/family/"
-            + slug(l.get_identifier('WALSfamily')),
-            'condition': lambda l: l.get_identifier('WALSfamily'),
+            'name': 'WALS',
+            'href': lambda l: "http://wals.info/languoid/" + l.get_identifier('wals'),
+            'condition': lambda l: l.get_identifier('wals') and '/' in l.get_identifier('wals'),
             'rdf': "owl:sameAs",
             'logo': "wals.png"
         },
         {
             'name': 'Endangered Languages',
             'href': lambda l: "http://www.endangeredlanguages.com/lang/"
-            + l.iso_code,
+            + l.get_identifier('endangeredlanguages'),
             'rdf': "rdfs:seeAlso",
             'logo': 'ELP.png',
-            'condition': lambda l: l.iso_code,
+            'condition': lambda l: l.get_identifier('endangeredlanguages'),
         },
         {
             'name': 'UNESCO Atlas',
@@ -222,9 +213,9 @@ CFG = {
         #},
         {
             'name': 'Language Landscape',
-            'href': lambda l: l.jsondata['languagelandscape'],
+            'href': lambda l: l.get_identifier('languagelandscape'),
             'rdf': "rdfs:seeAlso",
-            'condition': lambda l: 'languagelandscape' in l.jsondata,
+            'condition': lambda l: l.get_identifier('languagelandscape'),
             'logo': "languagelandscape.png"
         },
         #{ # requires click-through terms-of-use

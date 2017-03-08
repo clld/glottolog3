@@ -81,13 +81,14 @@ class Newick(Representation):
     def render(self, languoid, request):
         if languoid.family:
             languoid = languoid.family
-        filename = 'tree-%s-newick.txt' % languoid.id
-        tree_dir = path(glottolog3.__file__).dirname().joinpath('static', 'trees')
-        if tree_dir.joinpath(filename).exists():
-            with codecs.open(tree_dir.joinpath(filename), encoding='utf8') as fp:
-                content = fp.read()
-            return content
-        return ''
+        return languoid.newick
+        #filename = 'tree-%s-newick.txt' % languoid.id
+        #tree_dir = path(glottolog3.__file__).dirname().joinpath('static', 'trees')
+        #if tree_dir.joinpath(filename).exists():
+        #    with codecs.open(tree_dir.joinpath(filename), encoding='utf8') as fp:
+        #        content = fp.read()
+        #    return content
+        #return ''
 
 
 class PhyloXML(Representation):

@@ -1,15 +1,13 @@
 import datetime
 
-from path import path
-
+from clldutils.path import Path
 from clld.tests.util import TestWithApp
 
 import glottolog3
 
 
 class Tests(TestWithApp):
-    __cfg__ = path(glottolog3.__file__).dirname().joinpath('..', 'development.ini').abspath()
-    __setup_db__ = False
+    __cfg__ = Path(glottolog3.__file__).parent.parent.joinpath('development.ini').resolve()
 
     def test_home(self):
         self.app.get('/')
@@ -99,7 +97,7 @@ class Tests(TestWithApp):
         self.app.get('/resource/languoid/id/zulu1241', status=410)
         self.app.get('/resource/reference/id/11.xhtml', status=301)
         self.app.get('/resource/reference/id/0', status=404)
-        self.app.get('/resource/reference/id/11', status=410)
+        self.app.get('/resource/reference/id/174997', status=410)
         self.app.get('/credits', status=301)
 
     def test_language(self):
@@ -116,7 +114,7 @@ class Tests(TestWithApp):
         self.assertIn('classification', res)
         self.app.get('/resource/languoid/id/stan1295')
         self.app.get('/resource/languoid/id/alba1269')
-        self.app.get('/resource/languoid/id/nilo1235')
+        self.app.get('/resource/languoid/id/nilo1235', status=301)
         self.app.get('/resource/languoid/id/stan1295.bigmap.html')
         self.app.get('/resource/languoid/id/chil1280.newick.txt')
         self.app.get_xml('/resource/languoid/id/atha1245.phylo.xml')
@@ -126,7 +124,7 @@ class Tests(TestWithApp):
         self.app.get('/resource/reference/id/2')
         self.app.get_html('/resource/reference/id/40223')
 
-    def test_desc_stats(self):
-        self.app.get_html('/langdoc/status')
-        self.app.get_html('/langdoc/status/browser?macroarea=Eurasia')
-        self.app.get_html('/langdoc/status/languages-0-1?macroarea=Eurasia')
+    #def test_desc_stats(self):
+    #    self.app.get_html('/langdoc/status')
+    #    self.app.get_html('/langdoc/status/browser?macroarea=Eurasia')
+    #    self.app.get_html('/langdoc/status/languages-0-1?macroarea=Eurasia')
