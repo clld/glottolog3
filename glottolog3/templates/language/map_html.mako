@@ -22,7 +22,11 @@ ${map.render()}
                 <tr>
                     <% family = family_map[language.family_pk] %>
                     <% img = h.HTML.img(width='20', height='20', src=icon_map[language.family_pk]) %>
-                    <td>${h.link_to_map(language)}</td>
+                    <td>
+                        % if language.latitude is not None:
+                        ${h.link_to_map(language)}
+                        % endif
+                    </td>
                     <td>
                         % if family:
                         ${h.link(request, family, title=family.name, rsc='language', label=img)}

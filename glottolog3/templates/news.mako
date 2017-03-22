@@ -2,6 +2,35 @@
 
 <h3>News</h3>
 
+<h4>Glottolog 3.0 - 2017-03-29</h4>
+
+<dl>
+    <dt>References</dt>
+    <dd>
+        <p>
+            We added references from a new provider:
+        </p>
+        <p>
+            <a href="${request.route_url('provider', id='benjamins')}">
+                Bibliographical records
+            </a>
+            for all linguistic books and journal articles
+            cited in books published by
+            ${h.external_link('https://benjamins.com/', label='John Benjamins Publishing Company')}.
+        </p>
+    </dd>
+    <dt>Languoids</dt>
+    <dd>
+        The language classification has changed in many - smaller and bigger - ways
+        since Glottolog 2.7 more than a year ago. We hope to make these changes more
+        transparent and tractable by
+        ${h.external_link('https://github.com/clld/glottolog', label='using version control for the Glottolog data')}
+        and
+        ${h.external_link('https://github.com/clld/glottolog/pulls?q=is%3Apr+label%3Aclassification', label='labelling changes to the classification')}
+        appropriately.
+    </dd>
+</dl>
+
 <h4>Glottolog 2.7 - 2016-01-26</h4>
 
 <dl>

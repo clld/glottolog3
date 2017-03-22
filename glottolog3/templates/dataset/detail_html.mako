@@ -79,8 +79,8 @@
             of their users. The input of expert linguists is crucial.
         </p>
         <p>
-            Glottolog is an initiative of the Max Planck Institute for Evolutionary
-            Anthropology. It should be cited as follows:
+            Glottolog is an initiative of the Max Planck Institute for
+            the Science of Human History, Jena. It should be cited as follows:
         </p>
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}
@@ -92,11 +92,11 @@
         </p>
         <p>
             The data published by Glottolog is curated in the public GitHub repository
-            ${h.external_link("https://github.com/clld/glottolog-data", label='clld/glottolog-data')}.
+            ${h.external_link("https://github.com/clld/glottolog", label='clld/glottolog')}.
         </p>
         <p>
             You may report errors you found in Glottolog using this repositories
-            ${h.external_link("https://github.com/clld/glottolog-data/issues", label='issue tracker')}.
+            ${h.external_link("https://github.com/clld/glottolog/issues", label='issue tracker')}.
         </p>
     </div>
 </div>

@@ -252,10 +252,13 @@ class DirectAssignmentCol(Col):
 
 
 class FtsCol(Col):
-    __kw__ = dict(bSortable=False)
+    __kw__ = dict(
+        bSortable=False,
+        sTitle='Any field',
+        sDescription='Search in any field of the BibTeX record')
 
     def format(self, item):
-        return '+'
+        return icon('ok')
 
     def search(self, qs):
         return fts.search(self.model_col, qs)

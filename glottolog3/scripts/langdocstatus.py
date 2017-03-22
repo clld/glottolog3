@@ -4,7 +4,6 @@ write: Language.jsondata['endangerment'|...]
 """
 import transaction
 from math import ceil
-import time
 
 from sqlalchemy.orm import joinedload, joinedload_all
 
@@ -12,7 +11,7 @@ from clld.scripts.util import parsed_args
 from clld.db.models.common import Language, LanguageSource, ValueSet
 from clld.db.meta import DBSession
 from clld.db.util import page_query
-from clld.lib import dsv
+from clldutils import dsv
 
 from glottolog3.models import DOCTYPES, Ref
 from glottolog3.langdocstatus import language_query

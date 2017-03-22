@@ -44,10 +44,16 @@ ${ctx.coins(request)|n}
                 ${h.external_link('http://dx.doi.org/%s' % ctx.jsondata['doi'])}
             </p>
             % endif
-            ${util.gbs_links([i for i in [ctx.gbs_identifier] if i])}
-            % if ctx.jsondata.get('internetarchive_id'):
+            % if ctx.gbid:
+                ${h.external_link('https://books.google.com/books?id=%s' % ctx.gbid.split('id=')[-1], label='Google Books')}
+            % endif
+            <% isbn = ctx.jsondata.get('isbn') %>
+            % if isbn:
+                ${util.gbs_links(['ISBN:{0}'.format(isbn)])}
+            % endif
+            % if ctx.iaid:
                 <hr />
-                <iframe src='https://archive.org/stream/${ctx.jsondata['internetarchive_id']}?ui=embed#mode/1up' width='680px' height='750px' frameborder='1' ></iframe>
+                <iframe src='https://archive.org/stream/${ctx.iaid}?ui=embed#mode/1up' width='680px' height='750px' frameborder='1' ></iframe>
             % endif
          </div>
         <div id="tab2" class="tab-pane"><pre>${bibrec}</pre></div>
