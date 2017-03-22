@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 import re
 from itertools import cycle
 
+from purl import URL
 import colander
 from markdown import markdown
 from markupsafe import Markup
@@ -320,6 +321,17 @@ def format_ca_icon(req, ref, type_):
     return icon(
         'warning-sign',
         title='computerized assignment of %ss from "%s"' % (type_, trigger))
+
+
+def format_external_link_in_label(url, label=None):
+    label = label or URL(url).domain()
+    return HTML.span(
+        HTML.a(
+            HTML.i('', class_="icon-share icon-white"),
+            label,
+            href=url,
+            style="color: white"),
+        class_="label label-info")
 
 
 def get_map(request, context):

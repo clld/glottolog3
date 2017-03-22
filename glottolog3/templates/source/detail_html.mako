@@ -30,27 +30,27 @@ ${ctx.coins(request)|n}
                 ${ctx.datadict().get('Additional_information')}
             </p>
             % endif
-            % if ctx.author == 'ISO 639-3 Registration Authority':
-            <p>
-                ${h.external_link(ctx.howpublished)}
-            </p>
-            % endif
-            % if ctx.url:
-            <p>
-                ${h.external_link(ctx.url)}
-            </p>
-            % elif ctx.jsondata.get('doi'):
-            <p>
-                ${h.external_link('http://dx.doi.org/%s' % ctx.jsondata['doi'])}
-            </p>
-            % endif
-            % if ctx.gbid:
-                ${h.external_link('https://books.google.com/books?id=%s' % ctx.gbid.split('id=')[-1], label='Google Books')}
-            % endif
-            <% isbn = ctx.jsondata.get('isbn') %>
-            % if isbn:
-                ${util.gbs_links(['ISBN:{0}'.format(isbn)])}
-            % endif
+            <ul class="inline">
+                % if ctx.author == 'ISO 639-3 Registration Authority':
+                    <li>${u.format_external_link_in_label(ctx.howpublished, 'ISO 639-3')}</li>
+                % endif
+                % if ctx.url:
+                    <li>${u.format_external_link_in_label(ctx.url)}</li>
+                % elif ctx.jsondata.get('doi'):
+                    <li>${u.format_external_link_in_label('http://dx.doi.org/%s' % ctx.jsondata['doi'], 'DOI')}</li>
+                % endif
+                % if ctx.gbid:
+                    <li>${u.format_external_link_in_label('https://books.google.com/books?id=%s' % ctx.gbid.split('id=')[-1], label='Google Books')}</li>
+                % endif
+                <% oclc = ctx.jsondata.get('oclc') %>
+                % if oclc:
+                    <li>${u.format_external_link_in_label('http://www.worldcat.org/oclc/{0}'.format(oclc), 'WorldCat')}</li>
+                % endif
+                <% isbn = ctx.jsondata.get('isbn') %>
+                % if isbn:
+                    ${util.gbs_links(['ISBN:{0}'.format(isbn)])}
+                % endif
+            </ul>
             % if ctx.iaid:
                 <hr />
                 <iframe src='https://archive.org/stream/${ctx.iaid}?ui=embed#mode/1up' width='680px' height='750px' frameborder='1' ></iframe>
