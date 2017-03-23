@@ -116,7 +116,8 @@ class Tests(TestWithApp):
         self.app.get('/resource/languoid/id/alba1269')
         self.app.get('/resource/languoid/id/nilo1235', status=301)
         self.app.get('/resource/languoid/id/stan1295.bigmap.html')
-        self.app.get('/resource/languoid/id/chil1280.newick.txt')
+        self.assertIn(
+            '[atha1245]', self.app.get('/resource/languoid/id/chil1280.newick.txt').body)
         self.app.get_xml('/resource/languoid/id/atha1245.phylo.xml')
 
     def test_ref(self):

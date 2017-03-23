@@ -1,10 +1,8 @@
 from __future__ import unicode_literals
 from xml.etree import cElementTree as et
-import codecs
 from itertools import cycle
 
 from six.moves import cStringIO as StringIO
-from path import path
 from sqlalchemy.orm import joinedload_all
 from pyramid.httpexceptions import HTTPFound
 
@@ -16,7 +14,6 @@ from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier
 from clld.web.icon import ORDERED_ICONS
 
-import glottolog3
 from glottolog3.models import LanguoidLevel, Country
 from glottolog3.interfaces import IProvider
 
@@ -82,13 +79,6 @@ class Newick(Representation):
         if languoid.family:
             languoid = languoid.family
         return languoid.newick
-        #filename = 'tree-%s-newick.txt' % languoid.id
-        #tree_dir = path(glottolog3.__file__).dirname().joinpath('static', 'trees')
-        #if tree_dir.joinpath(filename).exists():
-        #    with codecs.open(tree_dir.joinpath(filename), encoding='utf8') as fp:
-        #        content = fp.read()
-        #    return content
-        #return ''
 
 
 class PhyloXML(Representation):

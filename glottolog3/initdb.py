@@ -1,17 +1,15 @@
 # coding: utf8
 from __future__ import unicode_literals, division
-import sys
 from collections import defaultdict
 from time import time
 
-from clld.scripts.util import initializedb, Data
+from clld.scripts.util import Data
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db import fts
-from clldutils.jsonlib import load
+from clldutils import jsonlib
 from clldutils.text import split_text
 
-from pyglottolog.api import Glottolog
 from pyglottolog.references import BibFile
 from pyglottolog import objects
 
@@ -20,13 +18,17 @@ from glottolog3.scripts.util import recreate_treeclosure, compute_pages
 from glottolog3.scripts.loadutil import load_languoid, load_ref
 
 
-def main(args):
+def gc2version(args):
+    return args.pkg_dir.joinpath('static', 'glottocode2version.json')
+
+
+def load(args):
     fts.index('fts_index', models.Ref.fts, DBSession.bind)
     DBSession.execute("CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;")
 
     dataset = common.Dataset(
         id='glottolog',
-        name="Glottolog 3.0",
+        name="Glottolog {0}".format(args.args[0]),
         publisher_name="Max Planck Institute for the Science of Human History",
         publisher_place="Jena",
         publisher_url="https://shh.mpg.de",
@@ -40,8 +42,8 @@ def main(args):
     data = Data()
     for i, (id_, name) in enumerate([
         ('hammarstroem', 'Harald Hammarström'),
+        ('forkel', 'Robert Forkel'),
         ('haspelmath', 'Martin Haspelmath'),
-        ('forkel', 'Robert Forkel')
     ]):
         ed = data.add(common.Contributor, id_, id=id_, name=name)
         common.Editor(dataset=dataset, contributor=ed, ord=i + 1)
@@ -58,13 +60,18 @@ def main(args):
     ]:
         data.add(common.Parameter, pid, id=pid, name=pname)
 
-    legacy = load(args.data_file('glottocode2version.json'))
+    legacy = jsonlib.load(gc2version(args))
     for gc, version in legacy.items():
         data.add(models.LegacyCode, gc, id=gc, version=version)
 
-    glottolog = Glottolog()
+    glottolog = args.repos
     for ma in objects.Macroarea:
-        data.add(models.Macroarea, ma.name, id=ma.name, name=ma.value, description=ma.description)
+        data.add(
+            models.Macroarea,
+            ma.name,
+            id=ma.name,
+            name=ma.value,
+            description=ma.description)
 
     for country in glottolog.countries:
         data.add(models.Country, country.id, id=country.id, name=country.name)
@@ -88,7 +95,7 @@ def main(args):
         if gc not in data['Languoid'] and gc not in legacy:
             common.Config.add_replacement(gc, None, model=common.Language)
 
-    for obj in load(glottolog.references_path('replacements.json')):
+    for obj in jsonlib.load(glottolog.references_path('replacements.json')):
         common.Config.add_replacement(
             '{0}'.format(obj['id']),
             '{0}'.format(obj['replacement']) if obj['replacement'] else None,
@@ -128,10 +135,8 @@ def main(args):
     s = time()
     for i, entry in enumerate(
             BibFile(glottolog.build_path('monster-utf8.bib')).iterentries()):
-        #if i > 50000:
-        #    break
         if i % 10000 == 0:
-            print('{0}: {1:.3}'.format(i, time() - s))
+            args.log.info('{0}: {1:.3}'.format(i, time() - s))
             s = time()
         ref = load_ref(data, entry, lgcodes, lgsources)
         if 'macro_area' in entry.fields:
@@ -142,14 +147,33 @@ def main(args):
                     ref_pk=ref.pk, macroarea_pk=data['Macroarea'][ma.name].pk))
 
 
-def prime_cache(args):
+def prime(args):
     """If data needs to be denormalized for lookup, do that here.
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
     recreate_treeclosure()
+
+    for lpk, mas in DBSession.execute("""\
+select
+  l.pk, array_agg(distinct lma.macroarea_pk)
+from
+  language as l,
+  treeclosuretable as t,
+  languoidmacroarea as lma,
+  macroarea as ma
+where
+  l.pk = t.parent_pk and
+  t.child_pk = lma.languoid_pk and
+  lma.macroarea_pk = ma.pk and
+  l.pk not in (select languoid_pk from languoidmacroarea)
+group by l.pk"""):
+        for mapk in mas:
+            DBSession.add(models.Languoidmacroarea(languoid_pk=lpk, macroarea_pk=mapk))
+
     for row in list(DBSession.execute(
-        "select pk, pages, pages_int, startpage_int from source where pages_int < 0")):
+        "select pk, pages, pages_int, startpage_int from source where pages_int < 0"
+    )):
         pk, pages, number, start = row
         _start, _end, _number = compute_pages(pages)
         if _number > 0 and _number != number:
@@ -160,12 +184,8 @@ def prime_cache(args):
                 "update ref set endpage_int = %s where pk = %s" %
                 (_end, pk))
 
-    known = set(load(args.data_file('glottocode2version.json')).keys())
-    for lang in DBSession.query(common.Language):
-        if lang.id not in known:
-            lang.update_jsondata(new=True)
-
-
-if __name__ == '__main__':
-    initializedb(create=main, prime_cache=prime_cache)
-    sys.exit(0)
+    with jsonlib.update(gc2version(args), indent=4) as legacy:
+        for lang in DBSession.query(common.Language):
+            if lang.id not in legacy:
+                lang.update_jsondata(new=True)
+                legacy[lang.id] = args.args[0]

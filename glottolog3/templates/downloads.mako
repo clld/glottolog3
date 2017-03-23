@@ -19,7 +19,7 @@
                 <dt>${_(model)}</dt>
                 % if model == 'Languages':
                 <dd>
-                    <a href="${request.static_url('glottolog3:static/trees/tree-glottolog-newick.txt')}">
+                    <a href="${request.static_url('glottolog3:static/download/tree-glottolog-newick.txt')}">
                         Classification as text file in Newick format
                     </a>
                 </dd>
@@ -42,11 +42,11 @@
             % endfor
         </dl>
     </%util:accordion_group>
-    % for version, files in reversed(list(u.old_downloads(request))):
+    % for version, links in reversed(list(u.old_downloads())):
     <%util:accordion_group eid="acc-${version.replace('.', '-')}" parent="downloads" title="Version ${version}">
         <ul>
-            % for name, url in files:
-            <li><a href="${url}">${name}</a></li>
+            % for link in links:
+            <li>${link|n}</li>
             % endfor
         </ul>
     </%util:accordion_group>

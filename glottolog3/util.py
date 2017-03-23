@@ -14,12 +14,14 @@ from clld.web.util.helpers import link, icon, button
 from clld.web.util.htmllib import HTML, literal
 from clld.web.icon import SHAPES
 from clld.interfaces import IIcon
+from clldutils.misc import format_size
+from clldutils.path import Path
+from clldutils.jsonlib import load
 from pyglottolog.objects import Reference
 
 from glottolog3.models import (
     Languoid, Provider, Ref, Refprovider,
     Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
-    LanguoidStatus,
 )
 from glottolog3.maps import LanguoidMap
 
@@ -55,18 +57,19 @@ def linkify_iso_codes(request, text, class_=None, route_name='glottolog.iso'):
     return literal('').join(chunks())
 
 
-def old_downloads(req):
-    for version in sorted(download_dir('glottolog3').iterdir()):
-        if version.is_dir():
-            number = version.name
-            dls = []
-            for f in version.iterdir():
-                if f.is_file():
-                    dls.append((
-                        f.name,
-                        req.static_url(
-                            download_asset_spec('glottolog3', number, f.name))))
-            yield number, dls
+def old_downloads():
+    from clldmpg import cdstar
+
+    def bitstream_link(oid, spec):
+        url = cdstar.SERVICE_URL.path(
+            '/bitstreams/{0}/{1}'.format(oid, spec['bitstreamid'])).as_string()
+        return HTML.a(
+            '{0} [{1}]'.format(spec['bitstreamid'], format_size(spec['filesize'])),
+            href=url)
+
+    for number, spec in sorted(
+            load(Path(__file__).parent.joinpath('static', 'downloads.json')).items()):
+        yield number, [bitstream_link(spec['oid'], bs) for bs in spec['bitstreams']]
 
 
 class ModelInstance(object):

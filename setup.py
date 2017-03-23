@@ -19,7 +19,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'clldutils>=1.9.4',
+        'clldutils>=1.9.5',
         'clld>=3.2.2',
         'clldmpg>=2.0.0',
         'newick>=0.4',
@@ -32,5 +32,5 @@ setup(
     test_suite="glottolog3",
     entry_points={
         'paste.app_factory': ['main=glottolog3:main'],
-        'console_scripts': ['glottolog3=glottolog3.cli:main'],
+        'console_scripts': ['glottolog-app=glottolog3.cli:main'],
     })
