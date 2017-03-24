@@ -1,20 +1,11 @@
 from __future__ import unicode_literals, print_function
 import re
 
-from sqlalchemy import desc, and_
-from path import path
-
 from clld.db.meta import DBSession
-from clld.db.models.common import Identifier
-from clld.scripts.util import parsed_args, ExistingDir
+from pyglottolog.monsterlib.roman import romanint
 
-from glottolog3.lib.util import roman_to_int
-from glottolog3.models import Ref, TreeClosureTable
+from glottolog3.models import TreeClosureTable
 
-
-WORD_PATTERN = re.compile('[a-z]+')
-SQUARE_BRACKET_PATTERN = re.compile('\[(?P<content>[^\]]+)\]')
-CODE_PATTERN = re.compile('(?P<code>[a-z]{3}|NOCODE_[\w\-]+)|[a-z][a-z0-9]{3}[1-9]\d{3}$')
 ROMAN = '[ivxlcdmIVXLCDM]+'
 ROMANPATTERN = re.compile(ROMAN + '$')
 ARABIC = '[0-9]+'
@@ -23,36 +14,7 @@ SEPPAGESPATTERN = re.compile(
     '(?P<n1>{0}|{1})\s*(,|;|\.|\+|/)\s*(?P<n2>{0}|{1})'.format(ROMAN, ARABIC))
 PAGES_PATTERN = re.compile(
     '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
-CA_PATTERN = re.compile('\(computerized assignment from \"(?P<trigger>[^\"]+)\"\)')
 ART_NO_PATTERN = re.compile('\(art\.\s*[0-9]+\)')
-
-
-def glottolog_name(**kw):
-    return Identifier(type='name', description='Glottolog', **kw)
-
-
-def glottolog_names():
-    gl_name = glottolog_name()
-    return {i.name: i for i in DBSession.query(Identifier).filter(and_(
-        Identifier.type == gl_name.type,
-        Identifier.description == gl_name.description))}
-
-
-def get_args():
-    return parsed_args(
-        (("--data-dir",),
-         dict(
-             action=ExistingDir,
-             default=path('/home/shh.mpg.de/forkel/venvs/glottolog3/glottolog/'))))
-
-
-def ca_trigger(s):
-    """
-    :return: pair (trigger, updated s) or None.
-    """
-    m = CA_PATTERN.search(s)
-    if m:
-        return m.group('trigger'), (s[:m.start()] + s[m.end():]).strip()
 
 
 def get_int(s):
@@ -61,7 +23,7 @@ def get_int(s):
         return int(s)
     except ValueError:
         if ROMANPATTERN.match(s):
-            return roman_to_int(s)
+            return romanint(s.lower())
 
 
 def compute_pages(pages):
@@ -126,29 +88,6 @@ def compute_pages(pages):
     return (start, end, number if number > 0 else None)
 
 
-def get_codes(ref):
-    """detect language codes in a string
-
-    known formats:
-    - cul
-    - cul, Culina [cul]
-    - cul, aka
-    - [cul, aka, NOCODE_Culina]
-    """
-    code_map = {
-        'NOCODE_Eviya': 'gev',
-        'NOCODE_Ndambomo': 'nxo',
-        'NOCODE_Osamayi': 'syx',
-    }
-
-    # look at everything in square brackets
-    for match in SQUARE_BRACKET_PATTERN.finditer(ref.language_note):
-        # then split by comma, and look at the parts
-        for code in [s.strip() for s in match.group('content').split(',')]:
-            if CODE_PATTERN.match(code):
-                yield code_map.get(code, code)
-
-
 def recreate_treeclosure(session=None):
     """
     Denormalize ancestry, top-level and descendant counts for languoids.
@@ -209,16 +148,3 @@ def recreate_treeclosure(session=None):
     for s in sql:
         session.execute(s)
     session.execute('COMMIT')
-
-
-def update_refnames(args):
-    for ref in DBSession.query(Ref).order_by(desc(Ref.pk)):
-        name = '%s %s' % (ref.author or 'n.a.', ref.year or 'n.d.')
-        if name != ref.name:
-            args.log.info('%s: %s -> %s' % (ref.id, ref.name, name))
-            ref.name = name
-
-
-if __name__ == '__main__':
-    import doctest
-    doctest.testmod()

@@ -112,6 +112,7 @@ class Tests(TestWithApp):
             1)
         res = self.app.get_json('/resource/languoid/id/stan1295.json')
         self.assertIn('classification', res)
+        self.app.get('/resource/languoid/id/afud1235')
         self.app.get('/resource/languoid/id/stan1295')
         self.app.get('/resource/languoid/id/alba1269')
         self.app.get('/resource/languoid/id/nilo1235', status=301)
