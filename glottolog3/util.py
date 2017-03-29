@@ -48,12 +48,15 @@ def languoid_link(req, languoid, active=True, classification=False):
 def linkify_iso_codes(request, text, class_=None, route_name='glottolog.iso'):
     def chunks():
         start = 0
-        for match in ISO_PATTERN.finditer(text):
-            yield text[start:match.start(0)]
-            url = request.route_url(route_name, id=match.group('iso'))
-            yield HTML.a(match.group(0), href=url, class_=class_)
-            start = match.end(0)
-        yield text[start:]
+        if not text:
+            yield ''
+        else:
+            for match in ISO_PATTERN.finditer(text):
+                yield text[start:match.start(0)]
+                url = request.route_url(route_name, id=match.group('iso'))
+                yield HTML.a(match.group(0), href=url, class_=class_)
+                start = match.end(0)
+            yield text[start:]
     return literal('').join(chunks())
 
 

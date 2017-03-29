@@ -6,7 +6,10 @@
   - global newick tree
   - languages_and_dialects_geo.csv
   - gzipped db dump
-  - upload downloads to cdstar
+  - upload downloads to cdstar  # FIXME!!
 - `clld-llod` ?
+
 - run `fab tasks.copy_files:production` to copy the static archive to the server.
+- run `fab tasks.copy_downloads:production` to copy the static archive to the server.
+- run `fab tasks.deploy:production` to copy the static archive to the server.
 
