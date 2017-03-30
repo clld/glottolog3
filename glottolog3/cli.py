@@ -40,17 +40,19 @@ def cdstar(args):
             cdstar_url=os.environ['CDSTAR_URL'],
             cdstar_user=os.environ['CDSTAR_USER'],
             cdstar_pwd=os.environ['CDSTAR_PWD']) as cat:
-        #obj = cat.api.get_object()
-        #obj.metadata = {
-        #    "creator": "pycdstar",
-        #    "title": "glottolog %s - downloads" % version,
-        #    "description": "Custom downloads for release %s of [Glottolog](http://glottolog.org)" % version,
-        #}
+        obj = cat.api.get_object()
+        obj.metadata = {
+            "creator": "pycdstar",
+            "title": "glottolog %s - downloads" % args.args[0],
+            "description": "Custom downloads for release %s of "
+                           "[Glottolog](http://glottolog.org)" % args.args[0],
+        }
         for fname in args.pkg_dir.joinpath('static', 'download').iterdir():
             if fname.is_file() and not fname.name.startswith('.'):
                 print(fname.name)
-        #        obj.add_bitstream(fname=fname.as_posix(), name=fname.name.replace('-', '_')
-        #cat.add(obj)
+                obj.add_bitstream(
+                    fname=fname.as_posix(), name=fname.name.replace('-', '_'))
+        cat.add(obj)
 
     fname = args.pkg_dir.joinpath('static', 'downloads.json')
     with update(fname, default={}, indent=4) as downloads:

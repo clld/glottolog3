@@ -262,6 +262,8 @@ def normalize_language_explanation(chunk):
 
     :return: X [aaa]
     """
+    if not chunk.endswith(']'):
+        chunk += ']'
     chunk = chunk.strip()
     if '=' not in chunk:
         return chunk
@@ -280,7 +282,7 @@ def normalize_language_explanation(chunk):
 def format_languages(req, ref):
     ldict = {l.hid: l for l in ref.languages}
     in_note = {}
-    lnotes = map(normalize_language_explanation, (ref.language_note or '').split(','))
+    lnotes = map(normalize_language_explanation, (ref.jsondata.get('lgcode', '')).split('],'))
 
     for lnote in lnotes:
         note = []
