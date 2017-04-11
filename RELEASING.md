@@ -13,3 +13,5 @@
 - run `fab tasks.copy_downloads:production` to copy the static archive to the server.
 - run `fab tasks.deploy:production` to copy the static archive to the server.
 
+- create static pages for languoids
+  TODO: `static_archive.py` should be turned into a command.

@@ -46,10 +46,10 @@ ${ctx.coins(request)|n}
                 % if oclc:
                     <li>${u.format_external_link_in_label('http://www.worldcat.org/oclc/{0}'.format(oclc), 'WorldCat')}</li>
                 % endif
-                <% isbn = ctx.jsondata.get('isbn') %>
-                % if isbn:
-                    ${util.gbs_links(['ISBN:{0}'.format(isbn)])}
-                % endif
+                ##<% isbn = ctx.jsondata.get('isbn') %>
+                ##% if isbn:
+                ##    ${util.gbs_links(['ISBN:{0}'.format(isbn)])}
+                ##% endif
             </ul>
             % if ctx.iaid:
                 <hr />
