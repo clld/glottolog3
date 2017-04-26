@@ -16,17 +16,23 @@ from clld.web.util.htmllib import HTML
 from clld.web.util.multiselect import MultiSelect
 from clld.db.meta import DBSession
 from clld.db.models import common
+from clldutils.jsonlib import load
+from clldutils.path import Path
 
+import glottolog3
 from glottolog3.models import (
-    DOCTYPES, Languoid, Macroarea, Languoidmacroarea, LanguoidLevel, LanguoidStatus,
+    DOCTYPES, Languoid, Macroarea, Languoidmacroarea, LanguoidLevel,
 )
 from glottolog3.maps import Language
+
+
+def ldstatus():
+    return load(Path(glottolog3.__file__).parent.joinpath('static', 'ldstatus.json'))
 
 
 @view_config(route_name='langdocstatus', renderer='langdocstatus/intro.mako')
 def intro(req):
     return {
-        'unesco': common.Contribution.get('unesco'),
         'macroareas': DBSession.query(Macroarea).order_by(Macroarea.name),
         'families': family_query().options(joinedload(Languoid.macroareas)),
     }
@@ -53,16 +59,20 @@ for i, dt in enumerate(DOCTYPES):
 Endangerment = namedtuple('Endangerment', 'ord name shape')
 ENDANGERMENTS = [
     Endangerment(i, *args) for i, args in enumerate([
-        ('Living', 'c'),
-        ('Vulnerable', 'c'),
-        ('Definitely endangered', 's'),
-        ('Severely endangered', 'd'),
-        ('Critically endangered', 't'),
-        ('Extinct', 'f'),
+        ('safe', 'c'),
+        ('vulnerable', 'c'),
+        ('definitely endangered', 's'),
+        ('severely endangered', 'd'),
+        ('critically endangered', 't'),
+        ('extinct', 'f'),
     ])
 ]
 ENDANGERMENT_MAP = defaultdict(
     lambda: ENDANGERMENTS[0], [(ed.name, ed) for ed in ENDANGERMENTS])
+
+
+def src2dict(s):
+    return dict(zip(['id', 'doctype', 'year', 'pages', 'name'], s))
 
 
 class DescStatsGeoJson(GeoJson):
@@ -73,17 +83,18 @@ class DescStatsGeoJson(GeoJson):
         return {'layer': 'desc'}
 
     def get_icon(self, req, type_, endangerment):
-        return self.obj[endangerment.shape + SIMPLIFIED_DOCTYPE_MAP[type_].color]
+        return self.obj[0][endangerment.shape + SIMPLIFIED_DOCTYPE_MAP[type_].color]
 
     def feature_properties(self, ctx, req, feature):
-        endangerment = ENDANGERMENT_MAP[feature.jsondata.get('endangerment')]
+        endangerment = ENDANGERMENT_MAP[feature.status.value]
+        med, sources = self.obj[1].get(feature.id, (None, []))
         # augment the source dicts
-        sources = feature.jsondata.setdefault('sources', [])
+        sources = [src2dict(v) for v in sources]
         for s in sources:
             s['icon'] = self.get_icon(req, s['doctype'], endangerment)
             s['sdt'] = SIMPLIFIED_DOCTYPE_MAP[s['doctype']].ord
 
-        med = feature.jsondata.get('med')
+        med = src2dict(med) if med else med
         return {
             'ed': endangerment.ord,
             'icon': self.get_icon(req, med['doctype'] if med else None, endangerment),
@@ -100,6 +111,7 @@ class DescStatsGeoJson(GeoJson):
 
 class DescStatsMap(Map):
     def __init__(self, ctx, req, icon_map):
+        self.ldstatus = ldstatus()
         self.icon_map = icon_map
         Map.__init__(self, ctx, req)
 
@@ -107,7 +119,7 @@ class DescStatsMap(Map):
         yield Layer(
             'languoids',
             'Languoids',
-            DescStatsGeoJson(self.icon_map).render(self.ctx, self.req, dump=False))
+            DescStatsGeoJson((self.icon_map, self.ldstatus)).render(self.ctx, self.req, dump=False))
 
     def get_options(self):
         return {
@@ -145,7 +157,6 @@ class DescStatsMap(Map):
 def language_query(req=None):
     query = DBSession.query(common.Language) \
         .filter(common.Language.active == True) \
-        .filter(Languoid.status == LanguoidStatus.established) \
         .filter(common.Language.latitude != None) \
         .filter(Languoid.level == LanguoidLevel.language)
     if req:
@@ -217,7 +228,7 @@ def languages(req):
     label = 'Languages'
     try:
         ed = ENDANGERMENTS[int(req.matchdict['ed'])]
-        label = ed.name + ' languages'
+        label = HTML.em(ed.name) + ' languages'
     except IndexError:
         ed = None
 
@@ -241,20 +252,23 @@ def languages(req):
 
         label = label + ' is a ' + sdt.name
 
+    stats = ldstatus()
     for lang in language_query(req):
         if ed:
-            _ed = lang.jsondata.get('endangerment') or 'Living'
+            _ed = lang.status.value
             if ed.name != _ed:
                 continue
 
+        med_, sources = stats.get(lang.id, (None, []))
         med = None
         if year:
-            for s in lang.jsondata.get('sources', []):
+            for s in sources:
+                s = src2dict(s)
                 if s['year'] <= year:
                     med = s
                     break
         else:
-            med = lang.jsondata.get('med')
+            med = med_
 
         if sdt:
             _sdt = SIMPLIFIED_DOCTYPE_MAP[med['doctype'] if med else None]

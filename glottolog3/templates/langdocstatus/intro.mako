@@ -13,8 +13,8 @@
 <p>
     The documentation status for a language is a combination of
     <a href="${request.route_url('glossary', _anchor='sec-descriptivestatusofalanguage')}">descriptive status</a>
-    and vitality or endangerment status (provided by the
-    <em>${unesco.description}</em>).
+    and vitality or endangerment status (partially provided by the
+    ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}.
 </p>
 <p>
     The Glottolog documentation status browser allows investigation on a global level.

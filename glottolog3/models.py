@@ -92,12 +92,12 @@ class Superseded(Base):
 
 DOCTYPES = [
     'grammar',
-    'grammarsketch',
+    'grammar_sketch',
     'dictionary',
-    'specificfeature',
+    'specific_feature',
     'phonology',
     'text',
-    'newtestament',
+    'new_testament',
     'wordlist',
     'comparative',
     'minimal',

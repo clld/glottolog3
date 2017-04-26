@@ -5,8 +5,12 @@
     <script src="${request.static_url('clld:web/static/js/select2.js')}"></script>
     <link href="${request.static_url('glottolog3:static/slider.css')}" rel="stylesheet">
     <script src="${request.static_url('glottolog3:static/bootstrap-slider.js')}"></script>
+    <style type="text/css">
+    .clld-map-icon {opacity: 0.7}
+    </style>
 </%block>
 
+<%! from datetime import date %>
 <% year, macroarea = [request.params.get(n, '') for n in 'year macroarea'.split()] %>
 
 <%def name="stats_cell(ed, sdt)">
@@ -41,7 +45,7 @@
                     <input class="input-mini" disabled="disabled" type="text" id="year" value="${year}"/>
                     <br/>
                     ##<form class="form-inline">
-                        1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-step="1">&nbsp;&nbsp;&nbsp;2014
+                        1500&nbsp;&nbsp;&nbsp;<input type="text" id="ys" class="big" value="" data-slider-step="1">&nbsp;&nbsp;&nbsp;${date.today().year}
                     ##</form>
                     <div class="btn-toolbar">
                         <div class="btn-group">

@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
-"""
-write: Language.jsondata['endangerment'|...]
-"""
 import transaction
 from math import ceil
 
-from sqlalchemy.orm import joinedload, joinedload_all
+from sqlalchemy.orm import joinedload
 
 from clld.scripts.util import parsed_args
-from clld.db.models.common import Language, LanguageSource, ValueSet
+from clld.db.models.common import LanguageSource, Language
+from clld.db.models.common import Source as Source_
 from clld.db.meta import DBSession
-from clld.db.util import page_query
-from clldutils import dsv
+from clldutils.jsonlib import dump
 
 from glottolog3.models import DOCTYPES, Ref
 from glottolog3.langdocstatus import language_query
@@ -41,7 +38,7 @@ class Source(object):
         self.name = source.name
 
     def __json__(self):
-        return {k: getattr(self, k) for k in 'doctype year pages id name'.split()}
+        return [getattr(self, k) for k in 'id doctype year pages name'.split()]
 
     def __cmp__(self, other):
         """This is the algorithm:
@@ -55,46 +52,58 @@ class Source(object):
 
 
 def main(args):  # pragma: no cover
+    ldstatus = {}
+    limit = 200
+    q = language_query().order_by(Language.pk)
+    offset = 0
     # we merge information about extinct languages from unesco and Harald.
-    extinct = dict(list(dsv.reader(args.data_file('extinct.tab'))))
-    with transaction.manager:
-        query = language_query().options(
-            joinedload_all(Language.valuesets, ValueSet.values))
+    if 1:
         # loop over active, established languages with geo-coords
-        for l in page_query(query, n=100, verbose=True):
+        while True:
+            transaction.begin()
+            langs = [l for l in q.offset(offset).limit(limit)]
+            if not langs:
+                break
+            offset += limit
             # let's collect the relevant sources in a way that allows computation of med.
             # Note: we limit refs to the ones without computerized assignments.
-            sources = DBSession.query(Ref).join(LanguageSource)\
-                .filter(LanguageSource.language_pk == l.pk) \
+            lsources = list(DBSession.query(Ref).join(LanguageSource)\
+                .filter(LanguageSource.language_pk.in_([l.pk for l in langs])) \
                 .filter(Ref.ca_doctype_trigger == None)\
                 .filter(Ref.ca_language_trigger == None)\
-                .options(joinedload(Ref.doctypes))
-            sources = sorted(map(Source, sources))
+                .options(joinedload(Ref.doctypes), joinedload(Source_.languages)))
+            for l in langs:
+                sources = [s for s in lsources if l in s.languages]
+                sources = sorted(map(Source, sources))
 
-            # keep the overall med
-            # note: this source may not be included in the potential meds computed below,
-            # e.g. because it may not have a year.
-            med = sources[0].__json__() if sources else None
+                # keep the overall med
+                # note: this source may not be included in the potential meds computed
+                # below,
+                # e.g. because it may not have a year.
+                med = sources[0].__json__() if sources else None
 
-            # now we have to compute meds respecting a cut-off year.
-            # to do so, we collect eligible sources per year and then
-            # take the med of this collection.
-            potential_meds = []
+                # now we have to compute meds respecting a cut-off year.
+                # to do so, we collect eligible sources per year and then
+                # take the med of this collection.
+                potential_meds = []
 
-            # we only have to loop over publication years within all sources, because
-            # only in these years something better might have come along.
-            for year in set(s.year for s in sources if s.year):
-                # let's see if something better was published!
-                eligible = [s for s in sources if s.year and s.year <= year]
-                if eligible:
-                    potential_meds.append(sorted(eligible)[0])
+                # we only have to loop over publication years within all sources, because
+                # only in these years something better might have come along.
+                for year in set(s.year for s in sources if s.year):
+                    # let's see if something better was published!
+                    eligible = [s for s in sources if s.year and s.year <= year]
+                    if eligible:
+                        potential_meds.append(sorted(eligible)[0])
 
-            # we store the precomputed sources information as jsondata:
-            l.update_jsondata(
-                endangerment='Extinct' if l.hid in extinct else l.endangerment,
-                med=med,
-                sources=[s.__json__() for s in
-                         sorted(set(potential_meds), key=lambda s: -s.year)])
+                # we store the precomputed sources information as jsondata:
+                ldstatus[l.id] = [
+                    med,
+                    [s.__json__() for s in
+                     sorted(set(potential_meds), key=lambda s: -s.year)]]
+            print(offset)
+            transaction.abort()
+
+    dump(ldstatus, 'glottolog3/statuc/ldstatus.json', indent=4)
 
 
 if __name__ == '__main__':

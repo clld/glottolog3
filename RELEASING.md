@@ -7,6 +7,7 @@
   - languages_and_dialects_geo.csv
   - gzipped db dump
   - upload downloads to cdstar  # FIXME!!
+- run `python glottolog3/scripts/langdocstatus.py development.ini` to recreate `ldstatus.json`
 - `clld-llod` ?
 
 - run `fab tasks.copy_files:production` to copy the static archive to the server.

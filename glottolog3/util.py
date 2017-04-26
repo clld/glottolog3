@@ -262,7 +262,7 @@ def normalize_language_explanation(chunk):
 
     :return: X [aaa]
     """
-    if not chunk.endswith(']'):
+    if '[' in chunk and not chunk.endswith(']'):
         chunk += ']'
     chunk = chunk.strip()
     if '=' not in chunk:

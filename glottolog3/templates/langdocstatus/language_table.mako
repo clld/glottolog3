@@ -1,7 +1,7 @@
 <%namespace name="util" file="../util.mako"/>
 
 <%util:well>
-<p>${label}:</p>
+    <div class="label label-info"><h5>${label|n}:</h5></div>
 <%util:table items="${languages}" args="item" options="${dict(bInfo=True)}">
     <%def name="head()">
         <th>Name</th>
