@@ -85,8 +85,9 @@ def newick(args):
     for lang in nodes.values():
         if not lang.lineage and not lang.category.startswith('Pseudo '):
             ns = lang.newick_node(nodes=nodes).newick
-            if lang.level == Level.language:
-                # an isolate: we wrap it in a pseudo-family with the same name and ID.
+            if lang.level == Level.language and not ns.startswith('('):
+                # an isolate without dialects: we wrap it in a pseudo-family with the
+                # same name and ID.
                 ns = '({0}){0}'.format(ns)
             trees.append('{0};'.format(ns))
     fname = args.pkg_dir.joinpath('static', 'download', 'tree-glottolog-newick.txt')
