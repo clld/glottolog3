@@ -1,3 +1,16 @@
+.gl-map-icon
+{
+  border:1px solid black;
+  color:blue;
+  font-weight:bold;
+  text-align:center;
+  border-radius:50%;
+  line-height:15px;
+  width: 15px;
+  opacity: 0.7;
+}
+.clld-map-icon {opacity: 0.7;}
+
 .level-language {font-weight: bold;}
 .level-dialect {font-style: italic;}
 

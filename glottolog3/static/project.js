@@ -1,3 +1,10 @@
+CLLD.MapIcons.div = function(feature, size, url) {
+        return L.divIcon({
+            html: '<div class="gl-map-icon" style="background: #' + feature.properties.color + ';">☺</div>',
+            className: 'clld-map-icon'
+        });
+};
+
 GLOTTOLOG3 = {}
 GLOTTOLOG3.filterMarkers = function(ctrl) {
     ctrl = $(ctrl);
