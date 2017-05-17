@@ -20,7 +20,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'clldutils>=1.9.5',
-        'clld>=3.2.6',
+        'clld>=3.2.7',
         'clldmpg>=2.0.0',
         'newick>=0.4',
         'markdown',
