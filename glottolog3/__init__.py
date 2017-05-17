@@ -42,12 +42,9 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
             #
         elif model == Source:
             if ':' in req.matchdict['id']:
-                prov, key = req.matchdict['id'].split(':', 1)
                 ref = req.db.query(models.Source)\
                     .join(models.Refprovider)\
-                    .join(models.Provider)\
-                    .filter(models.Refprovider.key == key)\
-                    .filter(models.Provider.id == prov)\
+                    .filter(models.Refprovider.id == req.matchdict['id'])\
                     .first()
                 if ref:
                     raise HTTPMovedPermanently(location=req.route_url('source', id=ref.id))
