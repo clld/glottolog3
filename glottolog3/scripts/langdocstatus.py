@@ -103,7 +103,7 @@ def main(args):  # pragma: no cover
             print(offset)
             transaction.abort()
 
-    dump(ldstatus, 'glottolog3/statuc/ldstatus.json', indent=4)
+    dump(ldstatus, 'glottolog3/static/ldstatus.json', indent=4)
 
 
 if __name__ == '__main__':
