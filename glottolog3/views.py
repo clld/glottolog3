@@ -67,18 +67,20 @@ def glottologmeta(request):
         'number_of_families': qt.filter(Languoid.level == LanguoidLevel.family).count(),
         'number_of_isolates': qt.filter(Languoid.level == LanguoidLevel.language).count(),
     }
-    ql = q.filter(Languoid.level == LanguoidLevel.language)
+    bookkeeping = DBSession.query(Language).filter(Language.name == 'Bookkeeping').one()
+    ql = q.filter(and_(
+        Languoid.level == LanguoidLevel.language,
+        Languoid.family_pk != bookkeeping.pk))
     res['number_of_languages'] = {'all': ql.count()}
+
     res['special_families'] = OrderedDict()
+    res['number_of_languages']['l1'] = res['number_of_languages']['all']
     for name in SPECIAL_FAMILIES:
         l = qt.filter(Language.name == name).one()
         res['special_families'][name] = l
         res['number_of_languages'][name] = l.child_language_count
+        res['number_of_languages']['l1'] -= l.child_language_count
 
-    res['number_of_languages']['l1'] = res['number_of_languages']['all'] \
-        - res['number_of_languages']['Pidgin']\
-        - res['number_of_languages']['Artificial Language']\
-        - res['number_of_languages']['Sign Language']
     return res
 
 
