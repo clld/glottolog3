@@ -1,21 +1,39 @@
 from __future__ import unicode_literals
+
+import datetime
 from xml.etree import cElementTree as et
 from itertools import cycle
 
 from six.moves import cStringIO as StringIO
+
 from sqlalchemy.orm import joinedload_all
 from pyramid.httpexceptions import HTTPFound
 
-from clld.interfaces import ILanguage, IIndex
+from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump
 from clld.web.adapters.geojson import GeoJsonLanguages
+from clld.web.adapters.md import BibTex
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier
 from clld.web.icon import ORDERED_ICONS
+from clld.lib import bibtex
 
 from glottolog3.models import LanguoidLevel, Country
 from glottolog3.interfaces import IProvider
+
+
+class BibTexCitation(BibTex):
+
+    def rec(self, ctx, req):
+        url = '%s accessed %s' % (req.resource_url(ctx), datetime.date.today())
+        return bibtex.Record('misc', req.dataset.id,
+            author=[c.contributor.name for c in ctx.editors],
+            title=getattr(ctx, 'citation_name', ctx.__unicode__()),
+            url=url,
+            address=req.dataset.publisher_place,
+            howpublished=req.dataset.publisher_name,
+            year=str(req.dataset.published.year))
 
 
 class LanguoidCsvDump(CsvDump):
@@ -202,6 +220,7 @@ class MapView(Index):
 
 
 def includeme(config):
+    config.register_adapter(BibTexCitation, IDataset, IMetadata)
     config.register_adapter(Redirect, IProvider)
     config.register_adapter(Bigmap, ILanguage)
     config.register_adapter(PhyloXML, ILanguage)

@@ -1,10 +1,14 @@
 <%inherit file="home_comp.mako"/>
 <% TxtCitation = h.get_adapter(h.interfaces.IRepresentation, request.dataset, request, ext='md.txt') %>
+<% BibTex = h.get_adapter(h.interfaces.IMetadata, request.dataset, request, ext='md.bib') %>
 
 <h3>Cite</h3>
 <p>Cite this resource as:</p>
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}
+    <br>
+    <br>
+    <pre>${BibTex.render(request.dataset, request)|n}</pre>
 </blockquote>
 <p>
     Academic publications which deal with Glottolog include:
