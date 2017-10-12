@@ -228,13 +228,13 @@ def quicksearch(request):
         kind = 'Glottocode'
     else:
         _query = query.filter(func.lower(Languoid.name) == term)
-        if _query.count() != 0:
+        if DBSession.query(_query.exists()).scalar():
             query = _query
         else:
             query = query.filter(
                 Languoid.identifiers.any(and_(
                     Identifier.type == u'name',
-                    Identifier.description == u'Glottolog',
+                    Identifier.description == Languoid.GLOTTOLOG_NAME,
                     func.lower(Identifier.name).contains(term))))
 
         kind = 'name part'
@@ -249,7 +249,7 @@ def quicksearch(request):
             message = 'No matching languoids found for %s "%s"' % (kind, term)
         elif len(languoids) == 1:
             raise HTTPFound(request.resource_url(languoids[0]))
-        
+
     map_, icon_map, family_map = get_selected_languages_map(request, languoids)
     layer = list(map_.get_layers())[0]
     if not layer.data['features']:

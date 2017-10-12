@@ -203,6 +203,8 @@ SPECIAL_FAMILIES = (
     u'Speech Register',
     u'Sign Language',
 )
+
+
 BOOKKEEPING = u'Bookkeeping'
 
 
@@ -215,6 +217,9 @@ class Languoid(CustomModelMixin, Language):
     names, codes -> languageidentifier
     refs -> languagesource
     """
+
+    GLOTTOLOG_NAME = u'glottolog'
+
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
 
     # hid is the id of a language in Harald's classification. I.e. if hid is None, the

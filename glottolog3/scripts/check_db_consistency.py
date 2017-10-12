@@ -190,14 +190,14 @@ class FamilyLanguages(Check):
             .order_by(Languoid.id)
 
 
-class SpuriousRetiredBookkeeping(Check):
-    """Spurious retired languoids are under Bookkeeping."""
-
-    def invalid_query(self, session, **kw):
-        return session.query(Languoid)\
-            .filter_by(status=LanguoidStatus.spurious_retired)\
-            .filter(~Languoid.father.has(name=BOOKKEEPING))\
-            .order_by(Languoid.id)
+##class SpuriousRetiredBookkeeping(Check):
+##    """Spurious retired languoids are under Bookkeeping."""
+##
+##    def invalid_query(self, session, **kw):
+##        return session.query(Languoid)\
+##            .filter_by(status=LanguoidStatus.spurious_retired)\
+##            .filter(~Languoid.father.has(name=BOOKKEEPING))\
+##            .order_by(Languoid.id)
 
 
 class BookkeepingNoChildren(Check):
@@ -245,22 +245,24 @@ class UniqueIsoCode(Check):
 class GlottologName(Check):
     """Languoid has its name as Glottolog identifier."""
 
-    def invalid_query(self, session, **kw):
+    def invalid_query(self, session, type='name',
+                      description=Languoid.GLOTTOLOG_NAME, **kw):
         return session.query(Languoid)\
             .filter(~Languoid.identifiers.any(
-                name=Languoid.name, type='name', description='Glottolog'))\
+                name=Languoid.name, type=type, description=description))\
             .order_by(Languoid.id)
 
 
 class CleanName(Check):
     """Glottolog names lack problematic characters."""
 
-    def invalid_query(self, session, **kw):
+    def invalid_query(self, session, type='name',
+                      description=Languoid.GLOTTOLOG_NAME, **kw):
         return session.query(Languoid)\
             .filter(Languoid.identifiers.any(or_(
                 Identifier.name.op('~')(ur'^\s|\s$'),
                 Identifier.name.op('~')(ur'[`_*:\xa4\xab\xb6\xbc]'),
-            ), type='name', description='Glottolog'))\
+            ), type=type, description=description))\
             .order_by(Languoid.id)
 
 
@@ -268,11 +270,12 @@ class UniqueName(Check):
     """Among active languages Glottolog names are unique."""
 
     @staticmethod
-    def _ident_query(session, type='name', description='Glottolog'):
+    def _ident_query(session, type='name',
+                     description=Languoid.GLOTTOLOG_NAME):
         lang = orm.aliased(Languoid)
         ident = orm.aliased(Identifier)
         query = session.query(lang).filter_by(
-            active=True, status=LanguoidStatus.established, level=LanguoidLevel.language)\
+            active=True, level=LanguoidLevel.language)\
             .join(LanguageIdentifier, LanguageIdentifier.language_pk == lang.pk)\
             .join(ident, and_(
                 LanguageIdentifier.identifier_pk == ident.pk,
