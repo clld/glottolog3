@@ -248,7 +248,7 @@ def load_languoid(data, lang, nodemap):
         id=lang.id,
         hid=lang.hid,
         name=lang.name,
-        bookkeeping=lang.category == 'Bookkeeping',
+        bookkeeping=lang.category == models.BOOKKEEPING,
         newick=lang.newick_node(nodemap).newick,
         latitude=lang.latitude,
         longitude=lang.longitude,

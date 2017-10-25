@@ -21,7 +21,7 @@ from clld.interfaces import IRepresentation
 
 from glottolog3.models import (
     Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider,
-    TreeClosureTable,
+    TreeClosureTable, BOOKKEEPING,
 )
 from glottolog3.config import CFG
 from glottolog3.util import getRefs, get_params
@@ -67,7 +67,7 @@ def glottologmeta(request):
         'number_of_families': qt.filter(Languoid.level == LanguoidLevel.family).count(),
         'number_of_isolates': qt.filter(Languoid.level == LanguoidLevel.language).count(),
     }
-    bookkeeping = DBSession.query(Language).filter(Language.name == 'Bookkeeping').one()
+    bookkeeping = DBSession.query(Language).filter(Language.name == BOOKKEEPING).one()
     ql = q.filter(and_(
         Languoid.level == LanguoidLevel.language,
         Languoid.family_pk != bookkeeping.pk))
