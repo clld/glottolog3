@@ -1,9 +1,9 @@
 from clld.web.assets import environment
-from path import path
+from clldutils.path import Path
 
 import glottolog3
 
-_dir = path(glottolog3.__file__).dirname().joinpath('static')
+_dir = Path(glottolog3.__file__).parent / 'static'
 _url = '/glottolog3:static/'
 
 environment.append_path(_dir, url=_url)
