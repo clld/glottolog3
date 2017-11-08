@@ -187,22 +187,25 @@ if __name__ == '__main__':
     versions = ['2.0', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7']
     langs, identifiers = {}, {}
     for version in versions:
-        db = create_engine('postgresql://robert@/glottolog-{0}'.format(version))
+        db = create_engine('postgresql://postgres@/glottolog-{0}'.format(version))
         langs[version] = {
             r['id']: L(r['pk'], r['id'], r['name'], version, r['level'], r['father_pk'])
             for r in db.execute("""\
 select l.pk, l.id, l.name, ll.level, ll.father_pk
 from language as l, languoid as ll where l.pk = ll.pk and l.active = true""")}
 
-        for r in db.execute("""\
+        has_superseded = db.scalar("""\
+select exists (select 1 from pg_tables where schemaname = 'public' and tablename = 'superseded')""")
+        if has_superseded:  # dropped in 3.1
+            for r in db.execute("""\
 select l.pk, l.id, l.name, string_agg(ll.id, ' ') as replacements
 from language as l, language as ll, superseded as s
 where l.pk = s.languoid_pk and ll.pk = s.replacement_pk
 group by l.pk, l.id, l.name
             """):
-            if r['id'] not in langs[version]:
-                langs[version][r['id']] = L(
-                    r['pk'], r['id'], r['name'], version, replacements=r['replacements'].split())
+                if r['id'] not in langs[version]:
+                    langs[version][r['id']] = L(
+                        r['pk'], r['id'], r['name'], version, replacements=r['replacements'].split())
 
         identifiers[version] = [
             I(r['language_pk'], r['name'], r['description'], r['type']) for r in

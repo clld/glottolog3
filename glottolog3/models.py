@@ -83,13 +83,6 @@ class Languoidcountry(Base):
     languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
 
 
-class Superseded(Base):
-    languoid_pk = Column(Integer, ForeignKey('languoid.pk'))
-    replacement_pk = Column(Integer, ForeignKey('languoid.pk'))
-    # relation is one of: duplicate, father of spurious dialect, child of megalolanguoid
-    relation = Column(Unicode)
-
-
 DOCTYPES = [
     'grammar',
     'grammar_sketch',
@@ -265,11 +258,6 @@ class Languoid(CustomModelMixin, Language):
                 Identifier(name=self.id, type=IdentifierType.glottolog.value)]
         return Language.get_identifier_objs(self, type_)
 
-    def get_replacements(self):
-        return DBSession.query(Languoid, Superseded.relation)\
-            .filter(Superseded.languoid_pk == self.pk)\
-            .filter(Superseded.replacement_pk == Languoid.pk)
-
     def get_ancestors(self, session=None):
         """
         :return: Iterable of ancestors of self back to the top-level family.
@@ -396,8 +384,6 @@ class Languoid(CustomModelMixin, Language):
             yield 'skos:broader', request.resource_url(self.father)
         for child in self.children:
             yield 'skos:narrower', request.resource_url(child)
-        for l, why in self.get_replacements():
-            yield 'dcterms:isReplacedBy', request.resource_url(l)
         if not self.active:
             yield 'skos:changeNote', 'obsolete'
         if self.status:
