@@ -48,9 +48,6 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
                     .first()
                 if ref:
                     raise HTTPMovedPermanently(location=req.route_url('source', id=ref.id))
-            legacy = req.db.query(models.LegacyRef).filter_by(id=req.matchdict['id'])
-            if req.db.query(legacy.exists()).scalar():
-                raise HTTPGone()
         return super(GLCtxFactoryQuery, self).__call__(model, req)
 
 

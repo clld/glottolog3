@@ -587,10 +587,6 @@ class LegacyCode(Base):
             ).as_posix())
 
 
-class LegacyRef(Base):
-    id = Column(String, unique=True)
-
-
 class EthnologueComment(Base):
     comment = Column(Unicode)
     code = Column(Unicode)
