@@ -7,6 +7,9 @@ import re
 from collections import OrderedDict
 import subprocess
 
+from pyramid.paster import get_appsettings
+from sqlalchemy import engine_from_config
+
 import transaction
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload, joinedload_all
@@ -22,8 +25,6 @@ from pyglottolog.api import Glottolog
 import glottolog3
 from glottolog3 import models
 from glottolog3 import initdb
-
-DB = glottolog3.__name__
 
 
 @command()
@@ -69,10 +70,12 @@ def cdstar(args):
 
 @command()
 def sqldump(args):
-    fname = args.pkg_dir.joinpath('static', 'download', 'glottolog.sql')
-    subprocess.check_call(['pg_dump', '-x', '-O', '-f', fname.as_posix(), DB])
-    subprocess.check_call(['gzip', fname.as_posix()])
-    fname = fname.parent.joinpath(fname.name + '.gz')
+    db = db_url(args)
+    fname = args.pkg_dir / 'static' / 'download' / 'glottolog.sql.gz'
+    subprocess.check_call([
+        'pg_dump',
+        '-U', db.username, '--no-owner', '--no-privileges',
+        '-Z', '9', '-f', str(fname), db.database])
     assert fname.exists()
     args.log.info('{0} written'.format(fname))
 
@@ -160,16 +163,25 @@ def dbinit(args):
     """
     if not args.args:
         raise ParserError('not enough arguments')
-    args.log.info('dropping DB {0}'.format(DB))
+    db = db_url(args)
+    args.log.info('dropping DB {0}'.format(db.database))
     try:
-        subprocess.check_call(['dropdb', DB])
+        subprocess.check_call([
+            'dropdb', '-U', db.username, '--if-exists', db.database])
     except subprocess.CalledProcessError:
         args.log.error('could not drop DB, maybe other processes are still accessing it.')
         return
-    args.log.info('creating DB {0}'.format(DB))
-    subprocess.check_call(['createdb', DB])
+    args.log.info('creating DB {0}'.format(db.database))
+    subprocess.check_call(['createdb', '-U', db.username, db.database])
     dbload(args)
     dbprime(args)
+
+
+def db_url(args):
+    config = args.pkg_dir.parent / 'development.ini'
+    settings = get_appsettings(str(config))
+    engine = engine_from_config(settings, 'sqlalchemy.')
+    return engine.url
 
 
 def with_session(args):
