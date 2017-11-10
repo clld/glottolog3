@@ -1,12 +1,13 @@
 from __future__ import unicode_literals
 
 import datetime
-from xml.etree import cElementTree as et
+import xml.etree.cElementTree as et
 from itertools import cycle
 
 from six.moves import cStringIO as StringIO
 
-from sqlalchemy.orm import joinedload_all
+import sqlalchemy as sa
+import sqlalchemy.orm
 from pyramid.httpexceptions import HTTPFound
 
 from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex
@@ -15,11 +16,11 @@ from clld.web.adapters.download import CsvDump, N3Dump
 from clld.web.adapters.geojson import GeoJsonLanguages
 from clld.web.adapters.md import BibTex
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
-from clld.db.models.common import Language, LanguageIdentifier
+from clld.db.models.common import Language, LanguageIdentifier, Identifier
 from clld.web.icon import ORDERED_ICONS
 from clld.lib import bibtex
 
-from glottolog3.models import LanguoidLevel, Country
+from glottolog3.models import Languoid, LanguoidLevel, Languoidcountry, Country
 from glottolog3.interfaces import IProvider
 
 
@@ -39,21 +40,56 @@ class BibTexCitation(BibTex):
 class LanguoidCsvDump(CsvDump):
 
     def query(self, req):
-        return self.model.csv_query(session=req.db)
+        Family = sa.orm.aliased(Language, flat=True)
+        Father = sa.orm.aliased(Language, flat=True)
+        _Country = sa.orm.aliased(Country, name='_country')
+
+        query = req.db.query(
+                Languoid.id, Family.id.label('family_id'), Father.id.label('father_id'),
+                Languoid.name,
+                Languoid.bookkeeping,
+                sa.type_coerce(Languoid.level, sa.Text).label('level'),
+                sa.type_coerce(Languoid.status, sa.Text).label('status'),
+                Languoid.latitude, Languoid.longitude,
+                sa.func.min(Identifier.name).label('iso639-3'),
+                # NOTE: we can replace min/outerjoin by the scalar subquery below
+                #       once the uniqueness constraint on the join table is fixed
+                # sa.select([Identifier.name])
+                #     .where(LanguageIdentifier.identifier_pk == Identifier.pk)
+                #     .where(LanguageIdentifier.language_pk == Language.pk)
+                #     .where(Identifier.type == 'iso639-3')
+                #     .label('iso639-3'),
+                Languoid.description, Languoid.markup_description,
+                sa.type_coerce(Languoid.jsondata, sa.Text).label('json'),
+                Languoid.child_family_count, Languoid.child_language_count, Languoid.child_dialect_count,
+                sa.select([sa.literal_column("string_agg(_country.id, ' ' ORDER BY _country.id)")])
+                    .where(Languoidcountry.country_pk == _Country.pk)
+                    .where(Languoidcountry.languoid_pk == Languoid.pk)
+                    .label('country_ids'),
+            ).select_from(Languoid).filter(Languoid.active)\
+            .outerjoin(Family, Family.pk == Languoid.family_pk)\
+            .outerjoin(Father, Father.pk == Languoid.father_pk)\
+            .outerjoin(sa.join(LanguageIdentifier, Identifier, sa.and_(
+                    LanguageIdentifier.identifier_pk == Identifier.pk,
+                    Identifier.type == 'iso639-3')),
+                LanguageIdentifier.language_pk == Language.pk)\
+            .group_by(Language.pk, Languoid.pk, Family.pk, Father.pk)\
+            .order_by(Languoid.id)
+        return query
 
     def get_fields(self, req):
         if not self.fields:
-            self.fields = self.model.csv_head()
+            self.fields = [c.name for c in self.query(req).statement.columns]
         return self.fields
 
     def row(self, req, fd, item, index):
-        return item.to_csv(cols=self.fields)
+        return item
 
 
 class LanguoidN3Dump(N3Dump):
 
     def query(self, req):
-        return req.db.query(Language).options(joinedload_all(
+        return req.db.query(Language).options(sa.orm.joinedload_all(
             Language.languageidentifier, LanguageIdentifier.identifier))\
             .order_by(Language.pk)
 
