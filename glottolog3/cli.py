@@ -1,14 +1,15 @@
-# coding: utf8
 from __future__ import unicode_literals, print_function, division
-import os
-import sys
-import argparse
-import re
-from collections import OrderedDict
-import subprocess
-from contextlib import contextmanager
-import gzip
 
+import os
+import re
+import sys
+import gzip
+import shutil
+import argparse
+import subprocess
+import collections
+
+import configparser
 from six.moves.urllib.request import urlretrieve
 
 from pyramid.paster import get_appsettings
@@ -17,9 +18,9 @@ from sqlalchemy import engine_from_config
 import transaction
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload, joinedload_all
-import configparser
+
 from clldutils.clilib import ArgumentParserWithLogging, command, ParserError
-from clldutils.path import Path, write_text, md5, remove, as_unicode
+from clldutils.path import Path, write_text, md5, as_unicode
 from clldutils.jsonlib import load, update
 from clldutils.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
@@ -32,19 +33,20 @@ from glottolog3 import models
 from glottolog3 import initdb
 from glottolog3 import static_archive
 
-
-def get_release_config():
-    res = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
-    res.read(Path(__file__).parent.joinpath('releases.ini').as_posix())
-    return res
+RELEASES = Path(__file__).parent / 'releases.ini'
 
 
-@contextmanager
-def release(version):
-    releases = get_release_config()
-    for section in releases.sections():
-        if version == releases.get(section, 'version'):
-            yield releases[section]
+def get_release_config(filepath=RELEASES, encoding='utf-8'):
+    cfg = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    with filepath.open(encoding=encoding) as f:
+        cfg.read_file(f)
+    return cfg
+
+
+def get_release(version):
+    cfg = get_release_config()
+    return next(cfg[section] for section in cfg.sections()
+                if cfg.get(section, 'version') == version)
 
 
 def _download_sql_dump(rel, log):
@@ -52,19 +54,18 @@ def _download_sql_dump(rel, log):
     log.info('retrieving {0}'.format(rel['sql_dump_url']))
     urlretrieve(rel['sql_dump_url'], target.as_posix())
     assert md5(target) == rel['sql_dump_md5']
-    with gzip.open(target.as_posix(), 'rb') as f:
-        unpacked = Path('glottolog-{0}.sql'.format(rel['version']))
-        with open(unpacked.as_posix(), 'wb') as fp:
-            fp.write(f.read())
-        remove(target)
-        log.info('SQL dump for Glottolog release {0} written to {1}'.format(
-            rel['version'], unpacked))
+    unpacked = target.with_suffix('')
+    with gzip.open(target.as_posix()) as f, unpacked.open('wb') as u:
+        shutil.copyfileobj(f, u)
+    target.unlink()
+    log.info('SQL dump for Glottolog release {0} written to {1}'.format(
+        rel['version'], unpacked))
 
 
 @command()
 def download_sql_dump(args):
-    with release(args.args[0]) as rel:
-        _download_sql_dump(rel, args.log)
+    rel = get_release(args.args[0])
+    _download_sql_dump(rel, args.log)
 
 
 def _load_sql_dump(rel, log):
@@ -72,21 +73,21 @@ def _load_sql_dump(rel, log):
     dbname = as_unicode(dump.stem)
     dbs = [
         l.split('|')[0] for l in
-        subprocess.check_output('psql -l -t -A', shell=True).split('\n')]
+        subprocess.check_output(['psql', '-l', '-t', '-A']).splitlines()]
     if dbname in dbs:
         log.warn('db {0} exists! Drop first to recreate.'.format(dump.name))
     else:
         if not dump.exists():
             _download_sql_dump(rel, log)
-        subprocess.check_call('createdb {0}'.format(dbname), shell=True)
-        subprocess.check_call('psql -d {0} -f {1}'.format(dbname, dump), shell=True)
+        subprocess.check_call(['createdb', dbname])
+        subprocess.check_call(['psql', '-d', dbname, '-f', dump])
         log.info('db {0} created'.format(dbname))
 
 
 @command()
 def load_sql_dump(args):
-    with release(args.args[0]) as rel:
-        _load_sql_dump(rel, args.log)
+    rel = get_release(args.args[0])
+    _load_sql_dump(rel, args.log)
 
 
 @command()
@@ -157,7 +158,7 @@ def sqldump(args):
 @command()
 def newick(args):
     from pyglottolog.objects import Level
-    nodes = OrderedDict([(l.id, l) for l in args.repos.languoids()])
+    nodes = collections.OrderedDict((l.id, l) for l in args.repos.languoids())
     trees = []
     for lang in nodes.values():
         if not lang.lineage and not lang.category.startswith('Pseudo '):
