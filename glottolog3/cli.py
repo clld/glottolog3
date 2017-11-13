@@ -6,6 +6,10 @@ import argparse
 import re
 from collections import OrderedDict
 import subprocess
+from contextlib import contextmanager
+import gzip
+
+from six.moves.urllib.request import urlretrieve
 
 from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config
@@ -13,8 +17,9 @@ from sqlalchemy import engine_from_config
 import transaction
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload, joinedload_all
+import configparser
 from clldutils.clilib import ArgumentParserWithLogging, command, ParserError
-from clldutils.path import Path, write_text
+from clldutils.path import Path, write_text, md5, remove, as_unicode
 from clldutils.jsonlib import load, update
 from clldutils.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
@@ -25,6 +30,75 @@ from pyglottolog.api import Glottolog
 import glottolog3
 from glottolog3 import models
 from glottolog3 import initdb
+from glottolog3 import static_archive
+
+
+def get_release_config():
+    res = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
+    res.read(Path(__file__).parent.joinpath('releases.ini').as_posix())
+    return res
+
+
+@contextmanager
+def release(version):
+    releases = get_release_config()
+    for section in releases.sections():
+        if version == releases.get(section, 'version'):
+            yield releases[section]
+
+
+def _download_sql_dump(rel, log):
+    target = Path('glottolog-{0}.sql.gz'.format(rel['version']))
+    log.info('retrieving {0}'.format(rel['sql_dump_url']))
+    urlretrieve(rel['sql_dump_url'], target.as_posix())
+    assert md5(target) == rel['sql_dump_md5']
+    with gzip.open(target.as_posix(), 'rb') as f:
+        unpacked = Path('glottolog-{0}.sql'.format(rel['version']))
+        with open(unpacked.as_posix(), 'wb') as fp:
+            fp.write(f.read())
+        remove(target)
+        log.info('SQL dump for Glottolog release {0} written to {1}'.format(
+            rel['version'], unpacked))
+
+
+@command()
+def download_sql_dump(args):
+    with release(args.args[0]) as rel:
+        _download_sql_dump(rel, args.log)
+
+
+def _load_sql_dump(rel, log):
+    dump = Path('glottolog-{0}.sql'.format(rel['version']))
+    dbname = as_unicode(dump.stem)
+    dbs = [
+        l.split('|')[0] for l in
+        subprocess.check_output('psql -l -t -A', shell=True).split('\n')]
+    if dbname in dbs:
+        log.warn('db {0} exists! Drop first to recreate.'.format(dump.name))
+    else:
+        if not dump.exists():
+            _download_sql_dump(rel, log)
+        subprocess.check_call('createdb {0}'.format(dbname), shell=True)
+        subprocess.check_call('psql -d {0} -f {1}'.format(dbname, dump), shell=True)
+        log.info('db {0} created'.format(dbname))
+
+
+@command()
+def load_sql_dump(args):
+    with release(args.args[0]) as rel:
+        _load_sql_dump(rel, args.log)
+
+
+@command()
+def create_archive(args):
+    rels = get_release_config()
+    for section in rels.sections():
+        _load_sql_dump(rels[section], args.log)
+    out = Path('archive')
+    if args.args:
+        out = Path(args.args[0])
+    static_archive.create([rels.get(sec, 'version') for sec in rels.sections()], out)
+    args.log.info('static archive created in {0}'.format(out))
 
 
 @command()

@@ -24,6 +24,7 @@ YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
 
 
 def gc2version(args):
+    # FIXME: read the file from the static archive, see glottolog3.static_archive.create!
     return args.pkg_dir.joinpath('static', 'glottocode2version.json')
 
 

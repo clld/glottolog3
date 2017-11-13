@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 from itertools import groupby
+from functools import reduce
 
 from mako.template import Template
 import attr
 from sqlalchemy import create_engine
-from clldutils.path import write_text, remove
+from clldutils.path import write_text, remove, Path
 from clldutils.misc import UnicodeMixin
 from clldutils import jsonlib
-from clld.scripts.util import parsed_args
 
 
 T = Template("""\
@@ -138,8 +138,7 @@ class I(UnicodeMixin):
         return '{0.type}: {0.name}'.format(self)
 
 
-def dump(version, all_langs, identifiers):
-    out = args.data_file('files', 'glottolog-{0}'.format(version))
+def dump(out, version, all_langs, identifiers):
     if out.exists():
         for p in out.iterdir():
             remove(p)
@@ -149,7 +148,9 @@ def dump(version, all_langs, identifiers):
     langs = all_langs[version].values()
     langs_by_pk = {l.pk: l for l in langs}
 
-    children = {pk: list(c) for pk, c in groupby(sorted(langs, key=lambda l: l.fpk), lambda l: l.fpk)}
+    children = {
+        pk: list(c)
+        for pk, c in groupby(sorted(langs, key=lambda l: l.fpk), lambda l: l.fpk)}
 
     for lang in langs:
         ancestors, fpk = [], lang.fpk
@@ -182,40 +183,48 @@ def dump(version, all_langs, identifiers):
         )
 
 
-if __name__ == '__main__':
-    args = parsed_args()
-    versions = ['2.0', '2.1', '2.2', '2.3', '2.4', '2.5', '2.6', '2.7']
-    langs, identifiers = {}, {}
-    for version in versions:
-        db = create_engine('postgresql://postgres@/glottolog-{0}'.format(version))
-        langs[version] = {
-            r['id']: L(r['pk'], r['id'], r['name'], version, r['level'], r['father_pk'])
-            for r in db.execute("""\
-select l.pk, l.id, l.name, ll.level, ll.father_pk
-from language as l, languoid as ll where l.pk = ll.pk and l.active = true""")}
+def aggregate(version, langs, identifiers):
+    db = create_engine('postgresql://postgres@/glottolog-{0}'.format(version))
+    langs[version] = {
+        r['id']: L(r['pk'], r['id'], r['name'], version, r['level'], r['father_pk'])
+        for r in db.execute("""\
+SELECT l.pk, l.id, l.name, ll.level, ll.father_pk
+FROM language AS l, languoid AS ll WHERE l.pk = ll.pk AND l.active = true""")}
 
-        has_superseded = db.scalar("""\
-select exists (select 1 from pg_tables where schemaname = 'public' and tablename = 'superseded')""")
-        if has_superseded:  # dropped in 3.1
-            for r in db.execute("""\
+    has_superseded = db.scalar("""\
+select exists 
+(select 1 from pg_tables where schemaname = 'public' and tablename = 'superseded')""")
+    if has_superseded:  # dropped in 3.1
+        for r in db.execute("""\
 select l.pk, l.id, l.name, string_agg(ll.id, ' ') as replacements
 from language as l, language as ll, superseded as s
 where l.pk = s.languoid_pk and ll.pk = s.replacement_pk
 group by l.pk, l.id, l.name
             """):
-                if r['id'] not in langs[version]:
-                    langs[version][r['id']] = L(
-                        r['pk'], r['id'], r['name'], version, replacements=r['replacements'].split())
+            if r['id'] not in langs[version]:
+                langs[version][r['id']] = L(
+                    r['pk'], r['id'], r['name'], version, replacements=r['replacements'].split())
 
-        identifiers[version] = [
-            I(r['language_pk'], r['name'], r['description'], r['type']) for r in
-            db.execute("""\
+    identifiers[version] = [
+        I(r['language_pk'], r['name'], r['description'], r['type']) for r in
+        db.execute("""\
 select li.language_pk, i.name, i.description, i.type
 from languageidentifier as li, identifier as i
 where li.identifier_pk = i.pk order by li.language_pk, i.type, i.description, i.name""")]
 
+
+def create(versions, out=None):
+    out = out or Path('archive')
+    if not out.exists():
+        out.mkdir()
+
+    langs, identifiers = {}, {}
+    for version in versions:
+        aggregate(version, langs, identifiers)
+
     for version in versions:
         dump(
+            out.joinpath('glottolog-{0}'.format(version)),
             version, 
             langs,
             {pk: list(c) for pk, c in groupby(identifiers[version], lambda i: i.lpk)})
@@ -224,4 +233,4 @@ where li.identifier_pk = i.pk order by li.language_pk, i.type, i.description, i.
     for v in versions:
         for gc in sorted(langs[v].keys()):
             gc2v[gc] = v
-    jsonlib.dump(gc2v, args.data_file('glottocode2version.json'), indent=4)
+    jsonlib.dump(gc2v, out.joinpath('glottocode2version.json'), indent=4)
