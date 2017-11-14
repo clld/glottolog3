@@ -45,13 +45,13 @@ class LanguoidCsvDump(CsvDump):
         _Country = sa.orm.aliased(Country, name='_country')
 
         query = req.db.query(
-                Languoid.id, Family.id.label('family_id'), Father.id.label('father_id'),
+                Languoid.id, Family.id.label('family_id'), Father.id.label('parent_id'),
                 Languoid.name,
                 Languoid.bookkeeping,
                 sa.type_coerce(Languoid.level, sa.Text).label('level'),
                 sa.type_coerce(Languoid.status, sa.Text).label('status'),
                 Languoid.latitude, Languoid.longitude,
-                sa.func.min(Identifier.name).label('iso639-3'),
+                sa.func.min(Identifier.name).label('iso639P3code'),
                 # NOTE: we can replace min/outerjoin by the scalar subquery below
                 #       once the uniqueness constraint on the join table is fixed
                 # sa.select([Identifier.name])
@@ -60,7 +60,6 @@ class LanguoidCsvDump(CsvDump):
                 #     .where(Identifier.type == 'iso639-3')
                 #     .label('iso639-3'),
                 Languoid.description, Languoid.markup_description,
-                sa.type_coerce(Languoid.jsondata, sa.Text).label('json'),
                 Languoid.child_family_count, Languoid.child_language_count, Languoid.child_dialect_count,
                 sa.select([sa.literal_column("string_agg(_country.id, ' ' ORDER BY _country.id)")])
                     .where(Languoidcountry.country_pk == _Country.pk)
