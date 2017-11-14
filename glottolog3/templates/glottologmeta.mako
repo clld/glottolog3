@@ -357,7 +357,30 @@
         We hope to provide more information on dialects in the future.
     </p>
             </%util:section>
-            <%util:section title="Bookkeeping languoids" prefix="">
+            <%util:section title="Coordinates" prefix="">
+    <p>
+
+Glottolog provides coordinates for nearly all language-level
+languoids. The coordinate often represents the geographical
+centre-point of the area where the speakers live, but may also
+indicate a historical location, the demographic centre-point or some
+other representative point. Like (variant) names and country locations
+(but unlike language division and classification), coordinates are
+attributes close to observation and are therefore not given with a
+specific source in Glottolog. However, it is expected that any source
+attributed to the language in Glottolog would indicate a location
+compatible with the coordinate given in Glottolog. The actual sources
+for the coordinates in Glottolog are varied and include both
+individual points submitted by various users and ourselves as well as
+databases such as WALS, ASJP and human reading of Ethnologue maps. As
+such the coordinates in Glottolog are not a substitute for a full and
+well-founded source in language locations (or variant names). For
+that, one needs to look at the individual sources attributed to the
+language in Glottolog.
+    </p>
+            </%util:section>
+
+<%util:section title="Bookkeeping languoids" prefix="">
     <p>
         Glottolog contains lists of three types of languoids that the editors do not regard as real languoids but that are included for bookkeeping purposes:
         languages based on misunderstanding, languages that need to be reassigned, and pseudo-families.
