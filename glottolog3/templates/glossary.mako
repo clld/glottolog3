@@ -96,13 +96,13 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-<%util:section title="Status in Glottolog" level="4">
-    <p>
-        The vast majority of languoids have the status „Established“, but there are some
-        special cases: Some languages are Unattested, some are Provisional, and some
-        languoids are Spurious. In addition, quite a few families have the status „Retired“.
-        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
-    </p>
+#<%util:section title="Status in Glottolog" level="4">
+#    <p>
+#        The vast majority of languoids have the status „Established“, but there are some
+#        special cases: Some languages are Unattested, some are Provisional, and some
+#        languoids are Spurious. In addition, quite a few families have the status „Retired“.
+#        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
+#    </p>
 </%util:section>
 <%util:section title="Unattested language" level="4">
         <p>
@@ -119,12 +119,12 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-<%util:section title="Provisional language" level="4">
-    <p>
-        A language whose status is currently under consideration by the Glottolog editors.
-        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
-    </p>
-</%util:section>
+#<%util:section title="Provisional language" level="4">
+#    <p>
+#        A language whose status is currently under consideration by the Glottolog editors.
+#        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
+#    </p>
+#</%util:section>
 <%util:section title="Spurious languoid" level="4">
     <p>
         A languoid which is cited in the literature, but whose existence is
@@ -134,12 +134,12 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-<%util:section title="Retired family" level="4">
-    <p>
-        A family which existed in Glottolog 1 (2012), but which no longer exists in the
-        current version of Glottolog.
-    </p>
-</%util:section>
+#<%util:section title="Retired family" level="4">
+#    <p>
+#        A family which existed in Glottolog 1 (2012), but which no longer exists in the
+#        current version of Glottolog.
+#    </p>
+#</%util:section>
 
 
 <%util:section title="Most Extensive Description (MED)" level="4">
@@ -148,7 +148,9 @@
         document of the highest ranking
         <a href="#Doctype">document type</a>. From highest to lowest,
         the ranking is grammar, grammar sketch, dictionary/phonology/specific
-        feature/text, wordlist, followed by the remaining document types.
+        feature/text, wordlist, followed by the remaining document types. Note that
+	'description' here refers to grammatical description rather than, e.g., lexical
+	documentation, so grammar trump dictionary.
     </p>
 </%util:section>
 
@@ -158,7 +160,7 @@
         For example, in the case of language for which there is a grammar
         sketch, a phonology and a dictionary, its MED would be the grammar and
         so the descriptive status would be 'grammar'. It does not matter if
-        there are fifty grammar for the language or just one, the descriptive
+        there are fifty grammars for the language or just one, the descriptive
         status would still be 'grammar'.
     </p>
 </%util:section>

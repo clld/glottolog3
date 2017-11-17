@@ -29,7 +29,11 @@
         coordination, and is currently responsible for languoid names and dialects.
     </p>
     <p>
-        A table of source bibliographies for Langdoc is available at
+        Sebastian Bank made numerous improvements to the code base for the Glottolog website
+	and organized the import of several large bibliographies.
+    </p>
+    <p>
+        A table of source bibliographies for Glottolog is available at
         <a href="${request.route_url('providers')}">References information</a>.
     </p>
 </div>
