@@ -96,13 +96,13 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-#<%util:section title="Status in Glottolog" level="4">
-#    <p>
-#        The vast majority of languoids have the status „Established“, but there are some
-#        special cases: Some languages are Unattested, some are Provisional, and some
-#        languoids are Spurious. In addition, quite a few families have the status „Retired“.
-#        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
-#    </p>
+## <%util:section title="Status in Glottolog" level="4">
+##    <p>
+##        The vast majority of languoids have the status „Established“, but there are some
+##        special cases: Some languages are Unattested, some are Provisional, and some
+##        languoids are Spurious. In addition, quite a few families have the status „Retired“.
+##        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
+##    </p>
 </%util:section>
 <%util:section title="Unattested language" level="4">
         <p>
