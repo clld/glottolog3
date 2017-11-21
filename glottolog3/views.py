@@ -193,15 +193,15 @@ def getLanguoids(name=False,
         crit = [Identifier.type == 'name', namequeryfilter]
         if not multilingual:
             crit.append(func.coalesce(Identifier.lang, '').in_((u'', u'eng', u'en')))
-        query = query.filter(Language.identifiers.any(and_(*crit)))
+
+        return list(query.filter(icontains(Languoid.name, name))) +\
+            list(query.filter(Language.identifiers.any(and_(*crit))))
     elif country:
         return []  # pragma: no cover
     else:
-        query = query.join(LanguageIdentifier, Identifier)\
+        return query.join(LanguageIdentifier, Identifier)\
             .filter(Identifier.name.contains(iso.lower()))\
             .filter(Identifier.type == IdentifierType.iso.value)
-
-    return query
 
 
 def quicksearch(request):
