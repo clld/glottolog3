@@ -214,7 +214,6 @@ def downloads(args):
     newick(args)
     geo(args)
     sqldump(args)
-    cdstar(args)
 
 
 @command()

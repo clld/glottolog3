@@ -137,12 +137,12 @@ def main(global_config, **settings):
 
     config.register_download(adapters.LanguoidCsvDump(
         models.Languoid, 'glottolog3', description="Languoids as CSV"))
-    config.register_download(adapters.LanguoidN3Dump(
-        Language, 'glottolog3', description="Languoids as RDF"))
+    #config.register_download(adapters.LanguoidN3Dump(
+    #    Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
         Source, 'glottolog3', ext='bib', description="References as BibTeX"))
-    config.register_download(N3Dump(
-        Source, 'glottolog3', description="References as RDF"))
+    #config.register_download(N3Dump(
+    #    Source, 'glottolog3', description="References as RDF"))
 
     config.add_route('langdocstatus', '/langdoc/status')
     config.add_route('langdocstatus.browser', '/langdoc/status/browser')

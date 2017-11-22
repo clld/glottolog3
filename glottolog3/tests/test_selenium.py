@@ -30,13 +30,13 @@ class Tests(TestWithSelenium):
         button = PageObject(self.browser, 'site-search-button')
         button.e.click()
         time.sleep(0.5)
-        #self.assertIsNotNone(self.browser.find_element_by_link_text('stan1295'))
+        self.assertIsNotNone(self.browser.find_element_by_link_text('stan1295'))
 
     def test_map(self):
         map_ = self.get_map('/resource/languoid/id/berb1260.bigmap.html')
-        #map_.test_show_marker()
-        #map_.test_show_legend()
-        #map_.test_show_legend('languoids')
+        map_.test_show_marker()
+        map_.test_show_legend()
+        map_.test_show_legend('languoids')
 
     def test_datatable_family(self):
         dt = self.get_datatable('/glottolog/family')
@@ -46,7 +46,7 @@ class Tests(TestWithSelenium):
     def test_datatable_language(self):
         dt = self.get_datatable('/glottolog/language')
         dt.filter('name', u'ü')
-        self.assertEqual(dt.get_info().filtered, 15)
+        self.assertEqual(dt.get_info().filtered, 16)
 
     def test_languoid_map_and_table(self):
         map_ = self.get_map('/resource/languoid/id/ghad1239')

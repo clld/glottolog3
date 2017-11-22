@@ -2,6 +2,13 @@
 
 <h3>News</h3>
 
+<h4>Glottolog 3.0 - 2017-11-22</h4>
+
+From this release on, we keep a
+${h.external_link('https://github.com/clld/glottolog/blob/master/CHANGES.md', label='change log')}
+in the data repository.
+
+
 <h4>Glottolog 3.0 - 2017-03-29</h4>
 
 <dl>
@@ -14,8 +21,7 @@
             <a href="${request.route_url('provider', id='benjamins')}">
                 Bibliographical records
             </a>
-            for all linguistic books and journal articles
-            cited in books published by
+            for all linguistic books and journal articles published by
             ${h.external_link('https://benjamins.com/', label='John Benjamins Publishing Company')}.
         </p>
     </dd>

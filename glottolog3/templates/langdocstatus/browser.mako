@@ -112,7 +112,7 @@
                     <th colspan="2">Most extensive description is a ...</th>
                     % for ed in endangerments:
                         <th style="text-align: right;">
-                            <img src="${icon_map[ed.shape + 'ffffff']}" height="20" width="20"/>
+                            <img src="${icon_map['c' + ed.color]}" height="20" width="20"/>
                         </th>
                     % endfor
                     <th>total</th>
@@ -123,7 +123,7 @@
                 <tr>
                     <th>${sdt.name}</th>
                     <th>
-                        <img src="${icon_map['c' + sdt.color]}" height="20" width="20"/>
+                        <img src="${icon_map[sdt.shape + 'ffffff']}" height="20" width="20"/>
                     </th>
                     % for ed in endangerments:
                         ${stats_cell(ed.ord, i)}

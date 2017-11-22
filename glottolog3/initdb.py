@@ -24,8 +24,7 @@ YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
 
 
 def gc2version(args):
-    # FIXME: read the file from the static archive, see glottolog3.static_archive.create!
-    return args.pkg_dir.joinpath('static', 'glottocode2version.json')
+    return args.pkg_dir.parent / 'archive' / 'glottocode2version.json'
 
 
 def load(args):
@@ -48,6 +47,7 @@ def load(args):
     data = Data()
     for i, (id_, name) in enumerate([
         ('hammarstroem', 'Harald Hammarström'),
+        ('bank', 'Sebastian Bank'),
         ('forkel', 'Robert Forkel'),
         ('haspelmath', 'Martin Haspelmath'),
     ]):
@@ -124,6 +124,7 @@ def load(args):
         data.add(
             models.Doctype, doctype.id, id=doctype.id,
             name=doctype.name,
+            description=doctype.description,
             abbr=doctype.abbv,
             ord=doctype.rank)
 
@@ -228,6 +229,9 @@ group by l.pk"""):
 
 
 def add_identifier(languoid, data, name, type, description, lang='en'):
+    if len(lang) > 3:
+        # Weird stuff introduced via hhbib_lgcode names. Roll back language parsing.
+        name, lang = '{0} [{1}]'.format(name, lang), 'en'
     identifier = data['Identifier'].get((name, type, description, lang))
     if not identifier:
         identifier = data.add(
@@ -307,7 +311,7 @@ def load_languoid(data, lang, nodemap):
 
 
 def load_ref(data, entry, lgcodes, lgsources):
-    kw = {'jsondata': {}}
+    kw = {'jsondata': {}, 'language_note': entry.fields.get('lgcode')}
     for col in common.Source.__table__.columns:
         if col.name in entry.fields:
             kw[col.name] = entry.fields.get(col.name)

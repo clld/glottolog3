@@ -38,13 +38,13 @@ def intro(req):
     }
 
 
-SimplifiedDoctype = namedtuple('SimplifiedDoctype', 'ord name color')
+SimplifiedDoctype = namedtuple('SimplifiedDoctype', 'ord name shape')
 SIMPLIFIED_DOCTYPES = [
     SimplifiedDoctype(i, *args) for i, args in enumerate([
-        ('grammar', '00ff00'),
-        ('grammar sketch', 'ff6600'),
-        ('phonology/text', 'ff4400'),
-        ('wordlist or less', 'ff0000'),
+        ('grammar', 'c'),
+        ('grammar sketch', 'd'),
+        ('phonology/text', 't'),
+        ('wordlist or less', 'f'),
     ])
 ]
 SIMPLIFIED_DOCTYPE_MAP = defaultdict(lambda: SIMPLIFIED_DOCTYPES[3])
@@ -56,15 +56,15 @@ for i, dt in enumerate(DOCTYPES):
         SIMPLIFIED_DOCTYPE_MAP[i] = SIMPLIFIED_DOCTYPES[2]
         SIMPLIFIED_DOCTYPE_MAP[dt] = SIMPLIFIED_DOCTYPES[2]
 
-Endangerment = namedtuple('Endangerment', 'ord name shape')
+Endangerment = namedtuple('Endangerment', 'ord name color')
 ENDANGERMENTS = [
     Endangerment(i, *args) for i, args in enumerate([
-        ('safe', 'c'),
-        ('vulnerable', 'c'),
-        ('definitely endangered', 's'),
-        ('severely endangered', 'd'),
-        ('critically endangered', 't'),
-        ('extinct', 'f'),
+        ('safe', '00ff00'),
+        ('vulnerable', '00ff00'),
+        ('definitely endangered', 'ff6600'),
+        ('severely endangered', 'ff4400'),
+        ('critically endangered', 'ff0000'),
+        ('extinct', '000000'),
     ])
 ]
 ENDANGERMENT_MAP = defaultdict(
@@ -83,7 +83,7 @@ class DescStatsGeoJson(GeoJson):
         return {'layer': 'desc'}
 
     def get_icon(self, req, type_, endangerment):
-        return self.obj[0][endangerment.shape + SIMPLIFIED_DOCTYPE_MAP[type_].color]
+        return self.obj[0][SIMPLIFIED_DOCTYPE_MAP[type_].shape + endangerment.color]
 
     def feature_properties(self, ctx, req, feature):
         endangerment = ENDANGERMENT_MAP[feature.status.value]
@@ -139,7 +139,7 @@ class DescStatsMap(Map):
 
         values = [desc('Most extensive description is a ...')]
         for sdt in SIMPLIFIED_DOCTYPES:
-            values.append((img('c' + sdt.color), desc(sdt.name)))
+            values.append((img(sdt.shape + 'ffffff'), desc(sdt.name)))
         values.append(desc('Language is ...'))
         for ed in ENDANGERMENTS:
             values.append((
@@ -149,7 +149,7 @@ class DescStatsMap(Map):
                         checked='checked',
                         id='marker-toggle-ed-' + str(ed.ord),
                         onclick='GLOTTOLOG3.LangdocStatus.toggleMarkers()'),
-                    img(ed.shape + 'ffffff'),
+                    img('c' + ed.color),
                     desc(ed.name.lower()))))
         yield Legend(self, 'values', values, label='Legend')
 
@@ -199,8 +199,8 @@ def browser(req):
         req, 'families', 'msfamily', collection=family_query(req), selected=_get_families(req))
 
     icon_map = {}
-    for color in [sdt.color for sdt in SIMPLIFIED_DOCTYPES] + ['ffffff']:
-        for shape in [ed.shape for ed in ENDANGERMENTS]:
+    for shape in [sdt.shape for sdt in SIMPLIFIED_DOCTYPES]:
+        for color in [ed.color for ed in ENDANGERMENTS] + ['ffffff']:
             spec = shape + color
             icon_map[spec] = req.static_url('clld:web/static/icons/%s.png' % spec)
 
