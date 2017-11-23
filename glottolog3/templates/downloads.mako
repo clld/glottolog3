@@ -10,50 +10,42 @@
 <h2>Downloads</h2>
 
 <div class="accordion" id="downloads" style="margin-top: 1em; clear: right;">
-    <%util:accordion_group eid="acc-current" parent="downloads" title="Current version" open="True">
-        <p>
-            You can download the following files (encoded in UTF-8):
-        </p>
-        <dl>
-            % for model, dls in h.get_downloads(request):
-                <dt>${_(model)}</dt>
-                % if model == 'Languages':
-                <dd>
-                    <a href="${request.static_url('glottolog3:static/download/tree-glottolog-newick.txt')}">
-                        Classification as text file in Newick format
-                    </a>
-                </dd>
-                <dd>
-                    <a href="${request.static_url('glottolog3:static/download/languages-and-dialects-geo.csv')}">
-                        Languages and dialects with geographic information in CSV format
-                    </a>
-                </dd>
-                <dd>
-                    <a href="${request.route_url('resourcemap', _query=dict(rsc='language'))}">
-                        Mapping of Glottocodes to ISO 639-3 codes (and others) in JSON format
-                    </a>
-                </dd>
-                % endif
-                % for dl in dls:
-                <dd>
-                    <a href="${dl.url(request)}">${dl.label(req)}</a>
-                </dd>
-                % endfor
-            % endfor
-        </dl>
-    </%util:accordion_group>
     % for version, links in reversed(list(u.old_downloads())):
-    <%util:accordion_group eid="acc-${version.replace('.', '-')}" parent="downloads" title="Version ${version}">
-        <ul>
-            % for link in links:
-            <li>${link|n}</li>
-            % endfor
-        </ul>
-    </%util:accordion_group>
+        % if loop.first:
+            <%util:accordion_group eid="acc-${version.replace('.', '-')}" parent="downloads" title="Version ${version}" open="True">
+                <ul>
+                    % for link in links:
+                        <li>${link|n}</li>
+                    % endfor
+                </ul>
+            </%util:accordion_group>
+        % else:
+            <%util:accordion_group eid="acc-${version.replace('.', '-')}" parent="downloads" title="Version ${version}">
+                <ul>
+                    % for link in links:
+                        <li>${link|n}</li>
+                    % endfor
+                </ul>
+            </%util:accordion_group>
+        % endif
     % endfor
 </div>
 
 <%def name="sidebar()">
+    <%util:well title="Download Files">
+        <dl>
+            <dt>glottolog.sql.gz</dt>
+            <dd>gzipped PostgreSQL 9.x database dump</dd>
+            <dt>glottolog_languoid.csv.zip</dt>
+            <dd>tabular description of Glottolog languoids, one row per languoid, in (zipped) CSV</dd>
+            <dt>glottolog_source.bib.zip</dt>
+            <dd>zipped BibTeX file containing all Glottolog references</dd>
+            <dt>languages_and_dialects_geo.csv</dt>
+            <dd>CSV file containing geographic locations for Glottolog languages and dialects</dd>
+            <dt>tree_glottolog_newick.txt</dt>
+            <dd>Trees for all Glottolog top-level families encoded in Newick format</dd>
+        </dl>
+    </%util:well>
     <%util:well title="Glottolog Data">
         <p>
             The data published by Glottolog is curated in the public GitHub repository

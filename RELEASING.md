@@ -29,5 +29,4 @@
 - `clld-llod` ?
 
 - run `fab tasks.copy_files:production` to copy the static archive to the server.
-- run `fab tasks.copy_downloads:production` to copy the static archive to the server.
 - run `fab tasks.deploy:production` to copy new code and database to the server.
