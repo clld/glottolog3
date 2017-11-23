@@ -49,7 +49,7 @@
         </ul>
     </p>
     <p>
-        (Glottolog also contains lists of putative languages and families that are not regarded as real languoids by the editors but that are given a Glottocode for bookkeeping purposes;
+        (Glottolog also contains lists of putative languages that are not regarded as real languoids by the editors but that are given a Glottocode for bookkeeping purposes;
         these are called <strong>bookkeeping languoids</strong> and they are described further below.)
     </p>
     </div>
@@ -101,8 +101,8 @@
         unattested and unclassifiable languages, see <a href="${request.route_url('source', id=308733)}">Harald Hammarström (2012)</a>. A comprehensive
         listing of pidgins is <a href="${request.route_url('source', id=129370)}">Peter Bakker and Mikael Parkvall (2010)</a>. This listing differentiates different levels of
         evidence for the existence of a pidgin, rather than a strict yes/no existence-decision.
-        Elsewhere there are extensive lists of sign languages (<a href="${request.route_url('source', id=45973)}">Taylor, Allan R. 1996</a>, <a href="${request.route_url('source', id=314571)}">J. Albert Bickford 2005</a>, <a href="${request.route_url('source', id=114593)}">Kamei, Nobutaka 2004</a>, <a href="${request.route_url('source', id=314546)}">Ulrike Zeshan 2006</a>, <a href="${request.route_url('source', id=314580)}">Roger Blench and Andy Warren 2003</a>, <a href="${request.route_url('source', id=161311)}">Anonymous 2007</a>),
-        whistled languages (<a href="${request.route_url('source', id=108497)}">Julien Meyer 2005</a>) and artificial languages (<a href="${request.route_url('source', id=314581)}">P. O. Bartlett 2006</a>).
+        Elsewhere there are extensive lists of whistled languages (**hh:h:Meyer:Whistled:2015**,
+        **hh:h:BusnelClasse:Whistled**, **hh:e:Harrisson:Borneo-Nomads**, **hh:h:Thierry:Siffles**), initiation languages (**hh:ld:Ngonga-ke-Mbembe:Initiatique-Ohendo**, **hh:typ:Monino:Labi**, ritual languages **hh:ld:Brindle:Kiliji**), secret languages (**hh:ld:Dugast:Njoya**,**hh:s:Ittman:Nixenkultbundes**,**hh:w:Beaujard:Arabico-Malgache**, **hh:ldsoc:Berjaoui:Amazigh-Secret**, **hh:soc:Berjaoui:Moroccan**, **hh:s:Leiris:Dogons**, **hh:hvld:Leslau:Ethiopian-Argots**, **h:Debrunner:Vergessene-Togorestvolkern**, **hh:hw:Thomas:Southern-Nigeria**) and drummed languages (**hh:ld:Betz:Trommelsprache-Duala**, **hh:ld:Carrington:Gong**, **hh:ld:Arom:Tambourine-Banda-Linda**, **hh:ld:Seifart:Bora-Drum**, **hh:typ:Stern:Drum**, **hh:ld:Aitken:Drum**).
      <!--l. 86--></p>
     </%util:section>
 
@@ -158,7 +158,7 @@
         mean that the data in question has been published. We also require that the data is not known to have
         vanished, meaning that once attested languages whose attestation now appears to be lost count as unattested.
         For example, grammar sketches of three extinct South American language Taimviae, Teutae and Agoiae that once
-        did exist (<a href="${request.route_url('source', id=45004)}">Daniel G. Brinton 1898</a>):203,208 now seem to have vanished completely. Thus, the three count as unattested
+        did exist (<a href="${request.route_url('source', id=45004)}">Daniel G. Brinton 1898</a>:203, 208) now seem to have vanished completely. Thus, the three count as unattested
         because it is known that the attestation is gone.
     </p>
     <h5><a id="x1-5000"></a>3. Has it served as the main means of communication for a human society?</h5>
@@ -266,7 +266,7 @@
         In other cases, data availability is not the bottleneck, but the work required to ascertain the subgrouping.
         Plenty of data exists for Adamawa Fali and other Volta-Congo languages (although patchily distributed), but
         subgrouping in the Volta-Congo languages is a large and complicated issue, leaving the subgrouping of
-        Adamawa Fali unresolved (<a href="${request.route_url('source', id=114627)}">Boyd, Raymond 1989</a>):180.
+        Adamawa Fali unresolved (<a href="${request.route_url('source', id=114627)}">Boyd, Raymond 1989</a>:180).
     </p>
     <h5><a id="x1-11000"></a>8. Is there a subgrouping based on shared innovations?</h5>
     <p>
@@ -338,9 +338,9 @@
         as the reference justifying the top-level family as well as the reference justifying most intermediate nodes.
         The remaining languages, Arapaso, Miriti, Macaguaje and Tama do exist (or did exist) and they are arguably
         Tucanoan. For Macaguaje and Tama, a small amount of data is attested and published, and this is enough for
-        <a href="${request.route_url('source', id=56760)}">Sergio Elías Ortiz (1965)</a>:133 to show that they are within the
+        <a href="${request.route_url('source', id=56760)}">Sergio Elías Ortiz (1965:133)</a> to show that they are within the
         <a href="${request.route_url('language', id='sion1248')}">Siona-Secoya</a>
-        group. Thus, here <a href="${request.route_url('source', id=56760)}">Sergio Elías Ortiz (1965)</a>:133 is cited as
+        group. Thus, here <a href="${request.route_url('source', id=56760)}">Sergio Elías Ortiz (1965:133)</a> is cited as
         the reference justifying the position of Macaguaje and Tama. For Miriti and Arapaso, <a href="${request.route_url('source', id=9035)}">Brüzzi Alves da Silva, Alcionilio (1972)</a> collected
         short wordlists of them, and concluded that they were Tucanoan, but he gives no further information that would
         allow us to infer their relation to each other or to other Tucanoan languages. The wordlists themselves were
