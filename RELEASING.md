@@ -28,5 +28,10 @@
 - run `python glottolog3/scripts/langdocstatus.py development.ini` to recreate `ldstatus.json`
 - `clld-llod` ?
 
-- run `fab tasks.copy_files:production` to copy the static archive to the server.
-- run `fab tasks.deploy:production` to copy new code and database to the server.
+Now deploy to server:
+```
+workon appconfig
+cd appconfig/apps/glottolog3
+fab copy_archive:production
+fab deploy:production
+```

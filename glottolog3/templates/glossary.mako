@@ -96,7 +96,6 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-</%util:section>
 <%util:section title="Unattested language" level="4">
         <p>
             A language for which we have convincing evidence of its existence and distinctness
