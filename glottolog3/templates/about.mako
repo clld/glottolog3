@@ -30,7 +30,7 @@
     </p>
     <p>
         Sebastian Bank made numerous improvements to the code base for the Glottolog website
-	and organized the import of several large bibliographies.
+	    and organized the import of several large bibliographies.
     </p>
     <p>
         A table of source bibliographies for Glottolog is available at

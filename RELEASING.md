@@ -1,6 +1,18 @@
 
-- recreate benjamins.bib and push it to clld/glottolog
-- checkout release of clld/glottolog
+# Releasing http://glottolog.org
+
+1. Checkout the corresponding release of clld/glottolog.
+
+
+3. FIXME: Create list of new refs/languoids, querying the old db.
+   - look up previous version in releases.ini
+   - compute (new - old) for each criterion
+
+- update version info and editors
+
+7. mark new refs/languoids reading in the lists created in 4.
+
+
 - create the static archive including the last release: `glottolog-app create_archive`
 - update editors, etc.
 - initialize the DB running `glottolog-app dbinit <release>`

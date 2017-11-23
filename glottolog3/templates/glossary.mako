@@ -24,13 +24,13 @@
         The class a document belongs to. There are ${doctypes.count()} classes.
         document can belong to more than one class.
         The following doctypes are distinguished
+    </p>
         <dl>
             % for doctype in doctypes:
             <dt id="doctype-${doctype.id}">${doctype}</dt>
             <dd>${doctype.description or ''}</dd>
             % endfor
         </dl>
-    </p>
 </%util:section>
 <%util:section title="Macro-area" level="4" id="macroarea">
         <div class="span6 pull-right well well-small">
@@ -96,13 +96,6 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-## <%util:section title="Status in Glottolog" level="4">
-##    <p>
-##        The vast majority of languoids have the status „Established“, but there are some
-##        special cases: Some languages are Unattested, some are Provisional, and some
-##        languoids are Spurious. In addition, quite a few families have the status „Retired“.
-##        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
-##    </p>
 </%util:section>
 <%util:section title="Unattested language" level="4">
         <p>
@@ -119,12 +112,6 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-#<%util:section title="Provisional language" level="4">
-#    <p>
-#        A language whose status is currently under consideration by the Glottolog editors.
-#        (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
-#    </p>
-#</%util:section>
 <%util:section title="Spurious languoid" level="4">
     <p>
         A languoid which is cited in the literature, but whose existence is
@@ -134,13 +121,6 @@
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
-#<%util:section title="Retired family" level="4">
-#    <p>
-#        A family which existed in Glottolog 1 (2012), but which no longer exists in the
-#        current version of Glottolog.
-#    </p>
-#</%util:section>
-
 
 <%util:section title="Most Extensive Description (MED)" level="4">
     <p>

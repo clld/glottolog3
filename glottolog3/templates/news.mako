@@ -2,7 +2,7 @@
 
 <h3>News</h3>
 
-<h4>Glottolog 3.0 - 2017-11-22</h4>
+<h4>Glottolog 3.1 - 2017-11-22</h4>
 
 From this release on, we keep a
 ${h.external_link('https://github.com/clld/glottolog/blob/master/CHANGES.md', label='change log')}

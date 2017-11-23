@@ -291,7 +291,7 @@ class Refs(Sources):
         if 'provider' in kw:
             self.provider = kw['provider']
         elif 'provider' in req.params:
-            self.provider = Provider.get(req.params['provider'])
+            self.provider = Provider.get(req.params['provider'], default=None)
         else:
             self.provider = None
         super(Refs, self).__init__(req, *args, **kw)

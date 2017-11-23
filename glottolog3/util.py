@@ -229,7 +229,7 @@ def format_comment(req, comment):
     for rp in DBSession.query(Refprovider).filter(Refprovider.id.in_(sources.keys())):
         sources[rp.id] = rp.ref
 
-    return ' '.join(link(req, sources[p]) if p in sources else p for p in parts)
+    return ' '.join(link(req, sources[p]) if sources.get(p) else p for p in parts)
 
 
 def format_justifications(req, refs):

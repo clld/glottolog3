@@ -37,6 +37,7 @@
     </p>
     <p>
         In addition to the genealogical trees (families and isolates), the Families page also includes the following <strong>non-genealogical trees</strong>:
+    </p>
         <ul>
         ## TODO: link to glossary! and to family page!?
           <li>Unattested languages</li>
@@ -47,7 +48,6 @@
           <li>Artificial spoken languages</li>
           <li>Sign languages and auxiliary sign systems</li>
         </ul>
-    </p>
     <p>
         (Glottolog also contains lists of putative languages that are not regarded as real languoids by the editors but that are given a Glottocode for bookkeeping purposes;
         these are called <strong>bookkeeping languoids</strong> and they are described further below.)
@@ -101,8 +101,8 @@
         unattested and unclassifiable languages, see <a href="${request.route_url('source', id=308733)}">Harald Hammarström (2012)</a>. A comprehensive
         listing of pidgins is <a href="${request.route_url('source', id=129370)}">Peter Bakker and Mikael Parkvall (2010)</a>. This listing differentiates different levels of
         evidence for the existence of a pidgin, rather than a strict yes/no existence-decision.
-        Elsewhere there are extensive lists of whistled languages (**hh:h:Meyer:Whistled:2015**,
-        **hh:h:BusnelClasse:Whistled**, **hh:e:Harrisson:Borneo-Nomads**, **hh:h:Thierry:Siffles**), initiation languages (**hh:ld:Ngonga-ke-Mbembe:Initiatique-Ohendo**, **hh:typ:Monino:Labi**, ritual languages **hh:ld:Brindle:Kiliji**), secret languages (**hh:ld:Dugast:Njoya**,**hh:s:Ittman:Nixenkultbundes**,**hh:w:Beaujard:Arabico-Malgache**, **hh:ldsoc:Berjaoui:Amazigh-Secret**, **hh:soc:Berjaoui:Moroccan**, **hh:s:Leiris:Dogons**, **hh:hvld:Leslau:Ethiopian-Argots**, **h:Debrunner:Vergessene-Togorestvolkern**, **hh:hw:Thomas:Southern-Nigeria**) and drummed languages (**hh:ld:Betz:Trommelsprache-Duala**, **hh:ld:Carrington:Gong**, **hh:ld:Arom:Tambourine-Banda-Linda**, **hh:ld:Seifart:Bora-Drum**, **hh:typ:Stern:Drum**, **hh:ld:Aitken:Drum**).
+        ${u.format_comment(request, """Elsewhere there are extensive lists of whistled languages (**hh:h:Meyer:Whistled:2015**,
+        **hh:h:BusnelClasse:Whistled**, **hh:e:Harrisson:Borneo-Nomads**, **hh:h:Thierry:Siffles**), initiation languages (**hh:ld:Ngonga-ke-Mbembe:Initiatique-Ohendo**, **hh:typ:Monino:Labi**, ritual languages **hh:ld:Brindle:Kiliji**), secret languages (**hh:ld:Dugast:Njoya**,**hh:s:Ittman:Nixenkultbundes**,**hh:w:Beaujard:Arabico-Malgache**, **hh:ldsoc:Berjaoui:Amazigh-Secret**, **hh:soc:Berjaoui:Moroccan**, **hh:s:Leiris:Dogons**, **hh:hvld:Leslau:Ethiopian-Argots**, **hh:h:Debrunner:Vergessene-Togorestvolkern**, **hh:hw:Thomas:Southern-Nigeria**) and drummed languages (**hh:ld:Betz:Trommelsprache-Duala**, **hh:ld:Carrington:Gong**, **hh:ld:Arom:Tambourine-Banda-Linda**, **hh:ld:Seifart:Bora-Drum**, **hh:typ:Stern:Drum**, **hh:ld:Aitken:Drum**).""")|n}
      <!--l. 86--></p>
     </%util:section>
 
