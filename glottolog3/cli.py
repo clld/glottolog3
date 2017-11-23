@@ -21,7 +21,7 @@ from sqlalchemy.orm import joinedload, joinedload_all
 
 from clldutils.clilib import ArgumentParserWithLogging, command, ParserError
 from clldutils.path import Path, write_text, md5, as_unicode
-from clldutils.jsonlib import load, update
+from clldutils.jsonlib import load, update, dump
 from clldutils.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
 from clld.db.meta import DBSession
@@ -249,6 +249,14 @@ def dbinit(args):
     subprocess.check_call(['createdb', '-U', db.username, db.database])
     dbload(args)
     dbprime(args)
+
+
+@command()
+def ldstatus(args):
+    from glottolog3.langdocstatus import extract_data
+
+    with_session(args)
+    dump(extract_data(), 'glottolog3/static/ldstatus.json', indent=4)
 
 
 def db_url(args):

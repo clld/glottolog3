@@ -25,7 +25,7 @@
 
 - upload downloads to cdstar running `glottolog-app cdstar <release>`
 - register sql dump download in releases.ini # FIXME!!
-- run `python glottolog3/scripts/langdocstatus.py development.ini` to recreate `ldstatus.json`
+- run `glottolog-app ldstatus` to recreate `ldstatus.json`
 - `clld-llod` ?
 
 Now deploy to server:
@@ -35,3 +35,23 @@ cd appconfig/apps/glottolog3
 fab copy_archive:production
 fab deploy:production
 ```
+
+FIXME: run fab task to download downloads from cdstar onto the server!
+
+import os
+
+from six.moves.urllib.request import urlretrieve
+
+from clldutils.jsonlib import load
+from clldutils.path import Path
+
+
+for rel, spec in load('../downloads.json').items():
+    print rel
+    d = Path(rel)
+    if not d.exists():
+        d.mkdir()
+    for bs in spec['bitstreams']:
+        url = 'https://cdstar.shh.mpg.de//bitstreams/{0}/{1}'.format(spec['oid'], bs['bitstreamid'])
+        print url
+        urlretrieve(url, d.joinpath(bs['bitstreamid'].replace('_', '-')).as_posix())

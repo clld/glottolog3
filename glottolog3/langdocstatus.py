@@ -6,6 +6,8 @@ The description status of languages can be investigated in relation to the vital
 endangerment) of a language.
 """
 from collections import defaultdict, namedtuple
+from math import ceil
+from functools import total_ordering
 
 from pyramid.view import view_config
 from sqlalchemy.orm import aliased, joinedload
@@ -21,7 +23,7 @@ from clldutils.path import Path
 
 import glottolog3
 from glottolog3.models import (
-    DOCTYPES, Languoid, Macroarea, Languoidmacroarea, LanguoidLevel,
+    DOCTYPES, Languoid, Macroarea, Languoidmacroarea, LanguoidLevel, Ref,
 )
 from glottolog3.maps import Language
 
@@ -278,3 +280,109 @@ def languages(req):
         langs.append((lang, med))
 
     return {'languages': sorted(langs, key=lambda l: l[0].name), 'label': label}
+
+
+@total_ordering
+class Source(object):
+    """Representation of a source amenable to computation of MEDs
+    (Most Extensive Description)
+    """
+    def __init__(self, source, lcount):
+        assert lcount
+        self.index = len(DOCTYPES)
+        self.doctype = None
+
+        for doctype in source.doctypes:
+            doctype = doctype.id
+            if doctype and DOCTYPES.index(doctype) < self.index:
+                self.index = DOCTYPES.index(doctype)
+                self.doctype = doctype
+
+        # the number of pages is divided by number of doctypes times number of
+        # described languages
+        self.pages = int(ceil(
+            float(source.pages_int or 0) / ((len(source.doctypes) or 1) * lcount)))
+
+        self.year = source.year_int
+        self.id = source.id
+        self.name = source.name
+
+    def __json__(self):
+        return [getattr(self, k) for k in 'id doctype year pages name'.split()]
+
+    @property
+    def weight(self):
+        """This is the algorithm:
+        "more extensive" means: better doctype (i.e. lower index) or more pages or newer.
+
+        Thus, a sorted list of Sources will have the MED as first element.
+        """
+        return self.index, -self.pages, -(self.year or 0), int(self.id)
+
+    def __eq__(self, other):
+        return self.weight == other.weight
+
+    def __ne__(self, other):
+        return not (self == other)
+
+    def __lt__(self, other):
+        return self.weight < other.weight
+
+
+def extract_data():  # pragma: no cover
+    status = {}
+    lpks = DBSession.query(common.Language.pk) \
+        .filter(common.Language.active == True) \
+        .filter(common.Language.latitude != None) \
+        .filter(Languoid.level == LanguoidLevel.language) \
+        .order_by(common.Language.pk).all()
+    print(len(lpks))
+
+    sql = """\
+select ls.source_pk, count(ls.language_pk) from languagesource as ls, ref as r 
+where ls.source_pk = r.pk and r.ca_doctype_trigger is null and r.ca_language_trigger is null 
+group by source_pk 
+    """
+    lcounts = {r[0]: r[1] for r in DBSession.execute(sql)}
+
+    # loop over active, established languages with geo-coords
+    for i, lpk in enumerate(lpks):
+        l = DBSession.query(common.Language).filter(common.Language.pk == lpk).one()
+        # let's collect the relevant sources in a way that allows computation of med.
+        # Note: we limit refs to the ones without computerized assignments.
+        sources = list(DBSession.query(Ref).join(common.LanguageSource) \
+                       .filter(common.LanguageSource.language_pk == lpk) \
+                       .filter(Ref.ca_doctype_trigger == None) \
+                       .filter(Ref.ca_language_trigger == None) \
+                       .options(joinedload(Ref.doctypes)))
+        sources = sorted([Source(s, lcounts.get(s.pk, 0)) for s in sources])
+
+        # keep the overall med
+        # note: this source may not be included in the potential meds computed
+        # below,
+        # e.g. because it may not have a year.
+        med = sources[0].__json__() if sources else None
+
+        # now we have to compute meds respecting a cut-off year.
+        # to do so, we collect eligible sources per year and then
+        # take the med of this collection.
+        potential_meds = []
+
+        # we only have to loop over publication years within all sources, because
+        # only in these years something better might have come along.
+        for year in set(s.year for s in sources if s.year):
+            # let's see if something better was published!
+            eligible = [s for s in sources if s.year and s.year <= year]
+            if eligible:
+                potential_meds.append(sorted(eligible)[0])
+
+        # we store the precomputed sources information as jsondata:
+        status[l.id] = [
+            med,
+            [s.__json__() for s in
+             sorted(set(potential_meds), key=lambda s: -s.year)]]
+        if i and i % 1000 == 0:
+            print(i)
+            DBSession.close()
+
+    return status
