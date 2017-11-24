@@ -233,12 +233,11 @@ def quicksearch(request):
         if DBSession.query(_query.exists()).scalar():
             query = _query
         else:
-            query = query.filter(or_(
-                func.lower(Languoid.name).contains(term),
+            query = query.filter(
                 Languoid.identifiers.any(and_(
                     Identifier.type == u'name',
                     Identifier.description == Languoid.GLOTTOLOG_NAME,
-                    func.lower(Identifier.name).contains(term)))))
+                    func.lower(Identifier.name).contains(term))))
 
         kind = 'name part'
         params['name'] = term

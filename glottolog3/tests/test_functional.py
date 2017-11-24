@@ -28,25 +28,55 @@ class Tests(TestWithApp):
 
     def test_languoids(self):
         self.app.get('/glottolog')
+
+    def test_languoids1(self):
         self.app.get('/glottolog?alnum=stan1295', status=302)
+
+    def test_languoids2(self):
         res = self.app.get('/glottolog?alnum=xxxx9999')
         assert 'No matching languoids' in res
+
+    def test_languoids3(self):
         res = self.app.get('/glottolog?name=xxxx')
         assert 'No matching languoids' in res
+
+    def test_languoids4(self):
         res = self.app.get('/glottolog?iso=x')
         assert 'at least two characters' in res
+
+    def test_languoids5(self):
         res = self.app.get('/glottolog?name=U')
         assert 'at least two characters' in res
+
+    def test_languoids6(self):
         res = self.app.get('/glottolog?name=U&namequerytype=whole')
         assert 'at least two characters' not in res
+
+    def test_languoids7(self):
         self.app.get('/glottolog?search=deu', status=302)
+
+    def test_languoids8(self):
         self.app.get_html('/glottolog?search=')
+
+    def test_languoids9(self):
         self.app.get_html('/glottolog?search=en')
+
+    def test_languoids10(self):
         self.app.get_html('/glottolog?search=Deu')
+
+    def test_languoids11(self):
         self.app.get_html('/glottolog?search=%20')
+
+    def test_languoids12(self):
         self.app.get_html('/glottolog?search=abcdefg')
+
+    def test_languoids13(self):
         self.app.get('/glottolog?search=stan1295', status=302)
+
+    def test_languoids14(self):
         self.app.get('/glottolog?country=DE', status=302)
+
+    def test_languoids15(self):
         self.app.get('/glottolog?country=DEG')
 
     def test_languoidsfamily(self):
