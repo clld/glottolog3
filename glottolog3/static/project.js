@@ -58,8 +58,9 @@ GLOTTOLOG3.LangdocStatus = (function(){
     return {
         toggleMarkers:  function() {
             CLLD.mapFilterMarkers('map', function(marker){
-                var checkbox = $('#marker-toggle-ed-' + marker.feature.properties.ed);
-                return checkbox.length && checkbox.prop('checked');
+                var ed = $('#marker-toggle-ed-' + marker.feature.properties.ed),
+                    sdt = $('#marker-toggle-sdt-' + marker.feature.properties.sdt);
+                return ed.length && ed.prop('checked') && sdt.length && sdt.prop('checked');
             })
         },
         loadLanguages: function(ed, sdt) {

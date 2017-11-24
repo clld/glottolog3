@@ -30,6 +30,10 @@ LANG_PATTERN = re.compile('\[(?P<id>[^\]]+)\]')
 ISO_PATTERN = re.compile(r'\[(?P<iso>[a-z]{3})\]')
 
 
+def set_focus(url, focus):
+    return URL(url).query_param('focus', focus).as_string()
+
+
 def github_link(ctx):
     return button(
         icon('pencil'), title="see on GitHub", href=ctx.github_url, class_='btn-mini')

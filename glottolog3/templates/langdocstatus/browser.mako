@@ -13,6 +13,8 @@
 <%! from datetime import date %>
 <% year, macroarea = [request.params.get(n, '') for n in 'year macroarea'.split()] %>
 
+<%block name="title">GlottoScope</%block>
+
 <%def name="stats_cell(ed, sdt)">
     <td class="right">
         <a style="cursor: pointer;"
@@ -88,6 +90,26 @@ Atlas of the World's Languages, the Catalogue of Endangered Languages
                 <td>Family:</td>
                 <td>${families.render()}</td>
             </tr>
+            <tr>
+                <td>Focus:</td>
+                <td>
+                    % if focus == 'sdt':
+                        <i class="icon-book"></i>
+                        descriptive status
+                        <a class="btn btn-info" href="${u.set_focus(request.url, 'ed')}">
+                            <i class="icon-heart icon-white"></i>
+                            toggle
+                        </a>
+                    % else:
+                        <i class="icon-heart"></i>
+                        endangerment
+                        <a class="btn btn-info" href="${u.set_focus(request.url, 'sdt')}">
+                            <i class="icon-book icon-white"></i>
+                            toggle
+                        </a>
+                    % endif
+                </td>
+            </tr>
             </tbody>
         </table>
         </div>
@@ -122,7 +144,7 @@ Atlas of the World's Languages, the Catalogue of Endangered Languages
                     <th colspan="2">Most extensive description is a ...</th>
                     % for ed in endangerments:
                         <th style="text-align: right;">
-                            <img src="${icon_map['c' + ed.color]}" height="20" width="20"/>
+                            <img src="${icon_map['c' + ed.color if focus != 'sdt' else ed.shape + 'ffffff']}" height="20" width="20"/>
                         </th>
                     % endfor
                     <th>total</th>
@@ -133,7 +155,7 @@ Atlas of the World's Languages, the Catalogue of Endangered Languages
                 <tr>
                     <th>${sdt.name}</th>
                     <th>
-                        <img src="${icon_map[sdt.shape + 'ffffff']}" height="20" width="20"/>
+                        <img src="${icon_map[sdt.shape + 'ffffff' if focus != 'sdt' else 'c' + sdt.color]}" height="20" width="20"/>
                     </th>
                     % for ed in endangerments:
                         ${stats_cell(ed.ord, i)}
@@ -180,10 +202,10 @@ demo sessions.
 </p>
 
 <p>
-For more information see:<BR>
-
+For more information see:
+</p>
+<blockquote>
 Hammarström, Harald, Thom Castermans, Robert Forkel, Kevin Verbeek,
 Michel A. Westenberg & Bettina Speckmann. 2017. Visualizing Language
 Endangerment and Language Description Hand in Hand. Submitted.
-
-</p>
+</blockquote>
