@@ -28,7 +28,17 @@
 
 <div class="row-fluid">
     <div class="span6">
-        <h3>Language Documentation Status Browser</h3>
+        <h3>GlottoScope: A Browser for Language Description and Language Endangerment</h3>
+
+        <p>
+GlottoScope provides an interface combining the Endangerment Status
+and Descriptive Status of the languages of the world. The underlying
+data is drawn from the Glottolog reference collection and Agglomerated
+Endangerment information combining endangerment data from the UNESCO
+Atlas of the World's Languages, the Catalogue of Endangered Languages
+(ELCat) and the latest edition of SIL International's Ethnologue.
+        </p>
+
         <p>
             You can investigate the documentation status for the selected languages and year
             on the <a class="label label-info" href="#themap">map</a> or view
@@ -156,3 +166,24 @@
         $("#msfamily").on("change", GLOTTOLOG3.LangdocStatus.reload);
     });
 </script>
+
+<p>
+GlottoScope was designed and developed by Robert Forkel and Harald
+Hammarström in 2014.
+</p>
+
+<p>
+Comments and beta-testing were provided by a number of individuals
+including Hedvig Skirgård, Martin Haspelmath, Matti Miestamo, Mark
+Dingemanse, Lyle Campbell, Tapani Salminen and audiences at several
+demo sessions.
+</p>
+
+<p>
+For more information see:<BR>
+
+Hammarström, Harald, Thom Castermans, Robert Forkel, Kevin Verbeek,
+Michel A. Westenberg & Bettina Speckmann. 2017. Visualizing Language
+Endangerment and Language Description Hand in Hand. Submitted.
+
+</p>
