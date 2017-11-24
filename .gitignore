@@ -34,3 +34,5 @@ nosetests.xml
 .pydevproject
 .idea
 data
+
+/glottolog3/static/download

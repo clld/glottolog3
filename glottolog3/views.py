@@ -181,15 +181,13 @@ def getLanguoids(name=False,
         query = query.filter(Language.active == True)
 
     if name:
-        namequeryfilter = {
-            "part": or_(
-                func.lower(Identifier.name).contains(name.lower()),
-                func.unaccent(Identifier.name).contains(func.unaccent(name))),
-            "whole": or_(
-                func.lower(Identifier.name) == name.lower(),
-                func.unaccent(Identifier.name) == func.unaccent(name)),
-        }[namequerytype if namequerytype == 'whole' else 'part']
-        crit = [Identifier.type == 'name', namequeryfilter]
+        crit = [Identifier.type == 'name']
+        ul_iname = func.unaccent(func.lower(Identifier.name))
+        ul_name = func.unaccent(name.lower())
+        if namequerytype == 'whole':
+            crit.append(ul_iname == ul_name)
+        else:
+            crit.append(ul_iname.contains(ul_name))
         if not multilingual:
             crit.append(func.coalesce(Identifier.lang, '').in_((u'', u'eng', u'en')))
         res = list(query.filter(icontains(Languoid.name, name)))
@@ -197,6 +195,9 @@ def getLanguoids(name=False,
             if l not in res:
                 res.append(l)
         return res
+        # FIXME: do combined query
+        #crit = Language.identifiers.any(and_(*crit))
+        #query = query.filter(or_(icontains(Languoid.name, name), crit))
     elif country:
         return []  # pragma: no cover
     else:
@@ -233,6 +234,9 @@ def quicksearch(request):
         if DBSession.query(_query.exists()).scalar():
             query = _query
         else:
+            # FIXME: do combined query also searching main name
+            #query = query.filter(or_(
+            #    func.lower(Languoid.name).contains(term),
             query = query.filter(
                 Languoid.identifiers.any(and_(
                     Identifier.type == u'name',
