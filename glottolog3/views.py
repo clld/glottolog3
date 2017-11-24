@@ -181,17 +181,22 @@ def getLanguoids(name=False,
         query = query.filter(Language.active == True)
 
     if name:
-        crit = [Identifier.type == 'name']
-        ul_iname = func.unaccent(func.lower(Identifier.name))
-        ul_name = func.unaccent(name.lower())
-        if namequerytype == 'whole':
-            crit.append(ul_iname == ul_name)
-        else:
-            crit.append(ul_iname.contains(ul_name))
+        namequeryfilter = {
+            "part": or_(
+                func.lower(Identifier.name).contains(name.lower()),
+                func.unaccent(Identifier.name).contains(func.unaccent(name))),
+            "whole": or_(
+                func.lower(Identifier.name) == name.lower(),
+                func.unaccent(Identifier.name) == func.unaccent(name)),
+        }[namequerytype if namequerytype == 'whole' else 'part']
+        crit = [Identifier.type == 'name', namequeryfilter]
         if not multilingual:
             crit.append(func.coalesce(Identifier.lang, '').in_((u'', u'eng', u'en')))
-        crit = Language.identifiers.any(and_(*crit))
-        query = query.filter(or_(icontains(Languoid.name, name), crit))
+        res = list(query.filter(icontains(Languoid.name, name)))
+        for l in query.filter(Language.identifiers.any(and_(*crit))):
+            if l not in res:
+                res.append(l)
+        return res
     elif country:
         return []  # pragma: no cover
     else:
