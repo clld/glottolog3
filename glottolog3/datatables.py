@@ -300,8 +300,8 @@ class Refs(Sources):
 
     def default_order(self):
         if self.language and self.language.level != LanguoidLevel.family:
-            return Source.pages_int.desc().nullslast(), Source.pk.desc()            
-        return Source.updated.desc(), Source.pk.desc()
+            return Source.pages_int.desc().nullslast(), Source.pk.desc()
+        return Source.pk.desc()
 
     def col_defs(self):
         cols = [DetailsRowLinkCol(self, 'd', button_text='citation')]
