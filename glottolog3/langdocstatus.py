@@ -43,26 +43,29 @@ def intro(req):
 SimplifiedDoctype = namedtuple('SimplifiedDoctype', 'ord name shape color')
 SIMPLIFIED_DOCTYPES = [
     SimplifiedDoctype(i, *args) for i, args in enumerate([
-        ('grammar', 'c', '00ff00'),
+        ('long grammar', 'c', '00ff00'),
+        ('grammar', 's', 'a0fb75'),
         ('grammar sketch', 'd', 'ff6600'),
         ('phonology/text', 't', 'ff4400'),
         ('wordlist or less', 'f', 'ff0000'),
     ])
 ]
-SIMPLIFIED_DOCTYPE_MAP = defaultdict(lambda: SIMPLIFIED_DOCTYPES[3])
+SIMPLIFIED_DOCTYPE_MAP = defaultdict(lambda: SIMPLIFIED_DOCTYPES[4])
+SIMPLIFIED_DOCTYPE_MAP[-1] = SIMPLIFIED_DOCTYPES[0]
+SIMPLIFIED_DOCTYPE_MAP['long_grammar'] = SIMPLIFIED_DOCTYPES[0]
 for i, dt in enumerate(DOCTYPES):
     if i <= 1:
-        SIMPLIFIED_DOCTYPE_MAP[i] = SIMPLIFIED_DOCTYPES[i]  # i.e. grammar or grammarsketch
-        SIMPLIFIED_DOCTYPE_MAP[dt] = SIMPLIFIED_DOCTYPES[i]
+        SIMPLIFIED_DOCTYPE_MAP[i] = SIMPLIFIED_DOCTYPES[i + 1]  # i.e. grammar or grammarsketch
+        SIMPLIFIED_DOCTYPE_MAP[dt] = SIMPLIFIED_DOCTYPES[i + 1]
     elif 1 < i < DOCTYPES.index('wordlist'):
-        SIMPLIFIED_DOCTYPE_MAP[i] = SIMPLIFIED_DOCTYPES[2]
-        SIMPLIFIED_DOCTYPE_MAP[dt] = SIMPLIFIED_DOCTYPES[2]
+        SIMPLIFIED_DOCTYPE_MAP[i] = SIMPLIFIED_DOCTYPES[3]
+        SIMPLIFIED_DOCTYPE_MAP[dt] = SIMPLIFIED_DOCTYPES[3]
 
 Endangerment = namedtuple('Endangerment', 'ord name color shape')
 ENDANGERMENTS = [
     Endangerment(i, *args) for i, args in enumerate([
         ('safe', '00ff00', 'c'),
-        ('vulnerable', '00ff00', 'c'),
+        ('vulnerable', 'a0fb75', 'c'),
         ('definitely endangered', 'ff6600', 's'),
         ('severely endangered', 'ff4400', 'd'),
         ('critically endangered', 'ff0000', 't'),
@@ -92,7 +95,7 @@ class DescStatsGeoJson(GeoJson):
 
     def feature_properties(self, ctx, req, feature):
         endangerment = ENDANGERMENT_MAP[feature.status.value]
-        med, sources = self.obj[1].get(feature.id, (None, []))
+        med, sources, edsrc = self.obj[1].get(feature.id, (None, [], None))
         # augment the source dicts
         sources = [src2dict(v) for v in sources]
         for s in sources:
@@ -102,6 +105,7 @@ class DescStatsGeoJson(GeoJson):
         med = src2dict(med) if med else med
         return {
             'ed': endangerment.ord,
+            'edsrc': edsrc,
             'icon': self.get_icon(req, med['doctype'] if med else None, endangerment),
             'med': med['id'] if med else None,
             'sdt': SIMPLIFIED_DOCTYPE_MAP[med['doctype'] if med else None].ord,
@@ -322,6 +326,10 @@ class Source(object):
         self.pages = int(ceil(
             float(source.pages_int or 0) / ((len(source.doctypes) or 1) * lcount)))
 
+        if self.doctype == 'grammar' and self.pages >= 300:
+            self.doctype = 'long_grammar'
+            self.index = -1
+
         self.year = source.year_int
         self.id = source.id
         self.name = source.name
@@ -348,7 +356,7 @@ class Source(object):
         return self.weight < other.weight
 
 
-def extract_data():  # pragma: no cover
+def extract_data(endangerment):  # pragma: no cover
     status = {}
     lpks = DBSession.query(common.Language.pk) \
         .filter(common.Language.active == True) \
@@ -399,7 +407,9 @@ group by source_pk
         status[l.id] = [
             med,
             [s.__json__() for s in
-             sorted(set(potential_meds), key=lambda s: -s.year)]]
+             sorted(set(potential_meds), key=lambda s: -s.year)],
+            endangerment.get(l.id, {}).get('source')
+        ]
         if i and i % 1000 == 0:
             print(i)
             DBSession.close()

@@ -91,6 +91,7 @@ GLOTTOLOG3.LangdocStatus = (function(){
                     [0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0],
                     [0, 0, 0, 0, 0, 0]
                 ],
                 totals = [0, 0, 0, 0, 0, 0],
@@ -111,7 +112,8 @@ GLOTTOLOG3.LangdocStatus = (function(){
                 if (year) {
                     // set the defaults:
                     url = marker.feature.properties.red_icon;
-                    marker.feature.properties.info_query = {};
+                    marker.feature.properties.info_query = {
+                        'glottoscope': 't', 'edsrc': marker.feature.properties.edsrc};
 
                     if (marker.feature.properties.sources) {
                         // try to find a source respecting the cut-off year
@@ -119,7 +121,8 @@ GLOTTOLOG3.LangdocStatus = (function(){
                             source = marker.feature.properties.sources[i];
                             if (source.year <= year) {
                                 url = source.icon;
-                                marker.feature.properties.info_query = {'source': source.id};
+                                marker.feature.properties.info_query['source'] = source.id;
+                                marker.feature.properties.info_query['doctype'] = source.doctype;
                                 sdt = source.sdt;
                                 break;
                             }

@@ -255,8 +255,11 @@ def dbinit(args):
 def ldstatus(args):
     from glottolog3.langdocstatus import extract_data
 
+    endangerment = {
+        l.id: l.cfg['endangerment']
+        for l in args.repos.languoids() if 'endangerment' in l.cfg}
     with_session(args)
-    dump(extract_data(), 'glottolog3/static/ldstatus.json', indent=4)
+    dump(extract_data(endangerment), 'glottolog3/static/ldstatus.json', indent=4)
 
 
 def db_url(args):
