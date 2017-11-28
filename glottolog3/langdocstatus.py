@@ -5,7 +5,7 @@ Language Description Status Browser
 The description status of languages can be investigated in relation to the vitality (or
 endangerment) of a language.
 """
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, Counter
 from math import ceil
 from functools import total_ordering
 
@@ -23,7 +23,7 @@ from clldutils.path import Path
 
 import glottolog3
 from glottolog3.models import (
-    DOCTYPES, Languoid, Macroarea, Languoidmacroarea, LanguoidLevel, Ref,
+    DOCTYPES, Languoid, Macroarea, Languoidmacroarea, LanguoidLevel, Ref, Doctype,
 )
 from glottolog3.maps import Language
 
@@ -34,19 +34,26 @@ def ldstatus():
 
 @view_config(route_name='langdocstatus', renderer='langdocstatus/intro.mako')
 def intro(req):
+    lds = ldstatus()
+    count, i = Counter(), 0
+    for i, (lid, spec) in enumerate(lds.items()):
+        count.update([SIMPLIFIED_DOCTYPE_MAP[spec[0][1] if spec[0] else None].ord])
     return {
         'macroareas': DBSession.query(Macroarea).order_by(Macroarea.name),
         'families': family_query().options(joinedload(Languoid.macroareas)),
+        'sdts': [(sdt, count[sdt.ord], i + 1) for sdt in SIMPLIFIED_DOCTYPES],
+        'doctypes': [(dt, SIMPLIFIED_DOCTYPE_MAP[dt.id].ord)
+                     for dt in DBSession.query(Doctype).order_by(Doctype.ord)],
     }
 
 
 SimplifiedDoctype = namedtuple('SimplifiedDoctype', 'ord name shape color')
 SIMPLIFIED_DOCTYPES = [
     SimplifiedDoctype(i, *args) for i, args in enumerate([
-        ('long grammar', 'c', '00ff00'),
-        ('grammar', 's', 'a0fb75'),
-        ('grammar sketch', 'd', 'ff6600'),
-        ('phonology/text', 't', 'ff4400'),
+        ('long grammar', 'c', '00ff00'),  # long grammar & extensive description of most elements of the grammar $\approx 300+$ pages
+        ('grammar', 's', 'a0fb75'),  # grammar & a description of most elements of the grammar ($\approx 150$ pages) &
+        ('grammar sketch', 'd', 'ff6600'),  # grammar sketch & a less extensive description of many elements of the grammar ($\approx 50$ pages)
+        ('phonology/text', 't', 'ff4400'),  #
         ('wordlist or less', 'f', 'ff0000'),
     ])
 ]
