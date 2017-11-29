@@ -198,7 +198,7 @@ def getRefs(params):
         query = query.filter(subquery.exists())
 
     if not filtered:
-        return []
+        return DBSession.query(Ref).filter(Ref.pk == -1)
 
     return query
 
