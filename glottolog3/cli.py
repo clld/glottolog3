@@ -26,7 +26,7 @@ from clldutils.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
 from clld.db.meta import DBSession
 from clld.db.models import common
-from pyglottolog.api import Glottolog
+from pyglottolog import Glottolog
 
 import glottolog3
 from glottolog3 import models
@@ -157,7 +157,7 @@ def sqldump(args):
 
 @command()
 def newick(args):
-    from pyglottolog.objects import Level
+    from pyglottolog.languoids import Level
     nodes = collections.OrderedDict((l.id, l) for l in args.repos.languoids())
     trees = []
     for lang in nodes.values():

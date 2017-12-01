@@ -2,7 +2,7 @@ from __future__ import unicode_literals, print_function
 import re
 
 from clld.db.meta import DBSession
-from pyglottolog.monsterlib.roman import romanint
+from pyglottolog.references.roman import romanint  # FIXME: unofficial deep import
 
 from glottolog3.models import TreeClosureTable
 
