@@ -14,7 +14,7 @@ from clldutils.text import split_text
 from clldutils.misc import slug
 
 from pyglottolog.references import BibFile
-from pyglottolog.languoids import Macroarea
+from pyglottolog import objects
 
 from glottolog3 import models
 from glottolog3.scripts.util import recreate_treeclosure, compute_pages
@@ -71,7 +71,7 @@ def load(args):
         data.add(models.LegacyCode, gc, id=gc, version=version)
 
     glottolog = args.repos
-    for ma in Macroarea:
+    for ma in objects.Macroarea:
         data.add(
             models.Macroarea,
             ma.name,
@@ -149,7 +149,7 @@ def load(args):
         if 'macro_area' in entry.fields:
             for ma in split_text(entry.fields['macro_area'], separators=',;', strip=True):
                 ma = 'North America' if ma == 'Middle America' else ma
-                ma = Macroarea.get('Papunesia' if ma == 'Papua' else ma)
+                ma = objects.Macroarea.get('Papunesia' if ma == 'Papua' else ma)
                 DBSession.add(models.Refmacroarea(
                     ref_pk=ref.pk, macroarea_pk=data['Macroarea'][ma.name].pk))
 

@@ -24,7 +24,7 @@ setup(
         'clldmpg>=2.0.0',
         'newick>=0.4',
         'markdown',
-        'pyglottolog',
+        'pyglottolog~=1.0',
     ],
     tests_require=[
         'Webtest',
