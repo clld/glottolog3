@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, func
 from sqlalchemy.orm import aliased, joinedload, subqueryload, contains_eager
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.util import get_distinct_values, icontains
-from clld.db import fts
 from clld.db.models.common import Language, LanguageSource, Source
 from clld.web.datatables.base import DataTable, Col, DetailsRowLinkCol, LinkCol
 from clld.web.datatables.language import Languages
@@ -261,7 +260,10 @@ class FtsCol(Col):
         return icon('ok')
 
     def search(self, qs):
-        return fts.search(self.model_col, qs)
+        # sanitize, normalize, and & (AND) the resulting stems
+        # see also https://bitbucket.org/zzzeek/sqlalchemy/issues/3160/postgresql-to_tsquery-docs-and
+        query = func.plainto_tsquery('english', qs)
+        return self.model_col.op('@@')(query)
 
 
 class BibkeyCol(Col):
