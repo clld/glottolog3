@@ -127,7 +127,25 @@
                 "bitstreamid": "tree_glottolog_newick.txt", 
                 "filesize": 645248, 
                 "content-type": "text/plain"
-            }
+            },
+            {
+                "created": 1511358656269, 
+                "checksum": "672cc645fcd20f49cffe9376a33d5637",
+                "bitstreamid": "glottolog_language.n3.gz", 
+                "checksum-algorithm": "MD5", 
+                "last-modified": 1511358656269,
+                "filesize": 2822004, 
+                "content-type": "application/octet-stream"
+            }, 
+            {
+                "created": 1511358656269,
+                "checksum": "329a9092abfed5531fa97a44227583df", 
+                "bitstreamid": "glottolog_source.n3.gz", 
+                "checksum-algorithm": "MD5", 
+                "last-modified": 1511358656269, 
+                "filesize": 48226905,
+                "content-type": "application/octet-stream"
+            } 
         ], 
         "oid": "EAEA0-983F-6966-3616-0", 
         "metadata": {
