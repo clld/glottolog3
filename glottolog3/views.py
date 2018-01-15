@@ -15,6 +15,7 @@ from clld.db.models.common import (
 )
 from clld.db.util import icontains
 from clld.web.util.helpers import JS
+from clld.web.util.htmllib import HTML
 from clld.web.util.multiselect import MultiSelect
 from clld.lib import bibtex
 from clld.interfaces import IRepresentation
@@ -252,7 +253,8 @@ def quicksearch(request):
         languoids = query.order_by(Languoid.name)\
             .options(joinedload(Languoid.family)).all()
         if not languoids:
-            message = 'No matching languoids found for %s "%s"' % (kind, term)
+            term_pre = HTML.kbd(term, style='white-space: pre')
+            message = 'No matching languoids found for %s "' % kind + term_pre + '"'
         elif len(languoids) == 1:
             raise HTTPFound(request.resource_url(languoids[0]))
 
