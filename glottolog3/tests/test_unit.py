@@ -1,40 +1,38 @@
 from __future__ import unicode_literals
-from unittest import TestCase
 
+import pytest
 import colander
 
 from glottolog3.models import Doctype
+from glottolog3.util import normalize_language_explanation, ModelInstance
 
 
-class Tests(TestCase):
-    def test_normalize_language_explanation(self):
-        from glottolog3.util import normalize_language_explanation
+def test_normalize_language_explanation():
+    #for s in [' X [aaa]', 'L [aaa] = "X"', 'X = L [aaa]']:
+    #    assert normalize_language_explanation(s) == 'X [aaa]'
+    assert normalize_language_explanation(' abcdefg') == 'abcdefg'
 
-        #for s in [' X [aaa]', 'L [aaa] = "X"', 'X = L [aaa]']:
-        #    self.assertEquals(normalize_language_explanation(s), 'X [aaa]')
 
-        self.assertEquals(normalize_language_explanation(' abcdefg'), 'abcdefg')
+def test_ModelInstance():
+    mi = ModelInstance(Doctype)
+    assert mi.serialize(None, colander.null) == colander.null
+    with pytest.raises(colander.Invalid):
+        mi.serialize(None, '')
+    assert mi.serialize(None, Doctype(id='id')) == 'id'
 
-    def test_ModelInstance(self):
-        from glottolog3.util import ModelInstance
+    assert mi.deserialize(None, colander.null) == colander.null
 
-        mi = ModelInstance(Doctype)
-        self.assertEquals(mi.serialize(None, colander.null), colander.null)
-        self.assertRaises(colander.Invalid, mi.serialize, None, '')
-        self.assertEquals(mi.serialize(None, Doctype(id='id')), 'id')
+    class Model(object):
+        @classmethod
+        def get(cls, val, key='id', default=None):
+            if val == 'other' and key == 'alias':
+                return Model()
+            if val == 'existing':
+                return Model()
+            return None
 
-        self.assertEquals(mi.deserialize(None, colander.null), colander.null)
-
-        class Model(object):
-            @classmethod
-            def get(cls, val, key='id', default=None):
-                if val == 'other' and key == 'alias':
-                    return Model()
-                if val == 'existing':
-                    return Model()
-                return None
-
-        mi = ModelInstance(Model, alias='alias')
-        self.assertIsInstance(mi.deserialize(None, 'other'), Model)
-        self.assertIsInstance(mi.deserialize(None, 'existing'), Model)
-        self.assertRaises(colander.Invalid, mi.deserialize, None, 'missing')
+    mi = ModelInstance(Model, alias='alias')
+    assert isinstance(mi.deserialize(None, 'other'), Model)
+    assert isinstance(mi.deserialize(None, 'existing'), Model)
+    with pytest.raises(colander.Invalid):
+        mi.deserialize(None, 'missing')
