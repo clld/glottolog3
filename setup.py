@@ -28,7 +28,7 @@ setup(
         'pyglottolog~=1.0',
     ],
     extras_require={
-        'test': ['pytest-clld', 'pytest-cov', 'coverage>=4.2'],
+        'test': ['pytest-clld>=0.4', 'pytest-cov', 'coverage>=4.2'],
         'dev': ['flake8', 'wheel', 'twine'],
     },
     entry_points={

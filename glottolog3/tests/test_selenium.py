@@ -1,63 +1,51 @@
-# coding: utf8
+import os
 import time
 
-from six.moves.configparser import ConfigParser
-from path import path
+import pytest
 
 from clld.lib.bibtex import Database
-from clld.tests.util import TestWithSelenium, PageObject
-
-import glottolog3
 
 
-PROJECT = path(glottolog3.__file__).dirname().joinpath('..').abspath()
+def test_site_search(selenium):
+    input_ = selenium.get_page('site-search-input', url='/')
+    input_.e.send_keys('deu')
+    button = selenium.get_page('site-search-button')
+    button.e.click()
+    time.sleep(0.5)
+    assert selenium.browser.find_element_by_link_text('stan1295') is not None
 
 
-def get_app(config='development.ini'):
-    cfg = PROJECT.joinpath(config)
-    parser = ConfigParser()
-    parser.read(cfg)
-    return glottolog3.main({'__file__': str(cfg), 'here': str(PROJECT)},
-        **{'sqlalchemy.url': parser.get('app:main', 'sqlalchemy.url')})
+def test_map(selenium):
+    map_ = selenium.get_map('/resource/languoid/id/berb1260.bigmap.html')
+    map_.test_show_marker()
+    map_.test_show_legend()
+    map_.test_show_legend('languoids')
 
 
-class Tests(TestWithSelenium):
-    app = get_app()
+@pytest.mark.xfail(raises=AssertionError, reason='FIXME: flaky test')
+def test_datatable_family(selenium):
+    dt = selenium.get_datatable('/glottolog/family')
+    dt.filter('level', '--any--')
+    time.sleep(0.5)
+    assert dt.get_info().filtered > 3500
 
-    def test_site_search(self):
-        input_ = PageObject(self.browser, 'site-search-input', self.url('/'))
-        input_.e.send_keys('deu')
-        button = PageObject(self.browser, 'site-search-button')
-        button.e.click()
-        time.sleep(0.5)
-        self.assertIsNotNone(self.browser.find_element_by_link_text('stan1295'))
 
-    def test_map(self):
-        map_ = self.get_map('/resource/languoid/id/berb1260.bigmap.html')
-        map_.test_show_marker()
-        map_.test_show_legend()
-        map_.test_show_legend('languoids')
+def test_datatable_language(selenium):
+    dt = selenium.get_datatable('/glottolog/language')
+    dt.filter('name', u'\u00fc')
+    assert dt.get_info().filtered == 16
 
-    def test_datatable_family(self):
-        dt = self.get_datatable('/glottolog/family')
-        dt.filter('level', '--any--')
-        self.assertTrue(dt.get_info().filtered > 3500)
 
-    def test_datatable_language(self):
-        dt = self.get_datatable('/glottolog/language')
-        dt.filter('name', u'ü')
-        self.assertEqual(dt.get_info().filtered, 16)
-
-    def test_languoid_map_and_table(self):
-        map_ = self.get_map('/resource/languoid/id/ghad1239')
-        map_.test_show_marker()
-        dt = self.get_datatable('/resource/languoid/id/berb1260')
-        dt.filter('doctype', 'grammar')
-        dt.sort('Year')
-        dt.sort('Title')
-        recs = dt.get_info().filtered
-        assert not list(self.downloads.iterdir())
-        dt.download('bib')
-        time.sleep(1.5)
-        bib = Database.from_file(self.downloads.joinpath('glottolog-refs.bib'))
-        self.assertEqual(recs, len(bib))
+def test_languoid_map_and_table(selenium):
+    map_ = selenium.get_map('/resource/languoid/id/ghad1239')
+    map_.test_show_marker()
+    dt = selenium.get_datatable('/resource/languoid/id/berb1260')
+    dt.filter('doctype', 'grammar')
+    dt.sort('Year')
+    dt.sort('Title')
+    recs = dt.get_info().filtered
+    assert not os.listdir(str(selenium.downloads))
+    dt.download('bib')
+    time.sleep(1.5)
+    bib = Database.from_file(os.path.join(str(selenium.downloads), 'glottolog-refs.bib'))
+    assert recs == len(bib)

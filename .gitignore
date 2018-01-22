@@ -1,5 +1,4 @@
 *.py[cod]
-development.ini
 
 # C extensions
 *.so
