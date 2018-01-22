@@ -567,10 +567,9 @@ class LegacyCode(Base):
     version = Column(String)
 
     def url(self, req):
-        return req.static_url(
-            req.registry.settings['clld.files'].joinpath(
-                'glottolog-{0}'.format(self.version), '{0}.html'.format(self.id)
-            ).as_posix())
+        files = req.registry.settings['clld.files']
+        page_url = str(files / 'glottolog-{0}'.format(self.version) / '{0}.html'.format(self.id))
+        return req.static_url(page_url)
 
 
 class EthnologueComment(Base):

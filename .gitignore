@@ -1,5 +1,4 @@
 *.py[cod]
-development.ini
 
 # C extensions
 *.so
@@ -21,9 +20,11 @@ develop-eggs
 pip-log.txt
 
 # Unit test / coverage reports
+.cache
 .coverage
 .tox
 nosetests.xml
+/htmlcov/
 
 # Translations
 *.mo
