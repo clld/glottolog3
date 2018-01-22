@@ -25,7 +25,7 @@ setup(
         'clldutils>=1.9.5',
         'markdown',
         'newick>=0.4',
-        'pyglottolog~=1.0',
+        'pyglottolog>=1.0,<3.0',
     ],
     extras_require={
         'test': ['pytest-clld>=0.4', 'pytest-cov', 'coverage>=4.2'],
