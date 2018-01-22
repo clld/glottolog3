@@ -22,9 +22,9 @@ def test_map(selenium):
     map_.test_show_legend('languoids')
 
 
-@pytest.mark.xfail(raises=AssertionError, reason='FIXME: flaky test')
 def test_datatable_family(selenium):
     dt = selenium.get_datatable('/glottolog/family')
+    time.sleep(0.5)
     dt.filter('level', '--any--')
     time.sleep(0.5)
     assert dt.get_info().filtered > 3500

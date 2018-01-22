@@ -64,10 +64,8 @@ import pytest
     ('get', '/resource/languoid/id/afud1235', None, None),
     ('get', '/resource/languoid/id/stan1295', None, None),
     ('get', '/resource/languoid/id/alba1269', None, None),
-    pytest.param('get', '/resource/languoid/id/nilo1235', 301, None,
-                 marks=pytest.mark.xfail(raises=ValueError, reason='FIXME: no static URL definition')),
+    ('get', '/resource/languoid/id/nilo1235', 301, None),
     ('get', '/resource/languoid/id/stan1295.bigmap.html', None, None),
-
     ('get_xml', '/resource/languoid/id/atha1245.phylo.xml', None, None),
     ('get', '/resource/reference/id/2.rdf', None, None),
     ('get', '/resource/reference/id/2', None, None),
