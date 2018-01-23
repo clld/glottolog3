@@ -17,7 +17,7 @@ from clld.interfaces import IIcon
 from clldutils.misc import format_size
 from clldutils.path import Path
 from clldutils.jsonlib import load
-from pyglottolog.objects import Reference
+from pyglottolog.languoids import Reference
 
 from glottolog3.models import (
     Languoid, Provider, Ref, Refprovider,
