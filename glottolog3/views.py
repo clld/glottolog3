@@ -191,14 +191,8 @@ def getLanguoids(name=False,
             crit.append(ul_iname.contains(ul_name))
         if not multilingual:
             crit.append(func.coalesce(Identifier.lang, '').in_((u'', u'eng', u'en')))
-        res = list(query.filter(icontains(Languoid.name, name)))
-        for l in query.filter(Language.identifiers.any(and_(*crit))):
-            if l not in res:
-                res.append(l)
-        return res
-        # FIXME: do combined query
-        #crit = Language.identifiers.any(and_(*crit))
-        #query = query.filter(or_(icontains(Languoid.name, name), crit))
+        crit = Language.identifiers.any(and_(*crit))
+        query = query.filter(or_(icontains(Languoid.name, name), crit))
     elif country:
         return []  # pragma: no cover
     else:
@@ -235,14 +229,12 @@ def quicksearch(request):
         if DBSession.query(_query.exists()).scalar():
             query = _query
         else:
-            # FIXME: do combined query also searching main name
-            #query = query.filter(or_(
-            #    func.lower(Languoid.name).contains(term),
-            query = query.filter(
+            query = query.filter(or_(
+                func.lower(Languoid.name).contains(term),
                 Languoid.identifiers.any(and_(
                     Identifier.type == u'name',
                     Identifier.description == Languoid.GLOTTOLOG_NAME,
-                    func.lower(Identifier.name).contains(term))))
+                    func.lower(Identifier.name).contains(term)))))
 
         kind = 'name part'
         params['name'] = term
