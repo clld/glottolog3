@@ -93,7 +93,9 @@
         <p>
             The data published by Glottolog is curated in the public GitHub repository
             ${h.external_link("https://github.com/clld/glottolog", label='clld/glottolog')}.
-        </p>
+            The Glottolog web application at http://glottolog.org serves the latest
+            ${h.external_link("https://github.com/clld/glottolog/releases", label='released version')}
+            of the data in this repository.
         <p>
             You may report errors you found in Glottolog using this repositories
             ${h.external_link("https://github.com/clld/glottolog/issues", label='issue tracker')}.

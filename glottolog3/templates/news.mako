@@ -2,6 +2,18 @@
 
 <h3>News</h3>
 
+<p>
+    Please consult
+</p>
+<dl>
+    <dt>${h.external_link('https://github.com/clld/glottolog/releases')}</dt>
+    <dd>for information about released versions of Glottolog</dd>
+    <dt>${h.external_link('https://github.com/clld/glottolog/issues')}</dt>
+    <dd>for a list of issues or errata reported for Glottolog data</dd>
+    <dt>${h.external_link('https://github.com/clld/glottolog/pulls')}</dt>
+    <dd>for a list of proposed changes to Glottolog data</dd>
+</dl>
+
 <h4>Glottolog 3.1 - 2017-11-22</h4>
 
 From this release on, we keep a
@@ -22,7 +34,8 @@ in the data repository.
                 Bibliographical records
             </a>
             for all linguistic books and journal articles published by
-            ${h.external_link('https://benjamins.com/', label='John Benjamins Publishing Company')}.
+            ${h.external_link('https://benjamins.com/', label='John Benjamins Publishing Company')}
+            .
         </p>
     </dd>
     <dt>Languoids</dt>
@@ -52,7 +65,8 @@ in the data repository.
             </a>
             cited in books published by
             ${h.external_link('http://langsci-press.org/', label='Language Science Press')}
-            have been added to Glottolog. These references will be curated and added to in the
+            have been added to Glottolog. These references will be curated and added to in
+            the
             future by the Language Science Team.
         </p>
     </dd>
@@ -61,7 +75,8 @@ in the data repository.
         <a href="${request.route_url('languages_alt', ext='atom', _query=dict(type='languages'))}">
             8 languages
         </a>
-        have been added and the classification has been changed (mostly locally), resulting in
+        have been added and the classification has been changed (mostly locally),
+        resulting in
         <a href="${request.route_url('languages_alt', ext='atom', _query=dict(type='families'))}">
             23 new family nodes
         </a>
@@ -75,8 +90,10 @@ in the data repository.
 <p>
     This edition introduces only minor changes to both, languoids and references. Instead,
     our focus was on improving the release procedures, and in particular aligning data
-    curation in ${h.external_link('https://github.com/clld/glottolog-data', label='glottolog-data')}
-    and publication at http://glottolog.org. We hope these improvements will allow for more
+    curation
+    in ${h.external_link('https://github.com/clld/glottolog-data', label='glottolog-data')}
+    and publication at http://glottolog.org. We hope these improvements will allow for
+    more
     frequent updates of the published version of Glottolog in the future.
 </p>
 
@@ -87,15 +104,19 @@ in the data repository.
     <dd>
         We added references from three new providers:
         <ul>
-            <li>2723 references from the <a href="/providers/bibliolux">Bibliographie zur luxemburgischen Linguistik</a></li>
-            <li>1018 references <a href="/providers/gj">collected by Guillaume Jacques</a></li>
-            <li>596 references from <a href="/providers/haspelmath">Martin Haspelmath's bibliography</a></li>
+            <li>2723 references from the <a href="/providers/bibliolux">Bibliographie zur
+                luxemburgischen Linguistik</a></li>
+            <li>1018 references <a href="/providers/gj">collected by Guillaume Jacques</a>
+            </li>
+            <li>596 references from <a href="/providers/haspelmath">Martin Haspelmath's
+                bibliography</a></li>
         </ul>
         Thanks for sharing!
     </dd>
     <dt>Languoids</dt>
     <dd>
-        16 languages have been added and the classification has been changed (mostly locally), resulting in
+        16 languages have been added and the classification has been changed (mostly
+        locally), resulting in
         53 new family nodes and 15 updated families.
     </dd>
 </dl>
@@ -107,29 +128,39 @@ in the data repository.
     <dd>
         We added references from three new providers:
         <ul>
-            <li>68131 references from <a href="/providers/degruyter">De Gruyter language and linguistics books and journals</a></li>
-            <li>2144 references from <a href="/providers/goba">Georeferenzierte Online-Bibliographie Areallinguistik</a></li>
-            <li>1972 references from <a href="/providers/phoible">The PHOIBLE database bibliography</a></li>
+            <li>68131 references from <a href="/providers/degruyter">De Gruyter language
+                and linguistics books and journals</a></li>
+            <li>2144 references from <a href="/providers/goba">Georeferenzierte
+                Online-Bibliographie Areallinguistik</a></li>
+            <li>1972 references from <a href="/providers/phoible">The PHOIBLE database
+                bibliography</a></li>
         </ul>
         Thanks for sharing!
     </dd>
     <dt>Languoids</dt>
     <dd>
-        76 languages have been added and the classification has been changed (mostly locally), resulting in
+        76 languages have been added and the classification has been changed (mostly
+        locally), resulting in
         219 new family nodes and 52 updated families.
     </dd>
     <dt>Project Infrastructure</dt>
     <dd>
         The Glottolog data is now curated in a
-        ${h.external_link('https://github.com/clld/glottolog-data', label='Git repository hosted at GitHub')}.
+        ${h.external_link('https://github.com/clld/glottolog-data', label='Git repository hosted at GitHub')}
+        .
         Thus,
         <ul>
-        <li>changes to the data in between updates of the Glottolog website are more
-        transparent and traceable;</li>
+            <li>changes to the data in between updates of the Glottolog website are more
+                transparent and traceable;
+            </li>
             <li>you can notify us about issues with the data by opening - well -
-            ${h.external_link('https://github.com/clld/glottolog-data/issues', label='issues')};</li>
+                ${h.external_link('https://github.com/clld/glottolog-data/issues', label='issues')}
+                ;
+            </li>
             <li>or even better, you can propose updates to the data using
-            ${h.external_link('https://help.github.com/articles/using-pull-requests/', label='pull requests')}.</li>
+                ${h.external_link('https://help.github.com/articles/using-pull-requests/', label='pull requests')}
+                .
+            </li>
         </ul>
     </dd>
 </dl>
@@ -140,21 +171,24 @@ in the data repository.
 <dl>
     <dt>References</dt>
     <dd>
-        While we did remove thousands of obsolete references (duplicates or references that
+        While we did remove thousands of obsolete references (duplicates or references
+        that
         have been superseded) 2862 references have also been added and thousands have been
         corrected. When browsing to the URL of one of the obsolete references, you should
         either be redirected (in case of duplicates) with an
         ${h.external_link('http://en.wikipedia.org/wiki/List_of_HTTP_status_codes#301', label="HTTP code of 301")}
         or you should
-        see an ${h.external_link('http://en.wikipedia.org/wiki/List_of_HTTP_status_codes#410', label="HTTP 410 Gone")} message.
+        see
+        an ${h.external_link('http://en.wikipedia.org/wiki/List_of_HTTP_status_codes#410', label="HTTP 410 Gone")}
+        message.
     </dd>
     <dt>Languoids</dt>
     <dd>
         76 languages have been added and
         classification has been changed (mostly locally), resulting in
         73 new family nodes.
-##glottolog3=# select l.id, l.name, ll.hid from language as l, languoid as ll where l.pk = ll.pk and cast(created as date) = '2014-06-25' and ll.level = 'language';
-##glottolog3=# select l.id, l.name, ll.hid from language as l, languoid as ll where l.pk = ll.pk and cast(created as date) = '2014-06-25' and ll.level = 'family';
+        ##glottolog3=# select l.id, l.name, ll.hid from language as l, languoid as ll where l.pk = ll.pk and cast(created as date) = '2014-06-25' and ll.level = 'language';
+		##glottolog3=# select l.id, l.name, ll.hid from language as l, languoid as ll where l.pk = ll.pk and cast(created as date) = '2014-06-25' and ll.level = 'family';
     </dd>
     <dt>Sign Languages</dt>
     <dd>
@@ -164,15 +198,18 @@ in the data repository.
     </dd>
     <dt>Computerized assignment</dt>
     <dd>
-        Many of the relations between references and languages and of the relations between
+        Many of the relations between references and languages and of the relations
+        between
         references and document types are created by a process
         we call
-        <a href="${request.route_url('glossary', _anchor='sec-computerizedassignment')}">computerized assignment</a>.
+        <a href="${request.route_url('glossary', _anchor='sec-computerizedassignment')}">computerized
+            assignment</a>.
     </dd>
     <dd>
         Whether relations for a specific reference have been assigned automatically is now
         indicated with small warning signs ${h.icon('warning-sign')}. This information can
-        also used for sorting lists of references by clicking the corresponding <strong>ca</strong>
+        also used for sorting lists of references by clicking the corresponding
+        <strong>ca</strong>
         column head.
     </dd>
     <dd>

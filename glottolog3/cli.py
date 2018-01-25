@@ -8,12 +8,13 @@ import shutil
 import argparse
 import subprocess
 import collections
+from datetime import datetime
 
 import configparser
 from six.moves.urllib.request import urlretrieve
 
 from pyramid.paster import get_appsettings
-from sqlalchemy import engine_from_config
+from sqlalchemy import engine_from_config, create_engine
 
 import transaction
 from sqlalchemy import or_
@@ -60,6 +61,20 @@ def _download_sql_dump(rel, log):
     target.unlink()
     log.info('SQL dump for Glottolog release {0} written to {1}'.format(
         rel['version'], unpacked))
+
+
+@command()
+def mark_new_languages(args):
+    cfg = get_release_config()
+    last = sorted(cfg.sections(), key=lambda s: float(s[1:]))[-1][1:]
+    cdb = create_engine('postgresql://postgres@/glottolog3')
+    ldb = create_engine('postgresql://postgres@/glottolog-{0}'.format(last))
+    sql = "select id from language as l, languoid as ll where l.pk = ll.pk and ll.level = 'language'"
+    current = set(r[0] for r in cdb.execute(sql))
+    last = set(r[0] for r in ldb.execute(sql))
+    for gc in sorted(current - last):
+        cdb.execute(
+            "update language set updated = %s where id = %s", (datetime.utcnow(), gc))
 
 
 @command()

@@ -15,6 +15,7 @@ def test_site_search(selenium):
     assert selenium.browser.find_element_by_link_text('stan1295') is not None
 
 
+@pytest.mark.xfail(reason='flaky')
 def test_map(selenium):
     map_ = selenium.get_map('/resource/languoid/id/berb1260.bigmap.html')
     map_.test_show_marker()

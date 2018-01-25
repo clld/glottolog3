@@ -216,12 +216,14 @@ group by l.pk"""):
         r[0]: r[1] for r in DBSession.query(common.ValueSet.id, common.ValueSet.pk)}
 
     for lang in args.repos.languoids():
+        if lang.category == models.BOOKKEEPING:
+            continue
         clf = lang.classification_comment
         if clf:
             if clf.subrefs:
                 if items(lang.cfg['classification']['subrefs']) != \
                         items(lang.cfg['classification'].get('sub')):
-                    vspk = valuesets.get('sc-{0}'.format(lang.id))
+                    vspk = valuesets['sc-{0}'.format(lang.id)]
                     for ref in clf.subrefs:
                         spk = refs.get(ref.key)
                         DBSession.add(
@@ -275,18 +277,26 @@ def load_languoid(data, lang, nodemap):
         for id_ in split_text(ids, separators=',;'):
             add_identifier(dblang, data, id_, prov, None)
 
-    clf = lang.classification_comment
-    if clf:
-        for attr, pid in [('sub', 'sc'), ('family', 'fc')]:
-            if not getattr(clf, attr):
-                continue
-            vs = common.ValueSet(
-                id='%s-%s' % (pid, lang.id),
-                description=getattr(clf, attr),
-                language=dblang,
-                parameter=data['Parameter'][pid],
-                contribution=data['Contribution']['clf'])
-            DBSession.add(common.Value(id='%s-%s' % (pid, lang.id), valueset=vs))
+    if not dblang.bookkeeping:
+        # Languages in Bookkeeping do not have a meaningful classification!
+        clf = lang.classification_comment
+        if clf:
+            for attr, pid in [('sub', 'sc'), ('family', 'fc')]:
+                val = getattr(clf, attr)
+                if attr == 'sub' and not val:
+                    # Handle cases with subrefs but no sub comment.
+                    val = getattr(clf, 'subrefs')
+                    if val:
+                        val = ', '.join('{0}'.format(r) for r in val)
+                if not val:
+                    continue
+                vs = common.ValueSet(
+                    id='%s-%s' % (pid, lang.id),
+                    description=val,
+                    language=dblang,
+                    parameter=data['Parameter'][pid],
+                    contribution=data['Contribution']['clf'])
+                DBSession.add(common.Value(id='%s-%s' % (pid, lang.id), valueset=vs))
 
     iso_ret = lang.iso_retirement
     if iso_ret:

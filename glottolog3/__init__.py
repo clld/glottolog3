@@ -4,10 +4,11 @@ from pyramid.httpexceptions import HTTPGone, HTTPMovedPermanently
 from pyramid.config import Configurator
 from pyramid.response import Response
 from sqlalchemy.orm import joinedload, joinedload_all
-from clld.interfaces import ICtxFactoryQuery
+from clld.interfaces import ICtxFactoryQuery, IDownload
 from clld.web.app import menu_item, CtxFactoryQuery
 from clld.web.adapters.base import adapter_factory, Index
 from clld.web.adapters.download import N3Dump, Download
+from clld.web.adapters.cldf import CldfDownload
 from clld.db.models.common import Language, Source, ValueSet, ValueSetReference
 
 import glottolog3
@@ -135,14 +136,15 @@ def main(global_config, **settings):
             getattr(views, name),
             renderer=name + '.mako')
 
+    assert config.registry.unregisterUtility(provided=IDownload, name='dataset.cldf')
     config.register_download(adapters.LanguoidCsvDump(
         models.Languoid, 'glottolog3', description="Languoids as CSV"))
-    #config.register_download(adapters.LanguoidN3Dump(
-    #    Language, 'glottolog3', description="Languoids as RDF"))
+    config.register_download(adapters.LanguoidN3Dump(
+        Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
         Source, 'glottolog3', ext='bib', description="References as BibTeX"))
-    #config.register_download(N3Dump(
-    #    Source, 'glottolog3', description="References as RDF"))
+    config.register_download(N3Dump(
+        Source, 'glottolog3', description="References as RDF"))
 
     config.add_route('langdocstatus', '/langdoc/status')
     config.add_route('langdocstatus.browser', '/langdoc/status/browser')
