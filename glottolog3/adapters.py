@@ -51,14 +51,11 @@ class LanguoidCsvDump(CsvDump):
                 sa.type_coerce(Languoid.level, sa.Text).label('level'),
                 sa.type_coerce(Languoid.status, sa.Text).label('status'),
                 Languoid.latitude, Languoid.longitude,
-                sa.func.min(Identifier.name).label('iso639P3code'),
-                # NOTE: we can replace min/outerjoin by the scalar subquery below
-                #       once the uniqueness constraint on the join table is fixed
-                # sa.select([Identifier.name])
-                #     .where(LanguageIdentifier.identifier_pk == Identifier.pk)
-                #     .where(LanguageIdentifier.language_pk == Language.pk)
-                #     .where(Identifier.type == 'iso639-3')
-                #     .label('iso639-3'),
+                sa.select([Identifier.name])
+                    .where(LanguageIdentifier.identifier_pk == Identifier.pk)
+                    .where(LanguageIdentifier.language_pk == Language.pk)
+                    .where(Identifier.type == 'iso639-3')
+                    .label('iso639P3code'),
                 Languoid.description, Languoid.markup_description,
                 Languoid.child_family_count, Languoid.child_language_count, Languoid.child_dialect_count,
                 sa.select([sa.literal_column("string_agg(_country.id, ' ' ORDER BY _country.id)")])
@@ -68,11 +65,6 @@ class LanguoidCsvDump(CsvDump):
             ).select_from(Languoid).filter(Languoid.active)\
             .outerjoin(Family, Family.pk == Languoid.family_pk)\
             .outerjoin(Father, Father.pk == Languoid.father_pk)\
-            .outerjoin(sa.join(LanguageIdentifier, Identifier, sa.and_(
-                    LanguageIdentifier.identifier_pk == Identifier.pk,
-                    Identifier.type == 'iso639-3')),
-                LanguageIdentifier.language_pk == Language.pk)\
-            .group_by(Language.pk, Languoid.pk, Family.pk, Father.pk)\
             .order_by(Languoid.id)
         return query
 
