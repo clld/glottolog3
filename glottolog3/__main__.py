@@ -27,7 +27,7 @@ from clldutils.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
 from clld.db.meta import DBSession
 from clld.db.models import common
-from pyglottolog.api import Glottolog
+from pyglottolog import Glottolog
 
 import glottolog3
 from glottolog3 import models
@@ -172,7 +172,7 @@ def sqldump(args):
 
 @command()
 def newick(args):
-    from pyglottolog.objects import Level
+    from pyglottolog.languoids import Level
     nodes = collections.OrderedDict((l.id, l) for l in args.repos.languoids())
     trees = []
     for lang in nodes.values():
@@ -299,3 +299,7 @@ def main():  # pragma: no cover
             Path(glottolog3.__file__).parent.parent.parent.joinpath('glottolog')))
     parser.add_argument('--pkg-dir', help=argparse.SUPPRESS, default=pkg_dir)
     sys.exit(parser.main())
+
+
+if __name__ == '__main__':
+    main()
