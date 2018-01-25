@@ -19,6 +19,9 @@
 - run `glottolog-app ldstatus` to recreate `ldstatus.json`
 - `clld-llod` ?
 
+- draft release of clld/glottolog3
+- edit release adding the zenodo DOI badge
+
 Now deploy to server:
 ```
 workon appconfig
