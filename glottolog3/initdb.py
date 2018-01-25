@@ -14,7 +14,7 @@ from clldutils.text import split_text
 from clldutils.misc import slug
 
 from pyglottolog.references import BibFile
-from pyglottolog.languoids import MacroArea
+from pyglottolog.languoids import Macroarea
 
 from glottolog3 import models
 from glottolog3.scripts.util import recreate_treeclosure, compute_pages
