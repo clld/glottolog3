@@ -224,7 +224,7 @@ def get_selected_languages_map(req, languages):
     icons = cycle(ORDERED_ICONS)
     for l in languages:
         if l.family_pk not in icon_map:
-            icon_map[l.family_pk] = icons.next().url(req)
+            icon_map[l.family_pk] = next(icons).url(req)
             family_map[l.family_pk] = l.family
     return _SelectedLanguagesMap(req, languages, icon_map), icon_map, family_map
 
