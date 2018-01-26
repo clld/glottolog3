@@ -6,6 +6,7 @@ import pytest
 from clld.lib.bibtex import Database
 
 
+@pytest.mark.selenium
 def test_site_search(selenium):
     input_ = selenium.get_page('site-search-input', url='/')
     input_.e.send_keys('deu')
@@ -15,6 +16,7 @@ def test_site_search(selenium):
     assert selenium.browser.find_element_by_link_text('stan1295') is not None
 
 
+@pytest.mark.selenium
 @pytest.mark.xfail(reason='flaky')
 def test_map(selenium):
     map_ = selenium.get_map('/resource/languoid/id/berb1260.bigmap.html')
@@ -23,6 +25,7 @@ def test_map(selenium):
     map_.test_show_legend('languoids')
 
 
+@pytest.mark.selenium
 def test_datatable_family(selenium):
     dt = selenium.get_datatable('/glottolog/family')
     time.sleep(0.5)
@@ -31,12 +34,14 @@ def test_datatable_family(selenium):
     assert dt.get_info().filtered > 3500
 
 
+@pytest.mark.selenium
 def test_datatable_language(selenium):
     dt = selenium.get_datatable('/glottolog/language')
     dt.filter('name', u'\u00fc')
     assert dt.get_info().filtered == 16
 
 
+@pytest.mark.selenium
 def test_languoid_map_and_table(selenium):
     map_ = selenium.get_map('/resource/languoid/id/ghad1239')
     map_.test_show_marker()

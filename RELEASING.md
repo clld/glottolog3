@@ -22,7 +22,7 @@
 - draft release of clld/glottolog3
 - edit release adding the zenodo DOI badge
 
-Now deploy to server:
+- Now deploy to server:
 ```
 workon appconfig
 cd appconfig/apps/glottolog3

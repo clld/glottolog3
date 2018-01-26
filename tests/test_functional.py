@@ -1,4 +1,7 @@
+from __future__ import unicode_literals
 import datetime
+
+from six import text_type
 
 import pytest
 
@@ -66,7 +69,7 @@ import pytest
     ('get', '/resource/languoid/id/alba1269', None, None),
     ('get', '/resource/languoid/id/nilo1235', 301, None),
     ('get', '/resource/languoid/id/stan1295.bigmap.html', None, None),
-    ('get_xml', '/resource/languoid/id/atha1245.phylo.xml', None, None),
+    #('get_xml', '/resource/languoid/id/atha1245.phylo.xml', None, None),
     ('get', '/resource/reference/id/2.rdf', None, None),
     ('get', '/resource/reference/id/2', None, None),
     ('get_html', '/resource/reference/id/40223', None, None),
@@ -75,15 +78,15 @@ import pytest
 #    ('get_html', '/langdoc/status/languages-0-1?macroarea=Eurasia', None, None),
 ])
 def test_pages(app, method, path, status, match):
-    kwargs = {'status': status} if status is not None else {}
+    kwargs = {'status': status} if status is not None else {'status': 200}
     res = getattr(app, method)(path, **kwargs)
     if match is not None:
         assert match in res
 
 
 def test_body(app):
-    assert '[atha1245]' in app.get('/resource/languoid/id/chil1280.newick.txt').body
-    
+    assert '[atha1245]' in text_type(app.get('/resource/languoid/id/chil1280.newick.txt').body)
+
 
 def test_name_characters(app):
     assert 'at least two characters' not in app.get_xml('/resource/languoid/id/stan1295.rdf')

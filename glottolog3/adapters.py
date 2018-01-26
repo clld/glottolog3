@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
 import datetime
-import xml.etree.cElementTree as et
+import xml.etree.ElementTree as et
 from itertools import cycle
 
 from six.moves import cStringIO as StringIO
+from six import text_type
 
 import sqlalchemy as sa
 import sqlalchemy.orm
@@ -163,8 +164,7 @@ class PhyloXML(Representation):
         if lang.level == LanguoidLevel.language or level == self.depth_limit:
             e.append(self.element('name', lang.name))
             ann = self.element('annotation')
-            ann.append(self.element(
-                'desc', ' > '.join(reversed([l.name for l in lang.get_ancestors()]))))
+            ann.append(self.element('desc', ' > '.join(reversed([l.name for l in lang.get_ancestors()]))))
             ann.append(self.element('uri', req.resource_url(lang)))
             e.append(ann)
         return e
@@ -250,7 +250,7 @@ def includeme(config):
     config.register_adapter(BibTexCitation, IDataset, IMetadata)
     config.register_adapter(Redirect, IProvider)
     config.register_adapter(Bigmap, ILanguage)
-    config.register_adapter(PhyloXML, ILanguage)
+    #config.register_adapter(PhyloXML, ILanguage)
     config.register_adapter(Newick, ILanguage)
     config.register_adapter(Treeview, ILanguage)
     config.register_adapter(GlottologGeoJsonLanguages, ILanguage, IIndex)
