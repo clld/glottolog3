@@ -291,7 +291,7 @@ def languages(req):
             if ed.name != _ed:
                 continue
 
-        med_, sources = stats.get(lang.id, (None, []))
+        med_, sources, _ = stats.get(lang.id, (None, [], None))
         med = None
         if year:
             for s in sources:
