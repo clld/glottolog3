@@ -3,9 +3,7 @@ from __future__ import unicode_literals
 import datetime
 import xml.etree.ElementTree as et
 from itertools import cycle
-
-from six.moves import cStringIO as StringIO
-from six import text_type
+import tempfile
 
 import sqlalchemy as sa
 import sqlalchemy.orm
@@ -147,11 +145,11 @@ class PhyloXML(Representation):
         self.append_children(clade, root, req, 0)
         phylogeny.append(clade)
         e.append(phylogeny)
-        out = StringIO()
         tree = et.ElementTree(element=e)
-        tree.write(out, encoding='utf8', xml_declaration=True)
-        out.seek(0)
-        return out.read()
+        with tempfile.TemporaryFile() as fp:
+            tree.write(fp, encoding='utf8', xml_declaration=True)
+            fp.seek(0)
+            return fp.read()
 
     def element(self, name, text=None, **kw):
         e = et.Element('{%s}%s' % (self.namespace, name), **kw)
@@ -250,7 +248,7 @@ def includeme(config):
     config.register_adapter(BibTexCitation, IDataset, IMetadata)
     config.register_adapter(Redirect, IProvider)
     config.register_adapter(Bigmap, ILanguage)
-    #config.register_adapter(PhyloXML, ILanguage)
+    config.register_adapter(PhyloXML, ILanguage)
     config.register_adapter(Newick, ILanguage)
     config.register_adapter(Treeview, ILanguage)
     config.register_adapter(GlottologGeoJsonLanguages, ILanguage, IIndex)
