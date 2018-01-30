@@ -69,13 +69,13 @@ import pytest
     ('get', '/resource/languoid/id/alba1269', None, None),
     ('get', '/resource/languoid/id/nilo1235', 301, None),
     ('get', '/resource/languoid/id/stan1295.bigmap.html', None, None),
-    #('get_xml', '/resource/languoid/id/atha1245.phylo.xml', None, None),
+    ('get_xml', '/resource/languoid/id/atha1245.phylo.xml', None, None),
     ('get', '/resource/reference/id/2.rdf', None, None),
     ('get', '/resource/reference/id/2', None, None),
     ('get_html', '/resource/reference/id/40223', None, None),
-#    ('get_html', '/langdoc/status', None, None),
-#    ('get_html', '/langdoc/status/browser?macroarea=Eurasia', None, None),
-#    ('get_html', '/langdoc/status/languages-0-1?macroarea=Eurasia', None, None),
+    ('get_html', '/langdoc/status', None, None),
+    ('get_html', '/langdoc/status/browser?macroarea=Eurasia', None, None),
+    ('get_html', '/langdoc/status/languages-1-3?macroarea=Eurasia&year=2018&family=', None, None),
 ])
 def test_pages(app, method, path, status, match):
     kwargs = {'status': status} if status is not None else {'status': 200}
