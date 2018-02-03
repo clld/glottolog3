@@ -95,7 +95,7 @@ def _load_sql_dump(rel, log):
         if not dump.exists():
             _download_sql_dump(rel, log)
         subprocess.check_call(['createdb', dbname])
-        subprocess.check_call(['psql', '-d', dbname, '-f', dump])
+        subprocess.check_call(['psql', '-d', dbname, '-f', dump.name])
         log.info('db {0} created'.format(dbname))
 
 
