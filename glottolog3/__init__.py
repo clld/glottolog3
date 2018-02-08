@@ -118,6 +118,11 @@ def main(global_config, **settings):
         views.languages,
         renderer='language/search_html.mako')
     config.add_route_and_view(
+        'glottolog.bpsearch',
+        '/bp/search',
+        views.languages,
+        renderer='language/bpsearch_html.mako')
+    config.add_route_and_view(
         'glottolog.childnodes',
         '/db/getchildlects',
         views.childnodes,
