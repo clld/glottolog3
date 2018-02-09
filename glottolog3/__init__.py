@@ -91,6 +91,8 @@ def main(global_config, **settings):
         ('sources', partial(menu_item, 'sources', label='References')),
         ('query', partial(menu_item, 'langdoc.complexquery', label='Reference Search')),
         ('about', partial(menu_item, 'about', label='About')),
+        # Menu Items created by UW Blueprint
+        ('bpsearch', partial(menu_item, 'glottolog.bpsearch', label='Blueprint Search')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(
@@ -127,6 +129,13 @@ def main(global_config, **settings):
         '/langdoc/complexquery',
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
+
+    # Endpoints created by UW Blueprint
+    config.add_route_and_view(
+        'glottolog.bpsearch',
+        '/bp/search',
+        views.languages,
+        renderer='language/bpsearch_html.mako')
 
     for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
