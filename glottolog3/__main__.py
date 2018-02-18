@@ -287,6 +287,13 @@ def db_url(args):
 def with_session(args):
     setup_session(args.pkg_dir.parent.joinpath('development.ini').as_posix())
 
+@command()
+def add_languoid(args):
+    with_session(args)
+    with transaction.manager:
+        DBSession.add(models.Languoid(id="test0000",
+                                      name="test1",
+                                      level=models.LanguoidLevel.from_string('dialect')))
 
 def main():  # pragma: no cover
     pkg_dir = Path(glottolog3.__file__).parent
