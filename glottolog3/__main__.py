@@ -191,9 +191,10 @@ def newick(args):
 
 @command()
 def add_new_name(args):
-# TODO: Check the length of the args array is good
+    # TODO: Check the length of the args array is valid
     gcode, lang, name, type, desc = \
         args.args[0], args.args[1], args.args[2], args.args[3], args.args[4]
+
     with_session(args)
     with transaction.manager:
         languoid = DBSession.query(common.Language) \
@@ -206,12 +207,10 @@ def add_new_name(args):
             name=name,
             type=type,
             description=desc,
-            lang=lang
-        )
+            lang=lang)
         DBSession.add(identifier)
         DBSession.add(
-            common.LanguageIdentifier(language=languoid, identifier=identifier)
-        )
+            common.LanguageIdentifier(language=languoid, identifier=identifier))
 
 
 @command()
