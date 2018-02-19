@@ -1,4 +1,4 @@
-#Pre-development Notes:
+#Overview of the script:
 #1 - Retrieve all ISO codes from Wikitounges' database and store them in a dictionary
 #2 - Retrieve all ISO codes in the identifier table from Glottolog's database
 #3 - Compare each ISO code from Glottolog to the one from Wikitounges
@@ -111,14 +111,16 @@ def getDifference():
 	for isoCode, wikitoungesIsoObj in lang_dict.items():
 		if not(wikitoungesIsoObj.checked):
 			Wikitounges_only.append(languageObject(wikitoungesIsoObj.name, isoCode));
-	return {"Glottolog_only": sorted(Glottolog_only, key=lambda langObject: langObject.isoCode), "Wikitounges_only": sorted(Wikitounges_only, key=lambda langObject: langObject.isoCode)};
+	Glottolog_only = sorted(Glottolog_only, key=lambda langObject: langObject.isoCode);
+	Wikitounges_only = sorted(Wikitounges_only, key=lambda langObject: langObject.isoCode);
+	del Wikitounges_only[-1];
+	return {"Glottolog_only": Glottolog_only, "Wikitounges_only": Wikitounges_only};
 
 def developmentOutput(val):
 	print("\nGlottolog Only: \n");
 	for i in val["Glottolog_only"]:
 		print(i.isoCode + "    " + i.name);
 	print("\nWikitounges Only: \n");
-	del val["Wikitounges_only"][-1];
 	for i in val["Wikitounges_only"]:
 		print(i.isoCode + "    " + i.name);
 
