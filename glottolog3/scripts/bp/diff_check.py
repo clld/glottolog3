@@ -118,6 +118,7 @@ def developmentOutput(val):
 	for i in val["Glottolog_only"]:
 		print(i.isoCode + "    " + i.name);
 	print("\nWikitounges Only: \n");
+	del val["Wikitounges_only"][-1];
 	for i in val["Wikitounges_only"]:
 		print(i.isoCode + "    " + i.name);
 
