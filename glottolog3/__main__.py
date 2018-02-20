@@ -88,7 +88,7 @@ def _load_sql_dump(rel, log):
     dump = Path('glottolog-{0}.sql'.format(rel['version']))
     dbname = as_unicode(dump.stem)
     dbs = [
-        l.split(b'|')[0] for l in
+        l.split('|')[0] for l in
         subprocess.check_output(['psql', '-l', '-t', '-A']).splitlines()]
     if dbname in dbs:
         log.warn('db {0} exists! Drop first to recreate.'.format(dump.name))
