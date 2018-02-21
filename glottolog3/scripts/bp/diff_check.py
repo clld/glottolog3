@@ -1,56 +1,45 @@
 #Overview of the script:
-#1 - Retrieve all ISO codes from Wikitounges' database and store them in a dictionary
+#1 - Retrieve all ISO codes from Wikitongues' database and store them in a dictionary
 #2 - Retrieve all ISO codes in the identifier table from Glottolog's database
-#3 - Compare each ISO code from Glottolog to the one from Wikitounges
-#4 - Return the difference between them in 2 arrays: one with all Iso codes only exist in Glottolog, and one with all Iso codes only exist in Wikitounges
+#3 - Compare each ISO code from Glottolog to the one from Wikitongues
+#4 - Return the difference between them in 2 arrays: one with all Iso codes only exist in Glottolog, and one with all Iso codes only exist in Wikitongues
 
 #from glottolog3.models import Languoid
 from sqlalchemy import create_engine  
-from sqlalchemy import Column, String 
+from sqlalchemy import Column, String, Numeric, ForeignKey
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base  
 import csv
 
 #change this db_string to the actual postgres db containing the data
 db_string = "postgres://postgres:@127.0.0.1:5432/glottolog-3.2";
-db = create_engine(db_string);  
+db = create_engine(db_string);
 base = declarative_base();
 
 class Identifier(base):
 	__tablename__ = 'identifier';
-	pk = Column(String, primary_key=True);
+	pk = Column(Numeric, primary_key=True);
 	name = Column(String);
 	type = Column(String);
 
-class languageidentifier(base):
+class LanguageIdentifier(base):
 	__tablename__ = 'languageidentifier';
-	pk = Column(String, primary_key=True);
-	language_pk = Column(String);
-	identifier_pk = Column(String);
+	pk = Column(Numeric, primary_key=True);
+	language_pk = Column(Numeric, ForeignKey("language.pk"));
+	identifier_pk = Column(Numeric, ForeignKey("identifier.pk"));
 
-class language(base):
+class Language(base):
 	__tablename__ = 'language';
-	pk = Column(String, primary_key=True);
+	pk = Column(Numeric, primary_key=True);
 	id = Column(String);
 	name = Column(String);
 
-class WikitoungesIsoObject:
-	name = '';
-	checked= '';
-	def __init__(self, languageName, isChecked):
-		self.name = languageName;
-		self.checked = isChecked;
-
-class languageObject:
+class LanguageObject:
 	name = '';
 	isoCode = '';
 	def __init__(self, languageName, languageIsoCode):	
 		self.name = languageName;
 		self.isoCode = languageIsoCode;
-
-Session = sessionmaker(db);  
-session = Session();
-base.metadata.create_all(db);
 
 #Using Glottolog's Model
 #def getIdentifier():
@@ -65,65 +54,51 @@ base.metadata.create_all(db);
 #		tempIdent = lang.get_identifier_objs('iso639-3');
 #		if (len(tempIdent)!=0):
 #			identifierName = tempIdent[0].name;
-#			tempArr.append(languageObject(lang.name, identifierName));
+#			tempArr.append(LanguageObject(lang.name, identifierName));
 #	return tempArr;
 #print(getIdentifier());
 
-def getNameFromIdentifierKey(identifier_key):
-	language_identifier_link = session.query(languageidentifier).filter(languageidentifier.identifier_pk == identifier_key).all()[0];
-	language_entity = session.query(language).filter(language.pk ==language_identifier_link.language_pk).all()[0];
-	return language_entity;
-
 def getIdentifier():
-	print("Generating languageObject Array with Glottolog's Database");
-	identifiers = session.query(Identifier).filter(Identifier.type == 'iso639-3').all(); 
-	tempArr = [];
+	print("Generating LanguageObject Array with Glottolog's Database");
+	identifiers = session.query(Identifier, LanguageIdentifier, Language).join(LanguageIdentifier).join(Language).filter(Identifier.type == 'iso639-3').all(); 
+	tempDict = {};
 	for identifier in identifiers:
-		iso_code = identifier.name;
-		language_entity = getNameFromIdentifierKey(identifier.pk);
-		tempArr.append(languageObject(language_entity.name, iso_code));
-	return tempArr;
+		tempDict[identifier[0].name] = LanguageObject(identifier[2].name, identifier[0].name);
+	return tempDict;
 
 def populateISODictionary():
-	print("Generating Dictionary with Wikitounges' Database");
+	print("Generating Dictionary with Wikitongues' Database");
+	tempDict = {};
 	with open('lang.csv') as langread:
-		tempDict = {};
+		next(langread); #To get rid of column header
 		csv_reader = csv.reader(langread, delimiter=',');
-		#element[0] is the Iso639-3 code of each language in Wikitounges' database
+		#element[0] is the Iso639-3 code of each language in Wikitongues' database
 		#element[1] is the name of the language of element[0]
 		for element in csv_reader:
-			tempDict[element[0]] = WikitoungesIsoObject(element[1], False);
-		return tempDict;
+			tempDict[element[0]] = LanguageObject(element[1], element[0]);
+	return tempDict;
 
 def getDifference():
-	Glottolog_only = [];
-	Wikitounges_only = [];
-	lang_dict = populateISODictionary(); #Iso639-3 codes from Wikitounges' database
-	idenArr = getIdentifier(); #Iso639-3 codes from Glottolog's database
+	glottolog_only = [];
+	wikitongues_only = [];
+	lang_dict = populateISODictionary(); #Iso639-3 codes from Wikitongues' database
+	idenDict = getIdentifier(); #Iso639-3 codes from Glottolog's database
 	print("Checking Which Language is in Glottolog Only.");
-	for identifier in idenArr:
-		try:
-			get = lang_dict[identifier.isoCode];
-			lang_dict[identifier.isoCode] = WikitoungesIsoObject(lang_dict[identifier.isoCode].name, True);
-		except:
-			Glottolog_only.append(identifier);
-	print("Checking Which Language is in Wikitounges Only.");
-	for isoCode, wikitoungesIsoObj in lang_dict.items():
-		if not(wikitoungesIsoObj.checked):
-			Wikitounges_only.append(languageObject(wikitoungesIsoObj.name, isoCode));
-	Glottolog_only = sorted(Glottolog_only, key=lambda langObject: langObject.isoCode);
-	Wikitounges_only = sorted(Wikitounges_only, key=lambda langObject: langObject.isoCode);
-	del Wikitounges_only[-1];
-	return {"Glottolog_only": Glottolog_only, "Wikitounges_only": Wikitounges_only};
+	glottolog_only = sorted([langObj for langObj in idenDict.values() if (True if langObj.isoCode not in lang_dict else not(lang_dict.pop(langObj.isoCode)))], key=lambda langObject: langObject.isoCode);
+	print("Checking Which Language is in Wikitongues Only.");
+	wikitongues_only = sorted(lang_dict.values(), key=lambda langObject: langObject.isoCode);
+	return glottolog_only, wikitongues_only;
 
-def developmentOutput(val):
-	print("\nGlottolog Only: \n");
-	for i in val["Glottolog_only"]:
+def developmentOutput(resultArray):
+	print("\nGlottolog Only (" + str(len(resultArray[0])) + " entries):");
+	for i in resultArray[0]:
 		print(i.isoCode + "    " + i.name);
-	print("\nWikitounges Only: \n");
-	for i in val["Wikitounges_only"]:
+	print("\nWikitongues Only (" + str(len(resultArray[1])) + " entries):");
+	for i in resultArray[1]:
 		print(i.isoCode + "    " + i.name);
 
-diff = getDifference();
-developmentOutput(diff);
+Session = sessionmaker(db);  
+session = Session();
+base.metadata.create_all(db);
+developmentOutput(getDifference());
 
