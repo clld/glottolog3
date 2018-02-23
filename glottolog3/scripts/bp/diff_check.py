@@ -34,25 +34,22 @@ class Language(base):
 	id = Column(String);
 	name = Column(String);
 
-#Using Glottolog's Model
+#Using Glottolog's Model (this takes ~6 minutes)
+#Session = sessionmaker(db);  
+#session = Session();
 #def getIdentifier():
-#	counter = 0;
 #	langs = session.query(Languoid);
-#	tempArr = [];
+#	tempDict = {};
 #	for lang in langs:
-#		counter += 1;
-#		print(counter);
-#		if counter == -1:
-#			break;
 #		tempIdent = lang.get_identifier_objs('iso639-3');
 #		if (len(tempIdent)!=0):
 #			identifierName = tempIdent[0].name;
-#			tempArr.append(LanguageObject(lang.name, identifierName));
-#	return tempArr;
+#			tempDict[identifierName] = lang.name;
+#	return tempDict;
 #print(getIdentifier());
 
 def getIdentifier():
-	print("Generating LanguageObject Array with Glottolog's Database");
+	print("Generating Dictionary with Glottolog's Database");
 	identifiers = session.query(Identifier, LanguageIdentifier, Language).join(LanguageIdentifier).join(Language).filter(Identifier.type == 'iso639-3').all(); 
 	tempDict = {};
 	for identifier in identifiers:
