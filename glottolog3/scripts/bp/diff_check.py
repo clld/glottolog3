@@ -8,7 +8,7 @@
 from sqlalchemy import create_engine  
 from sqlalchemy import Column, String, Numeric, ForeignKey
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base  
+from sqlalchemy.ext.declarative import declarative_base
 import csv
 
 #change this db_string to the actual postgres db containing the data
@@ -34,13 +34,6 @@ class Language(base):
 	id = Column(String);
 	name = Column(String);
 
-class LanguageObject:
-	name = '';
-	isoCode = '';
-	def __init__(self, languageName, languageIsoCode):	
-		self.name = languageName;
-		self.isoCode = languageIsoCode;
-
 #Using Glottolog's Model
 #def getIdentifier():
 #	counter = 0;
@@ -63,7 +56,7 @@ def getIdentifier():
 	identifiers = session.query(Identifier, LanguageIdentifier, Language).join(LanguageIdentifier).join(Language).filter(Identifier.type == 'iso639-3').all(); 
 	tempDict = {};
 	for identifier in identifiers:
-		tempDict[identifier[0].name] = LanguageObject(identifier[2].name, identifier[0].name);
+		tempDict[identifier[0].name] = identifier[2].name;
 	return tempDict;
 
 def populateISODictionary():
@@ -75,27 +68,27 @@ def populateISODictionary():
 		#element[0] is the Iso639-3 code of each language in Wikitongues' database
 		#element[1] is the name of the language of element[0]
 		for element in csv_reader:
-			tempDict[element[0]] = LanguageObject(element[1], element[0]);
+			tempDict[element[0]] = element[1];
 	return tempDict;
 
 def getDifference():
 	glottolog_only = [];
 	wikitongues_only = [];
 	lang_dict = populateISODictionary(); #Iso639-3 codes from Wikitongues' database
-	idenDict = getIdentifier(); #Iso639-3 codes from Glottolog's database
+	iden_dict = getIdentifier(); #Iso639-3 codes from Glottolog's database
 	print("Checking Which Language is in Glottolog Only.");
-	glottolog_only = sorted([langObj for langObj in idenDict.values() if (True if langObj.isoCode not in lang_dict else not(lang_dict.pop(langObj.isoCode)))], key=lambda langObject: langObject.isoCode);
+	glottolog_only = sorted([(isoCode, language_name) for isoCode, language_name in iden_dict.items() if isoCode not in lang_dict], key=lambda langTuple: langTuple[0]);
 	print("Checking Which Language is in Wikitongues Only.");
-	wikitongues_only = sorted(lang_dict.values(), key=lambda langObject: langObject.isoCode);
+	wikitongues_only = sorted([(isoCode, language_name) for isoCode, language_name in lang_dict.items() if isoCode not in iden_dict], key=lambda langTuple: langTuple[0]);
 	return glottolog_only, wikitongues_only;
 
 def developmentOutput(resultArray):
 	print("\nGlottolog Only (" + str(len(resultArray[0])) + " entries):");
 	for i in resultArray[0]:
-		print(i.isoCode + "    " + i.name);
+		print(i[0] + "    " + i[1]);
 	print("\nWikitongues Only (" + str(len(resultArray[1])) + " entries):");
 	for i in resultArray[1]:
-		print(i.isoCode + "    " + i.name);
+		print(i[0] + "    " + i[1]);
 
 Session = sessionmaker(db);  
 session = Session();
