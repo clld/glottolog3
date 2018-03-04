@@ -10,7 +10,7 @@
         % endif
         <fieldset>
             <legend>Name (primary or alternative)</legend>
-            <input tabindex="3" type="text" name="name" id="inputName" placeholder="Name" value="${'' if message else params['name']}">
+            <input tabindex="3" type="text" name="bpsearch" id="inputName" placeholder="Name" value="${'' if message else params['name']}">
             <label class="radio">
                 <input tabindex="3" type="radio" name="namequerytype" value="whole" ${'checked' if params['namequerytype'] == 'whole' else ''}>
                 match whole name
@@ -23,33 +23,6 @@
                 <input tabindex="3" type="checkbox" name="multilingual" ${'checked' if params['multilingual'] else ''} checked> include non-English names
             </label>
             <button tabindex="3" type="submit" class="btn">Submit</button>
-        </fieldset>
-    </form>
-    <form>
-        <fieldset>
-            <legend>ISO 639-3</legend>
-            <div class="input-append">
-                <input tabindex="3" class="input-small" type="text" name="iso" id="inputIso" value="${'' if message else params['iso']}" placeholder="abc">
-                <button tabindex="3" type="submit" class="btn">Submit</button>
-            </div>
-        </fieldset>
-    </form>
-    <form>
-        <fieldset>
-            <legend>Glottocode</legend>
-            <div class="input-append">
-                <input tabindex="3" class="input-small" type="text" name="alnum" id="inputAlnum" placeholder="abcd1234">
-                <button tabindex="3" type="submit" class="btn">Submit</button>
-            </div>
-        </fieldset>
-    </form>
-    <form>
-        <fieldset>
-            <legend>Country</legend>
-            <div class="input-append">
-                <input tabindex="3" type="text" name="country" data-provide="typeahead" data-source="${countries}" placeholder="DE">
-                <button tabindex="3" class="btn" type="submit">Submit</button>
-            </div>
         </fieldset>
     </form>
 </div>
