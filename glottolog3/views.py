@@ -276,8 +276,7 @@ def bpsearch(request):
         query = None
     elif len(term) < 3:
         query = None
-        message = ('Please enter at least four characters for a name search '
-            'or three characters for an iso code')
+        message = ('Please enter at least three characters for a search.')
     elif len(term) == 8 and GLOTTOCODE_PATTERN.match(term):
         query = query.filter(Languoid.id == term)
         kind = 'Glottocode'
