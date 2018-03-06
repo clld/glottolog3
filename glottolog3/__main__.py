@@ -27,6 +27,7 @@ from clldutils.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
 from clld.db.meta import DBSession
 from clld.db.models import common
+from clldutils.misc import slug
 from pyglottolog import Glottolog
 
 import glottolog3
@@ -186,6 +187,30 @@ def newick(args):
     fname = args.pkg_dir.joinpath('static', 'download', 'tree-glottolog-newick.txt')
     write_text(fname, '\n'.join(trees))
     args.log.info('{0} written'.format(fname))
+
+
+@command()
+def add_new_name(args):
+    # TODO: Check the length of the args array is valid
+    gcode, lang, name, type, desc = \
+        args.args[0], args.args[1], args.args[2], args.args[3], args.args[4]
+
+    with_session(args)
+    with transaction.manager:
+        languoid = DBSession.query(common.Language) \
+                            .filter_by(id='{0}'.format(gcode)) \
+                            .first()
+        identifier = common.Identifier(
+            (name, type, desc, lang),
+            id='{0}-{1}-{2}-{3}'.format(
+            slug(name), slug(type), slug(desc or ''), lang),
+            name=name,
+            type=type,
+            description=desc,
+            lang=lang)
+        DBSession.add(identifier)
+        DBSession.add(
+            common.LanguageIdentifier(language=languoid, identifier=identifier))
 
 
 @command()
