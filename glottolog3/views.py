@@ -261,10 +261,69 @@ def quicksearch(request):
     return {'message': message, 'params': params, 'languoids': languoids,
         'map': map_, 'countries': countries}
 
+# ENDPOINT ADDED BY BLUEPRINT
+def bpsearch(request):
+    message = None
+    query = DBSession.query(Languoid)
+    term = request.params['bpsearch'].strip().lower()
+    params = {
+            'name': term,
+            'namequerytype': request.params['namequerytype'],
+            'multilingual': 'multilingual' in request.params
+            }
+
+    if not term:
+        query = None
+    elif len(term) < 3:
+        query = None
+        message = ('Please enter at least three characters for a search.')
+    elif len(term) == 8 and GLOTTOCODE_PATTERN.match(term):
+        query = query.filter(Languoid.id == term)
+        kind = 'Glottocode'
+    else:
+        # list of criteria to search languoids by
+        crit = [Identifier.type == 'name']
+        ul_iname = func.unaccent(func.lower(Identifier.name))
+        ul_name = func.unaccent(term)
+        if params['namequerytype'] == 'whole':
+            crit.append(ul_iname == ul_name)
+        else:
+            crit.append(ul_iname.contains(ul_name))
+        if not params['multilingual']:
+            # restrict to English identifiers
+            crit.append(func.coalesce(Identifier.lang, '').in_((u'', u'eng', u'en')))
+        crit = Language.identifiers.any(and_(*crit))
+        # add ISOs to query if length == 3
+        iso = Languoid.identifiers.any(type=IdentifierType.iso.value, name=term) if len(term) == 3 else None
+        query = query.filter(or_(
+            icontains(Languoid.name, term), 
+            crit,
+            iso))
+        kind = 'name part'
+
+    if query is None:
+        languoids = []
+    else:
+        languoids = query.order_by(Languoid.name)\
+            .options(joinedload(Languoid.family)).all()
+        if not languoids:
+            term_pre = HTML.kbd(term, style='white-space: pre')
+            message = 'No matching languoids found for %s "' % kind + term_pre + '"'
+
+    map_ = None
+
+    countries = json.dumps(['%s (%s)' % (c.name, c.id) for c in
+        DBSession.query(Country).order_by(Country.description)])
+
+    return {'message': message, 'params': params, 'languoids': languoids,
+        'map': map_, 'countries': countries}
 
 def languages(request):
     if request.params.get('search'):
         return quicksearch(request)
+
+    elif request.params.get('bpsearch'):
+        return bpsearch(request)
 
     res = dict(
         countries=json.dumps([

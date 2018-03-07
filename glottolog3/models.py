@@ -222,7 +222,7 @@ class Languoid(CustomModelMixin, Language):
     father_pk = Column(Integer, ForeignKey('languoid.pk'))
     family_pk = Column(Integer, ForeignKey('languoid.pk'))
 
-    level = Column(LanguoidLevel.db_type())
+    level = Column(LanguoidLevel.db_type(), nullable=False)
     status = Column(LanguoidStatus.db_type())
     bookkeeping = Column(Boolean, default=False)
     newick = Column(Unicode)

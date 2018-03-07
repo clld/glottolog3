@@ -1,5 +1,6 @@
 from functools import partial
 
+import os
 from pyramid.httpexceptions import HTTPGone, HTTPMovedPermanently
 from pyramid.config import Configurator
 from pyramid.response import Response
@@ -56,6 +57,7 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     settings.update(CFG)
+    settings['sqlalchemy.url'] = os.environ.get('GLOTTOLOG_DATABASE_URL');    
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
         'languages': '/glottolog/language',
@@ -91,6 +93,8 @@ def main(global_config, **settings):
         ('sources', partial(menu_item, 'sources', label='References')),
         ('query', partial(menu_item, 'langdoc.complexquery', label='Reference Search')),
         ('about', partial(menu_item, 'about', label='About')),
+        # Menu Items created by UW Blueprint
+        ('bpsearch', partial(menu_item, 'glottolog.bpsearch', label='Blueprint Search')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(
@@ -127,6 +131,13 @@ def main(global_config, **settings):
         '/langdoc/complexquery',
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
+
+    # Endpoints created by UW Blueprint
+    config.add_route_and_view(
+        'glottolog.bpsearch',
+        '/bp/search',
+        views.languages,
+        renderer='language/bpsearch_html.mako')
 
     for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
