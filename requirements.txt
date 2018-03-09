@@ -1,2 +1,7 @@
 # development environment: install in development mode
 -e .[dev,test]
+clld
+zope.interface
+zope.deprecation
+psycopg2
+pyglottolog
