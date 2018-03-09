@@ -57,7 +57,9 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     settings.update(CFG)
-    settings['sqlalchemy.url'] = os.environ.get('GLOTTOLOG_DATABASE_URL');    
+    db_url = os.environ.get('GLOTTOLOG_DATABASE_URL')
+    if db_url is not None:
+        settings['sqlalchemy.url'] = db_url
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
         'languages': '/glottolog/language',
