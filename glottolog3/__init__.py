@@ -1,5 +1,6 @@
 from functools import partial
 
+import os
 from pyramid.httpexceptions import HTTPGone, HTTPMovedPermanently
 from pyramid.config import Configurator
 from pyramid.response import Response
@@ -56,6 +57,9 @@ def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     settings.update(CFG)
+    db_url = os.environ.get('GLOTTOLOG_DATABASE_URL')
+    if db_url is not None:
+        settings['sqlalchemy.url'] = db_url
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
         'languages': '/glottolog/language',
