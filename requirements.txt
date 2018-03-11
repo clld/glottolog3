@@ -2,4 +2,3 @@
 -e .[dev,test]
 zope.interface
 zope.deprecation
-psycopg2

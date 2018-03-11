@@ -25,6 +25,7 @@ setup(
         'markdown',
         'newick>=0.4',
         'pyglottolog~=1.1',
+        'psycopg2~=2.7.4'
     ],
     extras_require={
         'dev': ['flake8', 'wheel', 'twine'],
