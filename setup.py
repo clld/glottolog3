@@ -30,6 +30,7 @@ setup(
         'zope.deprecation~=4.3.0',
         'pastedeploy~=1.5.2',
         'paste~=2.0.3',
+        'scandir~=1.7',
     ],
     extras_require={
         'dev': ['flake8', 'wheel', 'twine'],
