@@ -1,7 +1,4 @@
-try:
-    from setuptools import setup, find_packages
-except AttributeError:
-    from setuptools import setup, find_packages
+from setuptools import setup, find_packages
 
 setup(
     name='glottolog3',
