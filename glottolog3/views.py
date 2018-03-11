@@ -6,6 +6,7 @@ from collections import OrderedDict
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
+from pyramid.view import view_config
 from sqlalchemy import and_, true, false, null, or_, exc
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
@@ -320,8 +321,12 @@ def bpsearch(request):
     return {'message': message, 'params': params, 'languoids': languoids,
         'map': map_, 'countries': countries}
 
+@view_config(
+        route_name='glottolog.add_identifier',
+        request_method='POST', 
+        renderer='json')
 def add_identifier(request):
-    # TODO: Add validity checks for parameters
+    # TODO: Add validity checks for parameters and unit tests
 
     gcode = request.json_body['glottocode']
     lang = request.json_body['language']

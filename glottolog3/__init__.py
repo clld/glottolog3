@@ -137,11 +137,7 @@ def main(global_config, **settings):
         views.languages,
         renderer='language/bpsearch_html.mako')
 
-    config.add_route_and_view(
-        'glottolog.add_identifier', 
-        '/resource/identifier/add',
-        views.add_identifier,
-        renderer='json')
+    config.add_route('glottolog.add_identifier', '/identifiers')
 
     # UW blueprint code ends here
 
