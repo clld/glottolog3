@@ -1,5 +1,4 @@
 import os
-
 from paste.deploy import loadapp
 from waitress import serve
 
