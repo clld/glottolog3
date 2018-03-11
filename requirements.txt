@@ -1,7 +1,5 @@
 # development environment: install in development mode
 -e .[dev,test]
-paste
-pastedeploy
 clld
 zope.interface
 zope.deprecation

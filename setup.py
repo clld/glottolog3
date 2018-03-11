@@ -19,11 +19,6 @@ setup(
         'console_scripts': ['glottolog-app=glottolog3.__main__:main'],
     },
     install_requires=[
-        'zope.interface~=4.4.3',
-        'zope.deprecation~=4.3.0',
-        'pastedeploy~=1.5.2',
-        'paste~=2.0.3',
-        'scandir~=1.7',
         'clld~=4.0',
         'clldmpg~=3.1',
         'clldutils>=1.9.5',
