@@ -1,1 +1,2 @@
-web: python setup.py develop
+bot: python setup.py develop
+web: python serve.py
