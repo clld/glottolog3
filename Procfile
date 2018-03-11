@@ -1,1 +1,2 @@
-web: bash run.sh
+bot: python setup.py develop
+web: python serve.py
