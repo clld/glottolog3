@@ -1,3 +1,5 @@
+-# development environment: install in development mode	
+--e .[dev,test]
 alembic==0.9.8
 attrs==17.4.0
 Babel==2.5.3
