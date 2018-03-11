@@ -67,7 +67,7 @@ import pytest
     ('get', '/resource/languoid/id/afud1235', None, None),
     ('get', '/resource/languoid/id/stan1295', None, None),
     ('get', '/resource/languoid/id/alba1269', None, None),
-    ('get', '/resource/languoid/id/nilo1235', 301, None),
+    ('get', '/resource/languoid/id/nilo1235', 410, None),
     ('get', '/resource/languoid/id/stan1295.bigmap.html', None, None),
     ('get_xml', '/resource/languoid/id/atha1245.phylo.xml', None, None),
     ('get', '/resource/reference/id/2.rdf', None, None),
@@ -76,6 +76,8 @@ import pytest
     ('get_html', '/langdoc/status', None, None),
     ('get_html', '/langdoc/status/browser?macroarea=Eurasia', None, None),
     ('get_html', '/langdoc/status/languages-1-3?macroarea=Eurasia&year=2018&family=', None, None),
+    # Blueprint Tests
+    ('get', '/bp/api/search?bpsearch=anglai', None, '[{"glottocode": "stan1293", "iso": "eng", "name": "English", "level": "language"}, {"glottocode": "midd1317", "iso": "enm", "name": "Middle English", "level": "language"}, {"glottocode": "tsha1245", "iso": "tsj", "name": "Tshangla", "level": "language"}]'),
 ])
 def test_pages(app, method, path, status, match):
     kwargs = {'status': status} if status is not None else {'status': 200}

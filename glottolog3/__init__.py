@@ -140,6 +140,9 @@ def main(global_config, **settings):
         '/bp/search',
         views.languages,
         renderer='language/bpsearch_html.mako')
+    config.add_route(
+        'glottolog.bp_api_search',
+        'bp/api/search')
 
     for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
