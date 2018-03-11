@@ -6,7 +6,7 @@ from collections import OrderedDict
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
-from sqlalchemy import and_, true, false, null, or_
+from sqlalchemy import and_, true, false, null, or_, exc
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
@@ -19,6 +19,7 @@ from clld.web.util.htmllib import HTML
 from clld.web.util.multiselect import MultiSelect
 from clld.lib import bibtex
 from clld.interfaces import IRepresentation
+from clldutils.misc import slug
 
 from glottolog3.models import (
     Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider,
@@ -262,6 +263,7 @@ def quicksearch(request):
         'map': map_, 'countries': countries}
 
 # ENDPOINT ADDED BY BLUEPRINT
+
 def bpsearch(request):
     message = None
     query = DBSession.query(Languoid)
@@ -317,6 +319,43 @@ def bpsearch(request):
 
     return {'message': message, 'params': params, 'languoids': languoids,
         'map': map_, 'countries': countries}
+
+def add_identifier(request):
+    # TODO: Add validity checks for parameters
+
+    gcode = request.json_body['glottocode']
+    lang = request.json_body['language']
+    name = request.json_body['name']
+    type = request.json_body['type']
+    desc = request.json_body['description']
+
+    languoid = DBSession.query(Language) \
+                        .filter_by(id='{0}'.format(gcode)) \
+                        .first()
+
+    identifier = Identifier(
+        (name, type, desc, lang),
+        id='{0}-{1}-{2}-{3}'.format(
+        slug(name), slug(type), slug(desc or ''), lang),
+        name=name,
+        type=type,
+        description=desc,
+        lang=lang)
+
+    try:
+        DBSession.add(identifier)
+        DBSession.add(
+            LanguageIdentifier(language=languoid, identifier=identifier))
+        DBSession.flush()
+    except exc.SQLAlchemyError as e:
+        DBSession.rollback()
+        return {'message': 'ERROR: {}'.format(e)}
+
+    return {'message': 'Identifier successfully added.',
+            'identifier': '%s' % identifier} 
+
+# BLUEPRINT CODE END
+
 
 def languages(request):
     if request.params.get('search'):

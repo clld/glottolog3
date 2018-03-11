@@ -137,6 +137,14 @@ def main(global_config, **settings):
         views.languages,
         renderer='language/bpsearch_html.mako')
 
+    config.add_route_and_view(
+        'glottolog.add_identifier', 
+        '/resource/identifier/add',
+        views.add_identifier,
+        renderer='json')
+
+    # UW blueprint code ends here
+
     for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
