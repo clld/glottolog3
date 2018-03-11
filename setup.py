@@ -25,6 +25,11 @@ setup(
         'markdown',
         'newick>=0.4',
         'pyglottolog~=1.1',
+        'psycopg2~=2.7.4',
+        'zope.interface~=4.4.3',
+        'zope.deprecation~=4.3.0',
+        'pastedeploy~=1.5.2',
+        'paste~=2.0.3',
     ],
     extras_require={
         'dev': ['flake8', 'wheel', 'twine'],

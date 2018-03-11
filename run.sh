@@ -1,2 +1,2 @@
-python setup.py install
+python setup.py develop
 python serve.py
