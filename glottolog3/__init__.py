@@ -143,6 +143,9 @@ def main(global_config, **settings):
     config.add_route(
         'glottolog.bp_api_search',
         'bp/api/search')
+    config.add_route(
+        'glottolog.add_languoid',
+        '/languoid')
 
     for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
