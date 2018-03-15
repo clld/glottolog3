@@ -399,7 +399,7 @@ def add_identifier(request):
         DBSession.flush()
     except exc.SQLAlchemyError as e:
         DBSession.rollback()
-        return {'message': 'ERROR: {}'.format(e)}
+        return { 'error': '{}'.format(e) }
 
     return {'message': 'Identifier successfully added.',
             'identifier': '%s' % identifier} 
