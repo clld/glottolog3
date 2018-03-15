@@ -144,6 +144,10 @@ def main(global_config, **settings):
         'glottolog.bp_api_search',
         'bp/api/search')
 
+    config.add_route('glottolog.add_identifier', '/identifiers')
+
+    # UW blueprint code ends here
+
     for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
