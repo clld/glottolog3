@@ -6,6 +6,7 @@ from string import capwords
 
 from zope.interface import implementer
 
+from marshmallow import Schema, fields, pre_load, post_load
 from sqlalchemy import (
     Column,
     String,
@@ -304,7 +305,7 @@ class Languoid(CustomModelMixin, Language):
             This method does not return the geo coordinates of the Languoid self, but of
             its descendants.
         """
-        
+
         child_pks = DBSession.query(Languoid.pk)\
             .filter(Languoid.father_pk == self.pk).subquery()
         return DBSession.query(
@@ -437,6 +438,20 @@ class Languoid(CustomModelMixin, Language):
                     continue
                 children_map[fpk].append(node)
         return tree_
+
+class LanguoidSchema(Schema):
+    id = fields.Str(required=True)
+    name = fields.Str(required=True)
+    level = fields.Raw(required=True) # couldn't figure out NestedSchema for this
+
+    @pre_load
+    def from_string_languoid_level(self, data):
+        data['level'] = LanguoidLevel.from_string(data['level'])
+        return data
+
+    @post_load
+    def make_languoid(self, data):
+        return Languoid(**data)
 
 
 # index datatables.Refs.default_order

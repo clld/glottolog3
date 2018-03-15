@@ -17,6 +17,7 @@ from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config, create_engine
 
 import transaction
+from marshmallow import ValidationError
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload, joinedload_all
 
@@ -314,11 +315,19 @@ def with_session(args):
 
 @command()
 def add_languoid(args):
+    languoid_data = {
+        'id': args.args[0],
+        'name': args.args[1],
+        'level': args.args[2]}
+
     with_session(args)
     with transaction.manager:
-        DBSession.add(models.Languoid(id="test0000",
-                                      name="test1",
-                                      level=models.LanguoidLevel.from_string('dialect')))
+        languoid = models.LanguoidSchema().load(languoid_data)
+        if languoid.errors:
+            args.log.error('validation error: {}'.format(languoid.errors))
+        else:
+            DBSession.add(languoid.data)
+
 
 def main():  # pragma: no cover
     pkg_dir = Path(glottolog3.__file__).parent

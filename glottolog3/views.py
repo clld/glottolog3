@@ -263,8 +263,8 @@ def quicksearch(request):
     return {'message': message, 'params': params, 'languoids': languoids,
         'map': map_, 'countries': countries}
 
-# ENDPOINT ADDED BY BLUEPRINT
 
+# ENDPOINTS ADDED BY BLUEPRINT
 def bpsearch(request):
     message = None
     query = DBSession.query(Languoid)
@@ -319,7 +319,52 @@ def bpsearch(request):
         DBSession.query(Country).order_by(Country.description)])
 
     return {'message': message, 'params': params, 'languoids': languoids,
-        'map': map_, 'countries': countries}
+            'map': map_, 'countries': countries}
+
+@view_config(
+        route_name='glottolog.bp_api_search',
+        request_method='GET',
+        renderer='json')
+def bp_api_search(request):
+    query = DBSession.query(Languoid)
+    term = request.params['bpsearch'].strip().lower()
+
+    if not term:
+        query = None
+    elif len(term) < 3:
+        return [{message: 'Please enter at least three characters for a search.'}]
+    elif len(term) == 8 and GLOTTOCODE_PATTERN.match(term):
+        query = query.filter(Languoid.id == term)
+        kind = 'Glottocode'
+    else:
+        # list of criteria to search languoids by
+        crit = [Identifier.type == 'name']
+        crit.append(func.unaccent(func.lower(Identifier.name)).contains(func.unaccent(term)))
+        crit = Language.identifiers.any(and_(*crit))
+        # add ISOs to query if length == 3
+        iso = Languoid.identifiers.any(type=IdentifierType.iso.value, name=term) if len(term) == 3 else None
+        query = query.filter(or_(
+            icontains(Languoid.name, term), 
+            crit,
+            iso))
+        kind = 'name part'
+
+    if query is None:
+        return []
+    else:
+        languoids = query.order_by(Languoid.name)\
+                .options(joinedload(Languoid.family)).all()
+        if not languoids:
+            term_pre = HTML.kbd(term, style='white-space: pre')
+            message = 'No matching languoids found for %s "' % kind + term_pre + '"'
+            return [{'message': message}]
+
+    return [{
+        'name': languoid.name,
+        'glottocode': languoid.id,
+        'iso': languoid.hid if languoid.hid else '',
+        'level': languoid.level.name
+        } for languoid in languoids]
 
 @view_config(
         route_name='glottolog.add_identifier',
