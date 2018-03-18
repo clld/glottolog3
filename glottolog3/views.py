@@ -328,18 +328,28 @@ def bpsearch(request):
 def bp_api_search(request):
     query = DBSession.query(Languoid)
     term = request.params['bpsearch'].strip().lower()
+    namequerytype = request.params.get('namequerytype', 'part').strip().lower()
+    multilingual = request.params.get('multilingual', None)
 
     if not term:
         query = None
     elif len(term) < 3:
-        return [{message: 'Please enter at least three characters for a search.'}]
+        return [{'message': 'Please enter at least three characters for a search.'}]
     elif len(term) == 8 and GLOTTOCODE_PATTERN.match(term):
         query = query.filter(Languoid.id == term)
         kind = 'Glottocode'
     else:
         # list of criteria to search languoids by
         crit = [Identifier.type == 'name']
-        crit.append(func.unaccent(func.lower(Identifier.name)).contains(func.unaccent(term)))
+        ul_iname = func.unaccent(func.lower(Identifier.name))
+        ul_name = func.unaccent(term)
+        if namequerytype == 'whole':
+            crit.append(ul_iname == ul_name)
+        else:
+            crit.append(ul_iname.contains(ul_name))
+        if not multilingual:
+            # restrict to English identifiers
+            crit.append(func.coalesce(Identifier.lang, '').in_((u'', u'eng', u'en')))
         crit = Language.identifiers.any(and_(*crit))
         # add ISOs to query if length == 3
         iso = Languoid.identifiers.any(type=IdentifierType.iso.value, name=term) if len(term) == 3 else None
@@ -355,8 +365,7 @@ def bp_api_search(request):
         languoids = query.order_by(Languoid.name)\
                 .options(joinedload(Languoid.family)).all()
         if not languoids:
-            term_pre = HTML.kbd(term, style='white-space: pre')
-            message = 'No matching languoids found for %s "' % kind + term_pre + '"'
+            message = 'No matching languoids found for \'' + term + '\''
             return [{'message': message}]
 
     return [{

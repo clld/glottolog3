@@ -77,8 +77,13 @@ import pytest
     ('get_html', '/langdoc/status/browser?macroarea=Eurasia', None, None),
     ('get_html', '/langdoc/status/languages-1-3?macroarea=Eurasia&year=2018&family=', None, None),
     # Blueprint Tests
-    ('get', '/bp/api/search?bpsearch=anglai', None, '[{"glottocode": "stan1293", "iso": "eng", "name": "English", "level": "language"}, {"glottocode": "midd1317", "iso": "enm", "name": "Middle English", "level": "language"}, {"glottocode": "tsha1245", "iso": "tsj", "name": "Tshangla", "level": "language"}]'),
+    ('get', '/bp/api/search?bpsearch=anglai', None, '[{"message": "No matching languoids found for \'anglai\'"}]'),
+    ('get', '/bp/api/search?bpsearch=anglai&multilingual=true', None, '[{"glottocode": "stan1293", "iso": "eng", "name": "English", "level": "language"}, {"glottocode": "midd1317", "iso": "enm", "name": "Middle English", "level": "language"}, {"glottocode": "tsha1245", "iso": "tsj", "name": "Tshangla", "level": "language"}]'),
+    ('get', '/bp/api/search?bpsearch=klar', None, '[{"glottocode": "kumy1244", "iso": "kum", "name": "Kumyk", "level": "language"}]'),
+    ('get', '/bp/api/search?bpsearch=klar&namequerytype=whole', None, '[{"message": "No matching languoids found for \'klar\'"}]'),
 ])
+
+    
 def test_pages(app, method, path, status, match):
     kwargs = {'status': status} if status is not None else {'status': 200}
     res = getattr(app, method)(path, **kwargs)
