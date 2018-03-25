@@ -448,6 +448,9 @@ class LanguoidLevelField(fields.Field):
             return 'Language'
         elif value == LanguoidLevel.dialect:
             return 'Dialect'
+        else:
+            raise ValidationError('Languoid level name not valid.')
+
     def _deserialize(self, value, attr, data):
         return LanguoidLevel.from_string(data['level'])
 

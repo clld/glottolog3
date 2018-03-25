@@ -448,7 +448,7 @@ def add_languoid(request):
         DBSession.flush()
     except exc.SQLAlchemyError as e:
         DBSession.rollback()
-        return {'message': 'ERROR: {}'.format(e)}
+        return {'error': e}
 
     return json.dumps(LanguoidSchema().dump(languoid.data))
 
