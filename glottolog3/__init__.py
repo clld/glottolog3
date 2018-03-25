@@ -144,10 +144,14 @@ def main(global_config, **settings):
         'glottolog.bp_api_search',
         'bp/api/search')
     config.add_route(
+        'glottolog.add_identifier',
+        '/identifiers')
+    config.add_route(
         'glottolog.add_languoid',
         '/languoid')
-
-    config.add_route('glottolog.add_identifier', '/identifiers')
+    config.add_route(
+        'glottolog.get_languoid',
+        '/languoid/{id}')
 
     # UW blueprint code ends here
 

@@ -65,11 +65,24 @@ class Macroarea(Base, IdNameDescriptionMixin):
     pass
 
 
+class MacroareaSchema(Schema):
+    id = fields.Str()
+    name = fields.Str()
+    description = fields.Str()
+    markup_descripion = fields.Str()
+
+
 class Country(Base, IdNameDescriptionMixin):
     """
     alpha2 -> id
     name -> name
     """
+
+class CountrySchema(Schema):
+    id = fields.Str()
+    name = fields.Str()
+    description = fields.Str()
+    markup_descripion = fields.Str()
 
 
 class Languoidmacroarea(Base):
@@ -449,16 +462,67 @@ class LanguoidLevelField(fields.Field):
         elif value == LanguoidLevel.dialect:
             return 'Dialect'
         else:
-            raise ValidationError('Languoid level name not valid.')
+            raise ValidationError('Languoid level not valid.')
 
     def _deserialize(self, value, attr, data):
         return LanguoidLevel.from_string(data['level'])
 
 
+class LanguoidStatusField(fields.Field):
+    def _serialize(self, value, attr, obj):
+        if value == LanguoidStatus.safe:
+            return 'language is spoken by all generations; ' \
+            'intergenerational transmission is uninterrupted.'
+        elif value == LanguoidStatus.vulnerable:
+            return 'most children speak the language, but it may be restricted to certain '\
+            'domains (e.g., home).'
+        elif value == LanguoidStatus.definite:
+            return 'children no longer learn the language as mother tongue in the home.'
+        elif value == LanguoidStatus.severe:
+            return 'language is spoken by grandparents and older generations; while the parent ' \
+            'generation may understand it, they do not speak it to children or among ' \
+            'themselves'
+        elif value == LanguoidStatus.critical:
+            return 'the youngest speakers are grandparents and older, and they speak the language ' \
+            'partially and infrequently'
+        elif value == LanguoidStatus.extinct:
+            return 'there are no speakers left since the 1950s'
+        elif value == None:
+            return None
+        else:
+            raise ValidationError('Languoid status not valid.')
+
+    def _deserialize(self, value, attr, data):
+        return LanguoidStatus.from_string(data['status'])
+
+
 class LanguoidSchema(Schema):
+    pk = fields.Int(dump_only=True)
+
     id = fields.Str(required=True)
     name = fields.Str(required=True)
     level = LanguoidLevelField(required=True)
+
+    latitude = fields.Number(validate=lambda n: -90 <= n <= 90)
+    longitude = fields.Number(validate=lambda n: -180 <= n <= 180)
+
+    hid = fields.Str() #TODO: check uniqueness
+    status = LanguoidStatusField()
+
+    bookkeeping = fields.Bool(default=False)
+    newick = fields.Str()
+
+    child_family_count = fields.Int()
+    child_language_count = fields.Int()
+    child_dialect_count = fields.Int()
+
+    # identifiers = wait for leon's thing
+
+    descendants = fields.Nested('self', many=True)
+    children = fields.Nested('self', many=True)
+    macroareas = fields.Nested(MacroareaSchema, many=True)
+    countries = fields.Nested(CountrySchema, many=True)
+    #TODO: make endpoints to add/remove/change descendants, children, macroareas, countries
 
     @post_load
     def make_languoid(self, data):
