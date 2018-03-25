@@ -6,7 +6,7 @@ from string import capwords
 
 from zope.interface import implementer
 
-from marshmallow import Schema, fields, pre_load, post_load
+from marshmallow import Schema, fields, pre_load, post_load, ValidationError
 from sqlalchemy import (
     Column,
     String,
@@ -439,15 +439,26 @@ class Languoid(CustomModelMixin, Language):
                 children_map[fpk].append(node)
         return tree_
 
+
+class LanguoidLevelField(fields.Field):
+    def _serialize(self, value, attr, obj):
+        if value == LanguoidLevel.family:
+            return 'LanguageFamily'
+        elif value == LanguoidLevel.language:
+            return 'Language'
+        elif value == LanguoidLevel.dialect:
+            return 'Dialect'
+        else:
+            raise ValidationError('Languoid level name not valid.')
+
+    def _deserialize(self, value, attr, data):
+        return LanguoidLevel.from_string(data['level'])
+
+
 class LanguoidSchema(Schema):
     id = fields.Str(required=True)
     name = fields.Str(required=True)
-    level = fields.Raw(required=True) # couldn't figure out NestedSchema for this
-
-    @pre_load
-    def from_string_languoid_level(self, data):
-        data['level'] = LanguoidLevel.from_string(data['level'])
-        return data
+    level = LanguoidLevelField(required=True)
 
     @post_load
     def make_languoid(self, data):

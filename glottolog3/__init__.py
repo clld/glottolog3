@@ -143,6 +143,9 @@ def main(global_config, **settings):
     config.add_route(
         'glottolog.bp_api_search',
         'bp/api/search')
+    config.add_route(
+        'glottolog.add_languoid',
+        '/languoid')
 
     config.add_route('glottolog.add_identifier', '/identifiers')
 

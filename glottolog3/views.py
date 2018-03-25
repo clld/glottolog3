@@ -3,6 +3,7 @@ import re
 import json
 from collections import OrderedDict
 
+from marshmallow import ValidationError
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
@@ -23,8 +24,8 @@ from clld.interfaces import IRepresentation
 from clldutils.misc import slug
 
 from glottolog3.models import (
-    Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider,
-    TreeClosureTable, BOOKKEEPING,
+    Languoid, LanguoidSchema, LanguoidStatus, LanguoidLevel, Macroarea, Doctype,
+    Refprovider, TreeClosureTable, BOOKKEEPING,
 )
 from glottolog3.config import CFG
 from glottolog3.util import getRefs, get_params
@@ -299,7 +300,7 @@ def bpsearch(request):
         # add ISOs to query if length == 3
         iso = Languoid.identifiers.any(type=IdentifierType.iso.value, name=term) if len(term) == 3 else None
         query = query.filter(or_(
-            icontains(Languoid.name, term), 
+            icontains(Languoid.name, term),
             crit,
             iso))
         kind = 'name part'
@@ -354,7 +355,7 @@ def bp_api_search(request):
         # add ISOs to query if length == 3
         iso = Languoid.identifiers.any(type=IdentifierType.iso.value, name=term) if len(term) == 3 else None
         query = query.filter(or_(
-            icontains(Languoid.name, term), 
+            icontains(Languoid.name, term),
             crit,
             iso))
         kind = 'name part'
@@ -479,6 +480,29 @@ def languages(request):
         map_ = None
     res.update(map=map_, languoids=languoids)
     return res
+
+@view_config(
+    route_name='glottolog.add_languoid',
+    request_method='POST',
+    renderer='json')
+def add_languoid(request):
+    json_data = request.json_body
+
+    try:
+        languoid = LanguoidSchema().load(json_data)
+    except ValueError:
+        return {'error': 'Not a valid languoid level'}
+    if languoid.errors:
+        return {'error': languoid.errors}
+
+    try:
+        DBSession.add(languoid.data)
+        DBSession.flush()
+    except exc.SQLAlchemyError as e:
+        DBSession.rollback()
+        return {'error': e}
+
+    return json.dumps(LanguoidSchema().dump(languoid.data))
 
 
 def langdoccomplexquery(request):
