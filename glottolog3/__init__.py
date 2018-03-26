@@ -3,6 +3,7 @@ from functools import partial
 import os
 from pyramid.httpexceptions import HTTPGone, HTTPMovedPermanently
 from pyramid.config import Configurator
+from pyramid.events import NewRequest
 from pyramid.response import Response
 from sqlalchemy.orm import joinedload, joinedload_all
 from clld.interfaces import ICtxFactoryQuery, IDownload
@@ -52,6 +53,17 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
                     raise HTTPMovedPermanently(location=req.route_url('source', id=ref.id))
         return super(GLCtxFactoryQuery, self).__call__(model, req)
 
+def add_cors_headers_response_callback(event):
+    # TODO whitelist which sites are allowed Access-Control-Allow-Origin
+    def cors_headers(request, response):
+        response.headers.update({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '1728000',
+        })
+    event.request.add_response_callback(cors_headers)
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
@@ -179,4 +191,5 @@ def main(global_config, **settings):
         'langdocstatus.languages', '/langdoc/status/languages-{ed:[0-9]}-{sdt:[0-9]}')
     config.scan('glottolog3.langdocstatus')
     config.register_datatable('providers', Providers)
+    config.add_subscriber(add_cors_headers_response_callback, NewRequest)
     return config.make_wsgi_app()
