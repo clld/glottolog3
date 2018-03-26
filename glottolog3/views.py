@@ -1,6 +1,7 @@
 from datetime import date
 import re
 import json
+import transaction
 from collections import OrderedDict
 
 from marshmallow import ValidationError
@@ -377,14 +378,14 @@ def bp_api_search(request):
         } for languoid in languoids]
 
 @view_config(
-        route_name='glottolog.add_identifier',
+        route_name='glottolog.identifier',
         request_method='POST', 
         renderer='json')
 def add_identifier(request):
     # TODO: Add validity checks for parameters and unit tests
 
     gcode = request.json_body['glottocode']
-    lang = request.json_body['language']
+    lang = request.json_body['lang']
     name = request.json_body['name']
     type = request.json_body['type']
     desc = request.json_body['description']
@@ -410,9 +411,87 @@ def add_identifier(request):
     except exc.SQLAlchemyError as e:
         DBSession.rollback()
         return { 'error': '{}'.format(e) }
+    
+    # So we can use identifier object without session
+    DBSession.expunge(identifier)
+    transaction.commit()
 
-    return {'message': 'Identifier successfully added.',
-            'identifier': '%s' % identifier} 
+    return { 'message': 'Identifier successfully added.',
+             'identifier': '%s' % identifier } 
+
+@view_config(
+        route_name='glottolog.identifier',
+        request_method='DELETE', 
+        renderer='json')
+def delete_identifier(request):
+    gcode = request.json_body['glottocode']
+    lang = request.json_body['lang']
+    name = request.json_body['name']
+    type = request.json_body['type']
+    desc = request.json_body['description']
+
+    identifier_id = '{0}-{1}-{2}-{3}'.format(slug(name), slug(type), slug(desc or ''), lang)
+    languoid = DBSession.query(Language) \
+                        .filter_by(id='{0}'.format(gcode)) \
+                        .first()
+
+    try:
+        id_query = DBSession.query(Identifier) \
+                            .filter(Identifier.id == identifier_id) \
+        DBSession.query(LanguageIdentifier) \
+                 .filter(and_(LanguageIdentifier.language == languoid,
+                          LanguageIdentifier.identifier == id_query.first())) \
+                 .delete()
+        num_deleted = id_query.delete()
+        DBSession.flush()
+    except exc.SQLAlchemyError as e:
+        DBSession.rollback()
+        return { 'error': '{}'.format(e) }
+    
+    # Commit if no errors
+    transaction.commit()
+
+    return { 'message': 
+                '{} identifier(s) successfully deleted.'.format(num_deleted),
+             'identifier': '{}'.format(name) } 
+
+@view_config(
+        route_name='glottolog.identifier',
+        request_method='PUT', 
+        renderer='json')
+def update_identifier(request):
+    lang = request.json_body['old']['lang']
+    name = request.json_body['old']['name']
+    type = request.json_body['old']['type']
+    desc = request.json_body['old']['description']
+
+    new_data = request.json_body['old']
+    new_data.update(request.json_body['new']),
+    new_data['id'] = '{0}-{1}-{2}-{3}'.format(
+        slug(new_data['name']), 
+        slug(new_data['type']), 
+        slug(new_data['description'] or ''), 
+        new_data['lang']
+    )
+
+    identifier_id = '{0}-{1}-{2}-{3}'.format(slug(name), slug(type), slug(desc or ''), lang)
+
+    try:
+        num_updated = DBSession.query(Identifier) \
+                               .filter(Identifier.id == identifier_id) \
+                               .update(new_data)
+        DBSession.flush()
+    except exc.SQLAlchemyError as e:
+        DBSession.rollback()
+        return { 'error': '{}'.format(e) }
+    
+    # Commit if no errors
+    transaction.commit()
+
+    return { 'message': 
+                '{} identifier(s) successfully updated.'.format(num_updated),
+             'identifier': '{}'.format(name) } 
+
 
 # BLUEPRINT CODE END
 
