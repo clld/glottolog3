@@ -67,7 +67,7 @@ import pytest
     ('get', '/resource/languoid/id/afud1235', None, None),
     ('get', '/resource/languoid/id/stan1295', None, None),
     ('get', '/resource/languoid/id/alba1269', None, None),
-    ('get', '/resource/languoid/id/nilo1235', 301, None),
+    ('get', '/resource/languoid/id/nilo1235', 410, None),
     ('get', '/resource/languoid/id/stan1295.bigmap.html', None, None),
     ('get_xml', '/resource/languoid/id/atha1245.phylo.xml', None, None),
     ('get', '/resource/reference/id/2.rdf', None, None),
@@ -77,6 +77,8 @@ import pytest
     ('get_html', '/langdoc/status/browser?macroarea=Eurasia', None, None),
     ('get_html', '/langdoc/status/languages-1-3?macroarea=Eurasia&year=2018&family=', None, None),
 ])
+
+    
 def test_pages(app, method, path, status, match):
     kwargs = {'status': status} if status is not None else {'status': 200}
     res = getattr(app, method)(path, **kwargs)
@@ -110,3 +112,27 @@ def test_feeds(app, feed):
     if feed.endswith('&year='):
         feed += str(datetime.date.today().year)
     app.get_xml(feed)
+
+# BLUEPRINT CODE BEGINS HERE
+@pytest.mark.parametrize('method, path, status, match', [
+    # search term requires a minimum of 3 characters
+    ('get', '/bp/api/search?bpsearch=en', None, '[{"message": "Please enter at least three characters for a search."}]'),
+    # languages can be searched by glottocode
+    ('get', '/bp/api/search?bpsearch=kumy1244', None, '[{"glottocode": "kumy1244", "iso": "kum", "name": "Kumyk", "level": "language"}]'),
+    # english-only identifier matching by default
+    ('get', '/bp/api/search?bpsearch=anglai', None, '[{"message": "No matching languoids found for \'anglai\'"}]'),
+    # multilingual indentifier matching allows more results
+    ('get', '/bp/api/search?bpsearch=anglai&multilingual=true', None, '[{"glottocode": "stan1293", "iso": "eng", "name": "English", "level": "language"}, {"glottocode": "midd1317", "iso": "enm", "name": "Middle English", "level": "language"}, {"glottocode": "tsha1245", "iso": "tsj", "name": "Tshangla", "level": "language"}]'),
+    # partial word matching set by default
+    ('get', '/bp/api/search?bpsearch=klar', None, '[{"glottocode": "kumy1244", "iso": "kum", "name": "Kumyk", "level": "language"}]'),
+    # whole word matching removes partial-match results
+    ('get', '/bp/api/search?bpsearch=klar&namequerytype=whole', None, '[{"message": "No matching languoids found for \'klar\'"}]'),
+])
+
+def test_search_api(app, method, path, status, match):
+    kwargs = {'status': status} if status is not None else {'status': 200}
+    res = getattr(app, method)(path, **kwargs)
+    if match is not None:
+        assert match in res
+
+# BLUEPRINT CODE ENDS HERE

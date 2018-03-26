@@ -17,6 +17,7 @@ from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config, create_engine
 
 import transaction
+from marshmallow import ValidationError
 from sqlalchemy import or_
 from sqlalchemy.orm import joinedload, joinedload_all
 
@@ -27,6 +28,7 @@ from clldutils.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
 from clld.db.meta import DBSession
 from clld.db.models import common
+from clldutils.misc import slug
 from pyglottolog import Glottolog
 
 import glottolog3
@@ -95,7 +97,7 @@ def _load_sql_dump(rel, log):
         if not dump.exists():
             _download_sql_dump(rel, log)
         subprocess.check_call(['createdb', dbname])
-        subprocess.check_call(['psql', '-d', dbname, '-f', dump])
+        subprocess.check_call(['psql', '-d', dbname, '-f', dump.name])
         log.info('db {0} created'.format(dbname))
 
 
@@ -186,6 +188,30 @@ def newick(args):
     fname = args.pkg_dir.joinpath('static', 'download', 'tree-glottolog-newick.txt')
     write_text(fname, '\n'.join(trees))
     args.log.info('{0} written'.format(fname))
+
+
+@command()
+def add_new_name(args):
+    # TODO: Check the length of the args array is valid
+    gcode, lang, name, type, desc = \
+        args.args[0], args.args[1], args.args[2], args.args[3], args.args[4]
+
+    with_session(args)
+    with transaction.manager:
+        languoid = DBSession.query(common.Language) \
+                            .filter_by(id='{0}'.format(gcode)) \
+                            .first()
+        identifier = common.Identifier(
+            (name, type, desc, lang),
+            id='{0}-{1}-{2}-{3}'.format(
+            slug(name), slug(type), slug(desc or ''), lang),
+            name=name,
+            type=type,
+            description=desc,
+            lang=lang)
+        DBSession.add(identifier)
+        DBSession.add(
+            common.LanguageIdentifier(language=languoid, identifier=identifier))
 
 
 @command()
@@ -286,6 +312,21 @@ def db_url(args):
 
 def with_session(args):
     setup_session(args.pkg_dir.parent.joinpath('development.ini').as_posix())
+
+@command()
+def add_languoid(args):
+    languoid_data = {
+        'id': args.args[0],
+        'name': args.args[1],
+        'level': args.args[2]}
+
+    with_session(args)
+    with transaction.manager:
+        languoid = models.LanguoidSchema().load(languoid_data)
+        if languoid.errors:
+            args.log.error('validation error: {}'.format(languoid.errors))
+        else:
+            DBSession.add(languoid.data)
 
 
 def main():  # pragma: no cover

@@ -1,7 +1,9 @@
 from functools import partial
 
+import os
 from pyramid.httpexceptions import HTTPGone, HTTPMovedPermanently
 from pyramid.config import Configurator
+from pyramid.events import NewRequest
 from pyramid.response import Response
 from sqlalchemy.orm import joinedload, joinedload_all
 from clld.interfaces import ICtxFactoryQuery, IDownload
@@ -51,11 +53,25 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
                     raise HTTPMovedPermanently(location=req.route_url('source', id=ref.id))
         return super(GLCtxFactoryQuery, self).__call__(model, req)
 
+def add_cors_headers_response_callback(event):
+    # TODO whitelist which sites are allowed Access-Control-Allow-Origin
+    def cors_headers(request, response):
+        response.headers.update({
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST,GET,DELETE,PUT,OPTIONS',
+        'Access-Control-Allow-Headers': 'Origin, Content-Type, Accept, Authorization',
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Max-Age': '1728000',
+        })
+    event.request.add_response_callback(cors_headers)
 
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
     settings.update(CFG)
+    db_url = os.environ.get('GLOTTOLOG_DATABASE_URL')
+    if db_url is not None:
+        settings['sqlalchemy.url'] = db_url
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
         'languages': '/glottolog/language',
@@ -91,6 +107,8 @@ def main(global_config, **settings):
         ('sources', partial(menu_item, 'sources', label='References')),
         ('query', partial(menu_item, 'langdoc.complexquery', label='Reference Search')),
         ('about', partial(menu_item, 'about', label='About')),
+        # Menu Items created by UW Blueprint
+        ('bpsearch', partial(menu_item, 'glottolog.bpsearch', label='Blueprint Search')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)
     config.register_adapter(
@@ -128,6 +146,27 @@ def main(global_config, **settings):
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
 
+    # Endpoints created by UW Blueprint
+    config.add_route_and_view(
+        'glottolog.bpsearch',
+        '/bp/search',
+        views.languages,
+        renderer='language/bpsearch_html.mako')
+    config.add_route(
+        'glottolog.bp_api_search',
+        'bp/api/search')
+    config.add_route(
+        'glottolog.add_identifier',
+        '/identifiers')
+    config.add_route(
+        'glottolog.add_languoid',
+        '/languoid')
+    config.add_route(
+        'glottolog.get_languoid',
+        '/languoid/{id}')
+
+    # UW blueprint code ends here
+
     for name in 'credits glossary cite downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
@@ -152,4 +191,5 @@ def main(global_config, **settings):
         'langdocstatus.languages', '/langdoc/status/languages-{ed:[0-9]}-{sdt:[0-9]}')
     config.scan('glottolog3.langdocstatus')
     config.register_datatable('providers', Providers)
+    config.add_subscriber(add_cors_headers_response_callback, NewRequest)
     return config.make_wsgi_app()
