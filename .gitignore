@@ -20,6 +20,7 @@ develop-eggs
 pip-log.txt
 
 # Unit test / coverage reports
+.pytest_cache
 .cache
 .coverage
 .tox
