@@ -20,16 +20,31 @@ setup(
         'console_scripts': ['glottolog-app=glottolog3.__main__:main'],
     },
     install_requires=[
-        'clld~=4.0',
-        'clldmpg~=3.1',
+        'clld>=4.2.2',
+        'clldmpg>=3.3.1',
         'clldutils>=1.9.5',
         'markdown',
         'newick>=0.4',
         'pyglottolog~=1.1',
     ],
     extras_require={
-        'dev': ['flake8', 'wheel', 'twine'],
-        'test': ['pytest-clld>=0.4', 'pytest-cov', 'coverage>=4.2'],
+        'dev': [
+            'flake8',
+            'wheel',
+            'twine'
+        ],
+        'test': [
+            'mock',
+            'psycopg2',
+            'pytest',
+            'pytest-clld>=0.4',
+            'pytest-cov',
+            'pytest-mock',
+            'coverage>=4.2'
+            'selenium',
+            'webtest',
+            'zope.component>=3.11.0',
+        ],
     },
     long_description='',
     classifiers=[
