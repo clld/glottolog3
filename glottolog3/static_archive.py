@@ -150,7 +150,7 @@ def dump(out, version, all_langs, identifiers):
 
     children = {
         pk: list(c)
-        for pk, c in groupby(sorted(langs, key=lambda l: l.fpk), lambda l: l.fpk)}
+        for pk, c in groupby(sorted(langs, key=lambda l: l.fpk or 0), lambda l: l.fpk)}
 
     for lang in langs:
         ancestors, fpk = [], lang.fpk
