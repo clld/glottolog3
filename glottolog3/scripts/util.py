@@ -15,6 +15,7 @@ SEPPAGESPATTERN = re.compile(
 PAGES_PATTERN = re.compile(
     '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
 ART_NO_PATTERN = re.compile('\(art\.\s*[0-9]+\)')
+MAX_PAGE = 10000
 
 
 def get_int(s):
@@ -55,14 +56,20 @@ def compute_pages(pages):
         pages = pages[:-2]
 
     # trivial case: just one number:
-    n = get_int(pages)
-    if n:
-        return (1, n, n)
+    number = get_int(pages)
+    if number:
+        start = 1
+        if number > MAX_PAGE:
+            number, start = None, None
+        return (start, number, number)
 
     # next case: ,|.|+ separated numbers:
     m = SEPPAGESPATTERN.match(pages)
     if m:
-        return (None, None, sum(map(get_int, [m.group('n1'), m.group('n2')])))
+        number = sum(map(get_int, [m.group('n1'), m.group('n2')]))
+        if number > MAX_PAGE:
+            number = None
+        return (None, None, number)
 
     # next case: ranges:
     start = None
@@ -85,7 +92,14 @@ def compute_pages(pages):
         end = e
         number = (number or 0) + (end - s + 1)
 
-    return (start, end, number if number > 0 else None)
+    if start and start > MAX_PAGE:
+        start = None
+    if end and end > MAX_PAGE:
+        end = None
+    if number and number > MAX_PAGE:
+        number = None
+
+    return (start, end, number if (number is not None and number > 0) else None)
 
 
 def recreate_treeclosure(session=None):

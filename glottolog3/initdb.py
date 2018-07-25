@@ -17,7 +17,7 @@ from pyglottolog.references import BibFile
 from pyglottolog.languoids import Macroarea
 
 from glottolog3 import models
-from glottolog3.scripts.util import recreate_treeclosure, compute_pages
+from glottolog3.scripts.util import recreate_treeclosure, compute_pages, MAX_PAGE
 
 PREF_YEAR_PATTERN = re.compile('\[(?P<year>(1|2)[0-9]{3})(\-[0-9]+)?\]')
 YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
@@ -47,7 +47,6 @@ def load(args):
     data = Data()
     for i, (id_, name) in enumerate([
         ('hammarstroem', 'Harald Hammarström'),
-        ('bank', 'Sebastian Bank'),
         ('forkel', 'Robert Forkel'),
         ('haspelmath', 'Martin Haspelmath'),
     ]):
@@ -355,7 +354,9 @@ def load_ref(data, entry, lgcodes, lgsources):
 
     if kw.get('numberofpages'):
         try:
-            kw['pages_int'] = int(kw.get('numberofpages').strip())
+            pages = int(kw.get('numberofpages').strip())
+            if pages < MAX_PAGE:
+                kw['pages_int'] = pages
         except ValueError:
             pass
 

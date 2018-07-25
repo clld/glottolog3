@@ -344,6 +344,9 @@ class Source(object):
     def __json__(self):
         return [getattr(self, k) for k in 'id doctype year pages name'.split()]
 
+    def __hash__(self):
+        return int(self.id)
+
     @property
     def weight(self):
         """This is the algorithm:
