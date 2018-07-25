@@ -1,6 +1,7 @@
 <%inherit file="../${context.get('request').registry.settings.get('clld.app_template', 'app.mako')}"/>
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "sources" %>
+<%! from itertools import groupby %>
 
 <%block name="title">${ctx.name}</%block>
 
@@ -88,10 +89,13 @@ ${ctx.coins(request)|n}
 <%util:well>
     <h3>Providers</h3>
     <ul class="inline">
-    % for p in ctx.providers:
-        <li>
-            ${u.format_label_link(request.resource_url(p), p.name, title=p.description)}
-        </li>
+    % for p, keys in groupby(ctx.bibkeys, lambda bk: bk.provider):
+        <dl>
+            <dt>${h.link(request, p)}</dt>
+            % for k in keys:
+                <dd><a href="${request.route_url('source', id=k.id)}">${k.id}</a></dd>
+            % endfor
+        </dl>
     % endfor
     </ul>
 </%util:well>

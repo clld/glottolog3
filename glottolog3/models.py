@@ -128,6 +128,7 @@ class Refprovider(Base):
     provider_pk = Column(Integer, ForeignKey('provider.pk'), nullable=False)
     ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
     id = Column(Unicode, unique=True, nullable=False)
+    provider = relationship(Provider)
 
     @classmethod
     def get_stats(cls):
@@ -518,7 +519,7 @@ class Ref(CustomModelMixin, Source):
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
 
-    bibkeys = relationship(Refprovider)
+    bibkeys = relationship(Refprovider, order_by='Refprovider.provider_pk')
 
     def __rdf__(self, request):
         """
