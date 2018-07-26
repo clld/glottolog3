@@ -83,7 +83,8 @@
             the Science of Human History, Jena. It should be cited as follows:
         </p>
 <blockquote>
-    ${h.newline2br(TxtCitation.render(ctx, request))|n}
+    ${h.newline2br(TxtCitation.render(ctx, request))|n}<br>
+    <a href="https://doi.org/10.5281/zenodo.1321024"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.1321024.svg" alt="DOI"></a>
 </blockquote>
         <p>
             Particularly important contributors to the Langdoc database are Alain Fabre,

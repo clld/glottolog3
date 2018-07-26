@@ -3,7 +3,7 @@
 
 - Checkout the corresponding release of clld/glottolog.
 - update editors in glottolog3/initdb.py
-- create the static archive including the last release: `glottolog-app create_archive`
+- create the static archive including the last release: `glottolog-app create_archive` # FIXME: must run `tar -czf archive.tgz archive/`
 - initialize the DB running `glottolog-app dbinit <release>` - about 50mins
 - mark new languages running `glottolog-app mark_new_languages`
 - remove old downloads: `rm glottolog3/static/download/glottolog*`
@@ -20,12 +20,20 @@
 
 - draft release of clld/glottolog3
 - edit release adding the zenodo DOI badge
+  - to the release description
+  - to the landing page of glottolog.org
 
 - Now deploy to server:
 ```
 workon appconfig
+cd appconfig/apps
+```
+Must adapt the `dbdump` option in `apps.ini[glottolog3]` to the new version.
+```
 cd appconfig/apps/glottolog3
-fab copy_archive:production
+fab copy_archive:/path/to/archive.tgz
 fab deploy:production
 fab fetch_downloads
 ```
+
+- tweet
