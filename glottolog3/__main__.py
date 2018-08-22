@@ -66,7 +66,7 @@ def _download_sql_dump(rel, log):
 @command()
 def mark_new_languages(args):
     cfg = get_release_config()
-    last = sorted(cfg.sections(), key=lambda s: float(s[1:]))[-1][1:]
+    last = sorted(set(cfg.sections()) - set(args.args), key=lambda s: float(s[1:]))[-1][1:]
     cdb = create_engine('postgresql://postgres@/glottolog3')
     ldb = create_engine('postgresql://postgres@/glottolog-{0}'.format(last))
     sql = "select id from language as l, languoid as ll where l.pk = ll.pk and ll.level = 'language'"
@@ -117,6 +117,28 @@ def create_archive(args):
     args.log.info('static archive created in {0}'.format(out))
 
 
+
+@command()
+def x(args):
+    try:
+        from cdstarcat.catalog import Catalog
+    except ImportError:
+        args.log.error('pip install cdstarcat')
+        return
+    fname = args.pkg_dir.joinpath('static', 'downloads.json')
+    downloads = load(fname)
+    release = args.args[0]
+    with Catalog(
+            Path(os.environ['CDSTAR_CATALOG']),
+            cdstar_url=os.environ['CDSTAR_URL'],
+            cdstar_user=os.environ['CDSTAR_USER'],
+            cdstar_pwd=os.environ['CDSTAR_PWD']) as cat:
+        obj = cat.api.get_object(uid=downloads[release]['oid'])
+        bitstreams = obj.bitstreams[:]
+        for bs in bitstreams:
+            print(bs.id, bs._properties)
+
+
 @command()
 def cdstar(args):
     try:
@@ -125,36 +147,63 @@ def cdstar(args):
         args.log.error('pip install cdstarcat')
         return
 
+    #
+    # FIXME: look up oid for release in downloads.json! if it exists, replace the bitstreams
+    # rather than creating a new object!
+    #
+    dlfname = args.pkg_dir.joinpath('static', 'downloads.json')
+    downloads = load(dlfname)
+    release = args.args[0]
     title_pattern = re.compile('glottolog (?P<version>[0-9.]+) - downloads')
     with Catalog(
             Path(os.environ['CDSTAR_CATALOG']),
             cdstar_url=os.environ['CDSTAR_URL'],
             cdstar_user=os.environ['CDSTAR_USER'],
             cdstar_pwd=os.environ['CDSTAR_PWD']) as cat:
-        obj = cat.api.get_object()
-        obj.metadata = {
-            "creator": "pycdstar",
-            "title": "glottolog %s - downloads" % args.args[0],
-            "description": "Custom downloads for release %s of "
-                           "[Glottolog](http://glottolog.org)" % args.args[0],
-        }
+        #
+        # FIXME: there must be a way to overwrite old releases in case of bugfixes!
+        #
+        if release in downloads:
+            # This is a bugfix release, we don't have to create a new object on CDSTAR!
+            obj = cat.api.get_object(uid=downloads[release]['oid'])
+        else:
+            obj = cat.api.get_object()
+            obj.metadata = {
+                "creator": "pycdstar",
+                "title": "glottolog %s - downloads" % release,
+                "description": "Custom downloads for release %s of "
+                               "[Glottolog](http://glottolog.org)" % release,
+            }
+        bitstreams = obj.bitstreams[:]
         for fname in args.pkg_dir.joinpath('static', 'download').iterdir():
             if fname.is_file() and not fname.name.startswith('.'):
-                print(fname.name)
-                obj.add_bitstream(
-                    fname=fname.as_posix(), name=fname.name.replace('-', '_'))
-        cat.add(obj)
+                bsname = fname.name.replace('-', '_')
+                bitstream, skip = None, False
+                for bitstream in bitstreams:
+                    if bitstream.id == bsname:
+                        break
+                else:
+                    bitstream = None
+                if bitstream:
+                    if bitstream._properties['checksum'] != md5(fname):
+                        bitstream.delete()
+                    else:
+                        skip = True
+                if not skip:
+                    print(fname.name)
+                    obj.add_bitstream(fname=fname.as_posix(), name=bsname)
+        cat.add(obj, update=True)
 
-    fname = args.pkg_dir.joinpath('static', 'downloads.json')
-    with update(fname, default={}, indent=4) as downloads:
+    with update(dlfname, default=collections.OrderedDict(), indent=4, sort_keys=True) as downloads:
         for oid, spec in load(Path(os.environ['CDSTAR_CATALOG'])).items():
             if 'metadata' in spec and 'title' in spec['metadata']:
                 match = title_pattern.match(spec['metadata']['title'])
                 if match:
-                    if match.group('version') not in downloads:
+                    if (match.group('version') not in downloads) or match.group('version') == release:
+                        args.log.info('update info for release {0}'.format(match.group('version')))
                         spec['oid'] = oid
                         downloads[match.group('version')] = spec
-    args.log.info('{0} written'.format(fname))
+    args.log.info('{0} written'.format(dlfname))
     args.log.info('{0}'.format(os.environ['CDSTAR_CATALOG']))
 
 
