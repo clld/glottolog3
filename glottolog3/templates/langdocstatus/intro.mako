@@ -5,18 +5,12 @@
 
 
 <%def name="sidebar()">
-    <%util:well title="Browse GlottoScope">
-        <p>
-            <b>GlottoScope</b> provides an interface combining the Endangerment Status
-            and Descriptive Status of the languages of the world.
-        </p>
-        <p>
-            Since displaying more than 7000 language locations on a map is rather
-            taxing in terms of browser resources, it is advisable to only
-            browse by macroarea. If you are confident that your browser has
-            enough resources available (in particular enough memory), you may
-            choose to view all languages by selecting "World" below.
-        </p>
+    <%util:well>
+        <div class="alert alert-info smaller">
+            Since displaying more than 7000 languages on a map is rather
+            taxing for the browser, it is advisable to only
+            browse by macroarea.
+        </div>
         <table class="table table-nonfluid table-condensed">
             <thead>
             <tr>
@@ -62,20 +56,49 @@
 </%def>
 
 
-<h3>Language Description and Endangerment Status</h3>
+<h3>GlottoScope</h3>
 <p>
+    <b>GlottoScope</b> provides a visualisation of the combination of
+    <b>Agglomerated Endangerment Status (AES)</b>
+    and <b>Descriptive Status</b> of the languages of the world.
+</p>
 
-    The <a href="${request.route_url('glossary',
-_anchor='sec-descriptivestatusofalanguage')}">descriptive
-    status</a> of a language measures how extensive a grammatical
-    description there exists for a language. The endangerment status
-    measures how endangered the language is according to an
+<p>
+    GlottoScope was designed and developed by Robert Forkel and Harald Hammarström in 2014.
+    Comments and beta-testing were provided by a number of individuals
+    including Hedvig Skirgård, Martin Haspelmath, Matti Miestamo, Mark
+    Dingemanse, Lyle Campbell, Tapani Salminen and audiences at several
+    demo sessions.
+</p>
+
+<p>
+    For more information see:
+</p>
+<blockquote>
+    Harald Hammarström and Thom Castermans and Robert Forkel and Kevin Verbeek and Michel A. Westenberg and Bettina Speckmann.
+    2018. Simultaneous Visualization of Language Endangerment and Language Description.
+    <i>Language Documentation & Conservation</i>, 12, 359-392.<br>
+    ${h.external_link('http://hdl.handle.net/10125/24792')}
+</blockquote>
+
+<h4>Agglomerated Endangerment Status</h4>
+<p>
+    The Agglomerated Endangerment Status measures how endangered a language is according to an
     agglomeration of the databases of
     ${h.external_link("http://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
     ,
     ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}
     and
     ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}.
+</p>
+
+
+<h4>Descriptive Status</h4>
+<p>
+    The <a href="${request.route_url('glossary',
+_anchor='sec-descriptivestatusofalanguage')}">descriptive
+    status</a> of a language measures how extensive a grammatical
+    description there exists for a language.
 </p>
 
 <p>
@@ -124,5 +147,3 @@ _anchor='sec-descriptivestatusofalanguage')}">descriptive
         % endfor
     </tbody>
 </table>
-
-

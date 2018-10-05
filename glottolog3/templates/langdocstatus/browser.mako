@@ -1,4 +1,5 @@
 <%inherit file="../glottolog3.mako"/>
+<%namespace name="util" file="../util.mako"/>
 
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">
@@ -30,22 +31,27 @@
 
 <div class="row-fluid">
     <div class="span6">
-        <h3>GlottoScope: A Browser for Language Description and Language Endangerment</h3>
+        <h3>GlottoScope</h3>
 
-        <p>
-GlottoScope provides an interface combining the Endangerment Status
-and Descriptive Status of the languages of the world. The underlying
-data is drawn from the Glottolog reference collection and Agglomerated
-Endangerment information combining endangerment data from the UNESCO
-Atlas of the World's Languages, the Catalogue of Endangered Languages
-(ELCat) and the latest edition of SIL International's Ethnologue.
-        </p>
-
-        <p>
+        <div class="alert alert-info">
             You can investigate the documentation status for the selected languages and year
-            on the <a class="label label-info" href="#themap">map</a> or view
-            the <a class="label label-info" href="#tally">tally</a>.
-        </p>
+            on the
+            <a class="label label-info" href="#themap">
+                <i class="icon-globe icon-white"> </i>
+                map
+            </a>
+            or view
+            the
+            <a class="label label-info" href="#tally">
+                <i class="icon-th icon-white"> </i>
+                tally
+            </a>.
+            A short description of GlottoScope is provided in the
+            <a class="label label-info" href="${request.route_url('langdocstatus')}">
+                <i class="icon-book icon-white"> </i>
+                intro
+            </a>.
+        </div>
     </div>
     <div class="span6">
         <div style="margin-top: 10px;" class="well well-small">
@@ -124,8 +130,9 @@ Atlas of the World's Languages, the Catalogue of Endangered Languages
 
 <div class="row-fluid">
     <div class="span12">
-        <table id="tally" class="table table-nonfluid">
-            <thead>
+        <%util:section title="Tally">
+            <table id="tally" class="table table-nonfluid">
+                <thead>
                 <tr>
                     <th colspan="2"> </th>
                     <th colspan="3" style="text-align: left;">Language is ...</th>
@@ -149,30 +156,31 @@ Atlas of the World's Languages, the Catalogue of Endangered Languages
                     % endfor
                     <th>total</th>
                 </tr>
-            </thead>
-            <tbody>
-        % for i, sdt in enumerate(doctypes):
-                <tr>
-                    <th>${sdt.name}</th>
-                    <th>
-                        <img src="${icon_map[sdt.shape + 'ffffff' if focus != 'sdt' else 'c' + sdt.color]}" height="20" width="20"/>
-                    </th>
-                    % for ed in endangerments:
-                        ${stats_cell(ed.ord, i)}
+                </thead>
+                <tbody>
+                    % for i, sdt in enumerate(doctypes):
+                        <tr>
+                            <th>${sdt.name}</th>
+                            <th>
+                                <img src="${icon_map[sdt.shape + 'ffffff' if focus != 'sdt' else 'c' + sdt.color]}" height="20" width="20"/>
+                            </th>
+                            % for ed in endangerments:
+                                ${stats_cell(ed.ord, i)}
+                            % endfor
+                            ${stats_cell(9, i)}
+                        </tr>
                     % endfor
-                    ${stats_cell(9, i)}
-                </tr>
-        % endfor
                 <tr>
                     <td> </td>
                     <th>total</th>
                     % for ed in endangerments:
-                    ${stats_cell(ed.ord, 9)}
+                        ${stats_cell(ed.ord, 9)}
                     % endfor
                     ${stats_cell(9, 9)}
                 </tr>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </%util:section>
     </div>
 </div>
 
@@ -189,23 +197,3 @@ Atlas of the World's Languages, the Catalogue of Endangered Languages
     });
 </script>
 
-<p>
-GlottoScope was designed and developed by Robert Forkel and Harald
-Hammarström in 2014.
-</p>
-
-<p>
-Comments and beta-testing were provided by a number of individuals
-including Hedvig Skirgård, Martin Haspelmath, Matti Miestamo, Mark
-Dingemanse, Lyle Campbell, Tapani Salminen and audiences at several
-demo sessions.
-</p>
-
-<p>
-For more information see:
-</p>
-<blockquote>
-Hammarström, Harald, Thom Castermans, Robert Forkel, Kevin Verbeek,
-Michel A. Westenberg & Bettina Speckmann. 2017. Visualizing Language
-Endangerment and Language Description Hand in Hand. Submitted.
-</blockquote>

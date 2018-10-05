@@ -163,29 +163,12 @@ class LanguoidLevel(DeclEnum):
 
 
 class LanguoidStatus(DeclEnum):
-    safe = \
-        'safe', \
-        'language is spoken by all generations; ' \
-        'intergenerational transmission is uninterrupted.'
-    vulnerable = \
-        'vulnerable',\
-        'most children speak the language, but it may be restricted to certain '\
-        'domains (e.g., home).'
-    definite = \
-        'definitely endangered',\
-        'children no longer learn the language as mother tongue in the home.'
-    severe = \
-        'severely endangered',\
-        'language is spoken by grandparents and older generations; while the parent ' \
-        'generation may understand it, they do not speak it to children or among ' \
-        'themselves'
-    critical = \
-        'critically endangered',\
-        'the youngest speakers are grandparents and older, and they speak the language ' \
-        'partially and infrequently'
-    extinct = \
-        'extinct',\
-        'there are no speakers left since the 1950s'
+    safe = 'safe', 'not endangered'
+    vulnerable = 'vulnerable', 'threatened'
+    definite = 'definitely endangered', 'shifting'
+    severe = 'severely endangered', 'moribund'
+    critical = 'critically endangered', 'nearly extinct'
+    extinct = 'extinct', 'extinct'
 
 
 SPECIAL_FAMILIES = (

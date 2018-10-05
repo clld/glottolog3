@@ -258,6 +258,9 @@ def load_languoid(data, lang, nodemap):
         newick=lang.newick_node(nodemap).newick,
         latitude=lang.latitude,
         longitude=lang.longitude,
+        #
+        # TODO: switch to using the AES labels, i.e. lang.endangerment.description!
+        #
         status=models.LanguoidStatus.get(
             lang.endangerment.name if lang.endangerment else 'safe'),
         level=models.LanguoidLevel.from_string(lang.level.name),
