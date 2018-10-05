@@ -71,14 +71,15 @@ for i, dt in enumerate(DOCTYPES):
 Endangerment = namedtuple('Endangerment', 'ord name color shape')
 ENDANGERMENTS = [
     Endangerment(i, *args) for i, args in enumerate([
-        ('safe', '00ff00', 'c'),
-        ('vulnerable', 'a0fb75', 'c'),
-        ('definitely endangered', 'ff6600', 's'),
-        ('severely endangered', 'ff4400', 'd'),
-        ('critically endangered', 'ff0000', 't'),
+        ('not endangered', '00ff00', 'c'),
+        ('threatened', 'a0fb75', 'c'),
+        ('shifting', 'ff6600', 's'),
+        ('moribund', 'ff4400', 'd'),
+        ('nearly extinct', 'ff0000', 't'),
         ('extinct', '000000', 'f'),
     ])
 ]
+
 ENDANGERMENT_MAP = defaultdict(
     lambda: ENDANGERMENTS[0], [(ed.name, ed) for ed in ENDANGERMENTS])
 
@@ -101,7 +102,7 @@ class DescStatsGeoJson(GeoJson):
         return self.obj[0][icon]
 
     def feature_properties(self, ctx, req, feature):
-        endangerment = ENDANGERMENT_MAP[feature.status.value]
+        endangerment = ENDANGERMENT_MAP[feature.status.description]
         med, sources, edsrc = self.obj[1].get(feature.id, (None, [], None))
         # augment the source dicts
         sources = [src2dict(v) for v in sources]
@@ -287,7 +288,7 @@ def languages(req):
     stats = ldstatus()
     for lang in language_query(req):
         if ed:
-            _ed = lang.status.value
+            _ed = lang.status.description
             if ed.name != _ed:
                 continue
 
