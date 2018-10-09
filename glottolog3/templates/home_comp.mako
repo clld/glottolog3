@@ -3,6 +3,7 @@
 <%! active_menu_item = "dataset" %>
 
 <%def name="contextnav()">
+    ${util.contextnavitem('langdocstatus', label='GlottoScope')}
     ${util.contextnavitem('legal')}
     ${util.contextnavitem('home.downloads', label='Download')}
     ${util.contextnavitem('home.cite', label='Cite')}
