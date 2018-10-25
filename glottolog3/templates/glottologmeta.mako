@@ -20,7 +20,9 @@
             Glottolog aims to provide a comprehensive list of languoids (families, languages,
             dialects) that linguists need to be able to identify. Each
             languoid has a unique and persistent identifier called <strong>Glottocode</strong>,
-            consisting of four letters and four digits [abcd1234].
+            consisting of four alphanumeric characters (i.e. lowercase letters or decimal digits) and four decimal
+            digits (<span style="font-family: monospace">abcd1234</span> follows this patters, but so does
+            <a href="/resource/languoid/id/b10b1234"><span style="font-family: monospace">b10b1234</span></a>).
         </p>
         <p>
             Currently ${str(last_update).split(' ')[0]} there are <strong>${number_of_languages['l1']} spoken L1 languages</strong> (i.e. spoken languages traditionally used by a community of speakers as their first language).

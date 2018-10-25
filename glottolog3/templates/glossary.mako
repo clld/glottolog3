@@ -1,6 +1,28 @@
 <%inherit file="about_comp.mako"/>
 <%namespace name="util" file="util.mako"/>
 
+
+<%def name="sidebar()">
+    <div class="well well-small">
+        <h3>Contents</h3>
+        <ul>
+            <li><a href="#Languoid">Languoid</a></li>
+            <li><a href="#Glottocode">Glottocode</a></li>
+            <li><a href="#Doculect">Doculect</a></li>
+            <li><a href="#Doctype">Document type</a></li>
+            <li><a href="#macroarea">Macro-area</a></li>
+            <li><a href="#sec-pseudofamilies">Pseudo-families</a></li>
+            <li><a href="#sec-unclassifiedlanguages">Unclassified languages</a></li>
+            <li><a href="#sec-nnclassifiedlanguoidinfamilyx">Unclassified languoid in family X</a></li>
+            <li><a href="#sec-unattestedlanguage">Unattested language</a></li>
+            <li><a href="#sec-spuriouslanguoid">Spurious languoid</a></li>
+            <li><a href="#sec-mostextensivedescriptionmed">Most Extensive Description (MED)</a></li>
+            <li><a href="#sec-descriptivestatusofalanguage">Descriptive status of a language</a></li>
+            <li><a href="#sec-computerizedassignment">Computerized assignment</a></li>
+        </ul>
+    </div>
+</%def>
+
 <h3>Glossary</h3>
 
 <%util:section title="Languoid" level="4" id="Languoid">
@@ -10,6 +32,18 @@
         ${h.external_link("http://ceur-ws.org/Vol-783/paper7.pdf", label=u"Nordhoff & Hammarstr\xf6m 2011")}
     </p>
 </%util:section>
+
+
+<%util:section title="Glottocode" level="4" id="Glottocode">
+    <p>
+        Each languoid has a unique and persistent identifier called <strong>Glottocode</strong>,
+        consisting of four alphanumeric characters (i.e. lowercase letters or decimal digits) and four decimal
+        digits (<span style="font-family: monospace">abcd1234</span> follows this patters, but so does
+        <a href="/resource/languoid/id/b10b1234"><span style="font-family: monospace">b10b1234</span></a>).
+    </p>
+</%util:section>
+
+
 <%util:section title="Doculect" level="4" id="Doculect">
     <p>
         The language variety described in a specific document. For example,
@@ -25,25 +59,25 @@
         document can belong to more than one class.
         The following doctypes are distinguished
     </p>
-        <dl>
-            % for doctype in doctypes:
+    <dl>
+        % for doctype in doctypes:
             <dt id="doctype-${doctype.id}">${doctype}</dt>
             <dd>${doctype.description or ''}</dd>
-            % endfor
-        </dl>
+        % endfor
+    </dl>
 </%util:section>
 <%util:section title="Macro-area" level="4" id="macroarea">
-        <div class="span6 pull-right well well-small">
-            <img src="${request.static_url('glottolog3:static/macroareas.png')}"/>
-        </div>
+    <div class="span6 pull-right well well-small">
+        <img src="${request.static_url('glottolog3:static/macroareas.png')}"/>
+    </div>
     <p>
         An area of the globe of roughly continent size. The following areas
         are distinguished in Glottolog:
     </p>
     <dl>
         % for macroarea in macroareas:
-        <dt id="macroarea-${macroarea.id}">${macroarea}</dt>
-        <dd>${macroarea.description}</dd>
+            <dt id="macroarea-${macroarea.id}">${macroarea}</dt>
+            <dd>${macroarea.description}</dd>
         % endfor
     </dl>
     <p>
@@ -57,8 +91,9 @@
         <li>the length of intersections between pairs of macro-areas is minimized.</li>
     </ol>
     <blockquote>
-        Hammarström, Harald & Mark Donohue. (2014) Principles on Macro-Areas in Linguistic Typology. <br />
-        In Harald Hammarström & Lev Michael (eds.), Quantitative Approaches to Areal Linguistic Typology (Language Dynamics & Change Special Issue), 167-187. Leiden: Brill.
+        Hammarström, Harald & Mark Donohue. (2014) Principles on Macro-Areas in Linguistic Typology. <br/>
+        In Harald Hammarström & Lev Michael (eds.), Quantitative Approaches to Areal Linguistic Typology (Language
+        Dynamics & Change Special Issue), 167-187. Leiden: Brill.
     </blockquote>
 </%util:section>
 <%util:section title="Pseudo-families" level="4">
@@ -82,31 +117,31 @@
     <p>
         A languoid for which
     </p>
-        <ol type="i">
-            <li>
-                enough lexical and/or grammatical information is
-                available to assign it to a family, but for which
-            </li>
-            <li>
-                its position within that family has not been resolved (either because of
-                lack of data or because of lack of investigation).
-            </li>
-        </ol>
+    <ol type="i">
+        <li>
+            enough lexical and/or grammatical information is
+            available to assign it to a family, but for which
+        </li>
+        <li>
+            its position within that family has not been resolved (either because of
+            lack of data or because of lack of investigation).
+        </li>
+    </ol>
     <p>
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
 </%util:section>
 <%util:section title="Unattested language" level="4">
-        <p>
-            A language for which we have convincing evidence of its existence and distinctness
-            from all other languages, but no grammatical or lexical
-            information is available.
-        </p>
-        <p>
-            Unattested languages can often be assigned
-            to a family on non-linguistic grounds, but here they are treated as belonging
-            to the pseudo-family „Unclassified“.
-        </p>
+    <p>
+        A language for which we have convincing evidence of its existence and distinctness
+        from all other languages, but no grammatical or lexical
+        information is available.
+    </p>
+    <p>
+        Unattested languages can often be assigned
+        to a family on non-linguistic grounds, but here they are treated as belonging
+        to the pseudo-family „Unclassified“.
+    </p>
     <p>
         (See also the <a href="${request.route_url('glottolog.meta')}">Languoids information</a> section.)
     </p>
@@ -128,8 +163,8 @@
         <a href="#Doctype">document type</a>. From highest to lowest,
         the ranking is grammar, grammar sketch, dictionary/phonology/specific
         feature/text, wordlist, followed by the remaining document types. Note that
-	'description' here refers to grammatical description rather than, e.g., lexical
-	documentation, so grammar trump dictionary.
+        'description' here refers to grammatical description rather than, e.g., lexical
+        documentation, so grammar trump dictionary.
     </p>
 </%util:section>
 
@@ -163,7 +198,8 @@
         annotations, are marked as "computerized assignment".
     </p>
     <blockquote>
-        Harald Hammarström. 2008. Automatic Annotation of Bibliographical References with Target Language.<br />
-        Proceedings of MMIES-2: Workshop on Multi-source, Multilingual Information Extraction and Summarization, 57-64. ACL.
+        Harald Hammarström. 2008. Automatic Annotation of Bibliographical References with Target Language.<br/>
+        Proceedings of MMIES-2: Workshop on Multi-source, Multilingual Information Extraction and Summarization, 57-64.
+        ACL.
     </blockquote>
 </%util:section>
