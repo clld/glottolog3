@@ -297,7 +297,7 @@ def languages(req):
         if year:
             for s in sources:
                 s = src2dict(s)
-                if s['year'] <= year:
+                if s['year'] <= int(year):
                     med = s
                     break
         else:
