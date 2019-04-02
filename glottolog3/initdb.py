@@ -227,6 +227,15 @@ group by l.pk"""):
                         spk = refs.get(ref.key)
                         DBSession.add(
                             common.ValueSetReference(source_pk=spk, valueset_pk=vspk))
+            if clf.familyrefs:
+                if items(lang.cfg['classification']['familyrefs']) != \
+                        items(lang.cfg['classification'].get('family')):
+                    vspk = valuesets['fc-{0}'.format(lang.id)]
+                    for ref in clf.familyrefs:
+                        spk = refs.get(ref.key)
+                        if spk:
+                            DBSession.add(
+                                common.ValueSetReference(source_pk=spk, valueset_pk=vspk))
 
 
 def add_identifier(languoid, data, name, type, description, lang='en'):
@@ -288,6 +297,11 @@ def load_languoid(data, lang, nodemap):
                 if attr == 'sub' and not val:
                     # Handle cases with subrefs but no sub comment.
                     val = getattr(clf, 'subrefs')
+                    if val:
+                        val = ', '.join('{0}'.format(r) for r in val)
+                if attr == 'family' and not val:
+                    # Handle cases with subrefs but no sub comment.
+                    val = getattr(clf, 'familyrefs')
                     if val:
                         val = ', '.join('{0}'.format(r) for r in val)
                 if not val:

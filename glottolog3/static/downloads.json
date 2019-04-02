@@ -879,12 +879,12 @@
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
-                "checksum": "8d701dfab63729d6f574239b106a600e",
+                "checksum": "dcf921b59465aad7c2ee6e75ca96b264",
                 "checksum-algorithm": "MD5",
                 "content-type": "application/x-sql",
-                "created": 1554185904299,
-                "filesize": 131362284,
-                "last-modified": 1554185907492
+                "created": 1554203436796,
+                "filesize": 132242984,
+                "last-modified": 1554203439802
             },
             {
                 "bitstreamid": "glottolog_language.n3.gz",
