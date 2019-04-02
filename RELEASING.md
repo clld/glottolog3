@@ -34,12 +34,7 @@
 
 - draft release of clld/glottolog3
   - commit all changes to glottolog3
-  - tag a release
-  - push to GitHub
   - create release on GitHub
-- edit release adding the zenodo DOI badge
-  - to the release description
-  - to the landing page of glottolog.org
 
 - Now deploy to server:
 ```
