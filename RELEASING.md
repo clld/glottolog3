@@ -24,7 +24,9 @@
   - gzipped db dump
 
 - upload downloads to cdstar running `glottolog-app cdstar <release>`
-- register sql dump download in releases.ini by adding a new section for the release or
+  (if no bitstreams are added to the catalog, the object may need to be re-added via
+  cdstarcat, and the above command re-run.)
+- register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
 - run `glottolog-app ldstatus` to recreate `ldstatus.json`
 - `clld-llod` ?
