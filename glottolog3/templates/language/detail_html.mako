@@ -115,7 +115,7 @@
                 </ul>
             </%util:accordion_group>
             % endif
-            <% altnames = [i for i in ctx.identifiers if i.type == 'name' and (i.description != ctx.GLOTTOLOG_NAME or i.name != ctx.name)] %>
+            <% altnames = [i for i in ctx.identifiers if i.type == 'name' and i.description not in ['hhbib_lgcode'] and (i.description != ctx.GLOTTOLOG_NAME or i.name != ctx.name)] %>
             % if altnames or ('name_comment' in ctx.datadict()):
             <%util:accordion_group eid="acc-names" parent="sidebar-accordion" title="Alternative names">
                 % if 'name_comment' in ctx.datadict():
