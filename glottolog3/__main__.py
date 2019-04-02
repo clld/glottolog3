@@ -189,6 +189,7 @@ def cdstar(args):
                         bitstream.delete()
                     else:
                         skip = True
+                        print('skipping {0}'.format(fname.name))
                 if not skip:
                     print(fname.name)
                     obj.add_bitstream(fname=fname.as_posix(), name=bsname)
