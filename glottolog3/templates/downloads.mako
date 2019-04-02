@@ -9,6 +9,21 @@
 
 <h2>Downloads</h2>
 
+<div class="alert alert-info">
+    <p>
+        The data served by <a href="https://glottolog.org">glottolog.org</a> including the downloads
+        linked below is created from the data curated in the GitHub repository
+        ${h.external_link("https://github.com/clld/glottolog", label='clld/glottolog')}.
+    </p>
+    <p>
+        ${h.external_link("https://github.com/clld/glottolog/releases", label="Releases")}
+        of this repository are archived with and retrievable from ZENODO at
+    </p>
+    <p>
+        <strong>${h.external_link("https://doi.org/10.5281/zenodo.596479", label="DOI: 10.5281/zenodo.596479")}</strong>
+    </p>
+</div>
+
 <div class="accordion" id="downloads" style="margin-top: 1em; clear: right;">
     % for version, links in reversed(list(u.old_downloads())):
         % if loop.first:

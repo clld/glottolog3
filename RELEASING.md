@@ -30,6 +30,7 @@
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
 - run `glottolog-app ldstatus` to recreate `ldstatus.json`
 - `clld-llod` ?
+- update the landing page with the new ZENODO DOI
 
 - draft release of clld/glottolog3
   - commit all changes to glottolog3

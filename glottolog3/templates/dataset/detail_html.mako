@@ -10,7 +10,7 @@
 
 <div class="row-fluid">
     <div class="span12">
-        <h2>Welcome to Glottolog</h2>
+        <h2>Welcome to ${ctx.name}</h2>
     <p class="lead">
         Comprehensive reference information for the world's languages, especially the
         lesser known languages.
@@ -84,7 +84,7 @@
         </p>
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}<br>
-    <a href="https://doi.org/10.5281/zenodo.1321024"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.1321024.svg" alt="DOI"></a>
+    <a href="https://doi.org/10.5281/zenodo.2620814"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.2620814.svg" alt="DOI"></a>
 </blockquote>
         <p>
             Particularly important contributors to the Langdoc database are Alain Fabre,
