@@ -226,14 +226,15 @@ def format_comment(req, comment):
         parts.append(match.group('key'))
         sources[match.group('key')] = None
         if match.group('pages'):
-            parts.append(':{0}'.format(match.group('pages')))
+            parts.append(': {0}'.format(match.group('pages')))
         pos = match.end()
     parts.append(comment[pos:])
 
     for rp in DBSession.query(Refprovider).filter(Refprovider.id.in_(sources.keys())):
         sources[rp.id] = rp.ref
 
-    return ' '.join(link(req, sources[p]) if sources.get(p) else p for p in parts)
+    return ' '.join(
+        link(req, sources[p]) if sources.get(p) else p for p in parts).replace(' : ', ': ')
 
 
 def format_justifications(req, refs):
