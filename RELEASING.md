@@ -41,11 +41,11 @@
 workon appconfig
 cd appconfig/apps
 ```
-For new major of minor releases, we must adapt the `dbdump` option in `apps.ini[glottolog3]` 
+**Note**: For new major or minor releases, we must adapt the `dbdump` option in `apps.ini[glottolog3]` 
 to the new version.
 ```
 cd appconfig/apps/glottolog3
-fab copy_archive:/path/to/archive.tgz
+fab copy_archive:../../../../glottolog/glottolog3/archive.tgz
 fab deploy:production
 fab fetch_downloads
 ```
