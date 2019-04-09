@@ -24,6 +24,7 @@ from clldutils.clilib import ArgumentParserWithLogging, command, ParserError
 from clldutils.path import Path, write_text, md5, as_unicode
 from clldutils.jsonlib import load, update, dump
 from clldutils.dsv import UnicodeWriter
+from clldutils.apilib import assert_release
 from clld.scripts.util import setup_session
 from clld.db.meta import DBSession
 from clld.db.models import common
@@ -65,8 +66,9 @@ def _download_sql_dump(rel, log):
 
 @command()
 def mark_new_languages(args):
+    version = assert_release(args.repos.repos)
     cfg = get_release_config()
-    last = sorted(set(cfg.sections()) - set(args.args), key=lambda s: float(s[1:]))[-1][1:]
+    last = sorted(set(cfg.sections()) - {version}, key=lambda s: float(s[1:]))[-1][1:]
     cdb = create_engine('postgresql://postgres@/glottolog3')
     ldb = create_engine('postgresql://postgres@/glottolog-{0}'.format(last))
     sql = "select id from language as l, languoid as ll where l.pk = ll.pk and ll.level = 'language'"

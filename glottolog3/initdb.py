@@ -12,6 +12,7 @@ from clld.lib.bibtex import EntryType
 from clldutils import jsonlib
 from clldutils.text import split_text
 from clldutils.misc import slug
+from clldutils.apilib import assert_release
 
 from pyglottolog.references import BibFile
 from pyglottolog.languoids import Macroarea
@@ -28,12 +29,13 @@ def gc2version(args):
 
 
 def load(args):
+    glottolog = args.repos
     fts.index('fts_index', models.Ref.fts, DBSession.bind)
     DBSession.execute("CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;")
-
+    version = assert_release(glottolog.repos)
     dataset = common.Dataset(
         id='glottolog',
-        name="Glottolog {0}".format(args.args[0]),
+        name="Glottolog {0}".format(version),
         publisher_name="Max Planck Institute for the Science of Human History",
         publisher_place="Jena",
         publisher_url="https://shh.mpg.de",
@@ -69,7 +71,6 @@ def load(args):
     for gc, version in legacy.items():
         data.add(models.LegacyCode, gc, id=gc, version=version)
 
-    glottolog = args.repos
     for ma in Macroarea:
         data.add(
             models.Macroarea,
@@ -190,11 +191,12 @@ group by l.pk"""):
                 "update ref set endpage_int = %s where pk = %s" %
                 (_end, pk))
 
+    version = assert_release(args.repos.repos)
     with jsonlib.update(gc2version(args), indent=4) as legacy:
         for lang in DBSession.query(common.Language):
             if lang.id not in legacy:
                 lang.update_jsondata(new=True)
-                legacy[lang.id] = args.args[0]
+                legacy[lang.id] = version
 
     def items(s):
         if not s:

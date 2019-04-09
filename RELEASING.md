@@ -10,11 +10,11 @@
   ```
 - initialize the DB running (about 50 mins)
   ```bash
-  glottolog-app dbinit <release>
+  glottolog-app dbinit
   ```
 - mark new languages running
   ```bash
-  glottolog-app mark_new_languages <release>
+  glottolog-app mark_new_languages
   ```
 - remove old downloads:`rm glottolog3/static/download/glottolog*`
 - run `clld-create-downloads development.ini` - about 45 mins
