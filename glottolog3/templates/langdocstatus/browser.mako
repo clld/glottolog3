@@ -90,6 +90,7 @@
                         <option value="${ma.name}"${' selected="selected"' if macroarea == ma.name else ''}>${ma.name}</option>
                         % endfor
                     </select>
+                    <input type="hidden" id="countries" value="${' '.join(countries)}"/>
                 </td>
             </tr>
             <tr>

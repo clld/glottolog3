@@ -24,6 +24,7 @@ from clldutils.path import Path
 import glottolog3
 from glottolog3.models import (
     DOCTYPES, Languoid, Macroarea, Languoidmacroarea, LanguoidLevel, Ref, Doctype,
+    Languoidcountry, Country,
 )
 from glottolog3.maps import Language
 
@@ -196,6 +197,12 @@ def language_query(req=None):
             family = aliased(Languoid)
             query = query.join(family, Languoid.family_pk == family.pk)\
                 .filter(family.id.in_(families))
+        countries = []
+        for c in req.params.getall('country'):
+            countries.extend(c.split())
+        if countries:
+            query = query.join(Languoidcountry).join(Country)\
+                .filter(Country.id.in_(countries))
 
     return query
 
@@ -239,6 +246,7 @@ def browser(req):
     return {
         'families': ms,
         'macroareas': DBSession.query(Macroarea).all(),
+        'countries': req.params.getall('country'),
         'map': DescStatsMap(language_query(req), req, icon_map, focus),
         'icon_map': icon_map,
         'focus': focus,
