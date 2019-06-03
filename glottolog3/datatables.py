@@ -312,7 +312,11 @@ class Refs(Sources):
             cols.append(BibkeyCol(self, 'key'))
         cols.extend([
             LinkCol(self, 'name'),
-            Col(self, 'description', sTitle='Title'),
+            Col(self, 
+                'description', 
+                sTitle='Title', 
+                sType='string', 
+                format=lambda i: HTML.span(i.description)),
             FtsCol(self, 'fts', model_col=Ref.fts),
             CaCol(self, 'ca_language'),
         ])
