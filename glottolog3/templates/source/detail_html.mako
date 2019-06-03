@@ -25,7 +25,7 @@ ${ctx.coins(request)|n}
     <div class="tab-content">
         <% bibrec = ctx.bibtex() %>
         <div id="tab1" class="tab-pane active">
-            <p id="${h.format_gbs_identifier(ctx)}">${bibrec.text()|n}</p>
+            <p id="${h.format_gbs_identifier(ctx)}">${bibrec.text()}</p>
             % if ctx.datadict().get('Additional_information'):
             <p>
                 ${ctx.datadict().get('Additional_information')}

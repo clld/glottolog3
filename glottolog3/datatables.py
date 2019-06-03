@@ -59,7 +59,8 @@ class LevelCol(Col):
     __kw__ = dict(
         choices=['Top-level family', 'Isolate', 'Top-level unit', 'Subfamily'],
         sFilter='Top-level unit',
-        bSortable=False)
+        bSortable=False,
+    )
 
     def format(self, item):
         if item.father_pk is None:
