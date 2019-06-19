@@ -71,7 +71,7 @@ def glottologmeta(request):
     bookkeeping = DBSession.query(Language).filter(Language.name == BOOKKEEPING).one()
     ql = q.filter(and_(
         Languoid.level == LanguoidLevel.language,
-        Languoid.family_pk != bookkeeping.pk))
+        or_(Languoid.family_pk != bookkeeping.pk, Languoid.family_pk == null())))
     res['number_of_languages'] = {'all': ql.count()}
 
     res['special_families'] = OrderedDict()
