@@ -86,7 +86,7 @@
                 <td>
                     <select id="macroarea">
                         <option value=""${' selected="selected"' if not macroarea else ''}>any</option>
-                        % for ma in macroareas:
+                        % for ma in macroareas.domain:
                         <option value="${ma.name}"${' selected="selected"' if macroarea == ma.name else ''}>${ma.name}</option>
                         % endfor
                     </select>
@@ -141,7 +141,7 @@
                 <tr>
                     <th> </th>
                     <th> </th>
-                    % for ed in endangerments:
+                    % for ed, _ in endangerments:
                         <th>
                             ${ed.name.lower()}
                         </th>
@@ -150,32 +150,32 @@
                 </tr>
                 <tr>
                     <th colspan="2">Most extensive description is a ...</th>
-                    % for ed in endangerments:
+                    % for ed, icon in endangerments:
                         <th style="text-align: right;">
-                            <img src="${icon_map['c' + ed.color if focus != 'sdt' else ed.shape + 'ffffff']}" height="20" width="20"/>
+                            <img src="${icon_map['c' + icon.color if focus != 'sdt' else icon.shape + 'ffffff']}" height="20" width="20"/>
                         </th>
                     % endfor
                     <th>total</th>
                 </tr>
                 </thead>
                 <tbody>
-                    % for i, sdt in enumerate(doctypes):
+                    % for i, (de, icon) in enumerate(doctypes):
                         <tr>
-                            <th>${sdt.name}</th>
+                            <th>${de.name}</th>
                             <th>
-                                <img src="${icon_map[sdt.shape + 'ffffff' if focus != 'sdt' else 'c' + sdt.color]}" height="20" width="20"/>
+                                <img src="${icon_map[icon.shape + 'ffffff' if focus != 'sdt' else 'c' + icon.color]}" height="20" width="20"/>
                             </th>
-                            % for ed in endangerments:
-                                ${stats_cell(ed.ord, i)}
+                            % for ed, _ in endangerments:
+                                ${stats_cell(ed.number, de.number)}
                             % endfor
-                            ${stats_cell(9, i)}
+                            ${stats_cell(9, de.number)}
                         </tr>
                     % endfor
                 <tr>
                     <td> </td>
                     <th>total</th>
-                    % for ed in endangerments:
-                        ${stats_cell(ed.ord, 9)}
+                    % for ed, _ in endangerments:
+                        ${stats_cell(ed.number, 9)}
                     % endfor
                     ${stats_cell(9, 9)}
                 </tr>

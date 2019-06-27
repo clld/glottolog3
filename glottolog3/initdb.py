@@ -1,9 +1,11 @@
 # coding: utf8
 from __future__ import unicode_literals, division
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from time import time
-import re
+import functools
 
+import attr
+import purl
 from clld.scripts.util import Data, add_language_codes
 from clld.db.meta import DBSession
 from clld.db.models import common
@@ -11,17 +13,20 @@ from clld.db import fts
 from clld.lib.bibtex import EntryType
 from clldutils import jsonlib
 from clldutils.text import split_text
-from clldutils.misc import slug
 from clldutils.apilib import assert_release
+from sqlalchemy.orm import joinedload
 
 from pyglottolog.references import BibFile
-from pyglottolog.languoids import Macroarea
 
 from glottolog3 import models
-from glottolog3.scripts.util import recreate_treeclosure, compute_pages, MAX_PAGE
+from glottolog3.scripts.util import (
+    recreate_treeclosure, idjoin, add_parameter, split_items, add_identifiers, slug, add_values,
+)
 
-PREF_YEAR_PATTERN = re.compile('\[(?P<year>(1|2)[0-9]{3})(\-[0-9]+)?\]')
-YEAR_PATTERN = re.compile('(?P<year>(1|2)[0-9]{3})')
+#
+# FIXME!
+#
+VERSION = '3.5'
 
 
 def gc2version(args):
@@ -32,70 +37,85 @@ def load(args):
     glottolog = args.repos
     fts.index('fts_index', models.Ref.fts, DBSession.bind)
     DBSession.execute("CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;")
-    version = assert_release(glottolog.repos)
+    version = VERSION or assert_release(glottolog.repos)
     dataset = common.Dataset(
         id='glottolog',
-        name="Glottolog {0}".format(version),
-        publisher_name="Max Planck Institute for the Science of Human History",
-        publisher_place="Jena",
-        publisher_url="https://shh.mpg.de",
-        license="http://creativecommons.org/licenses/by/4.0/",
-        domain='glottolog.org',
-        contact='glottolog@shh.mpg.de',
-        jsondata={
-            'license_icon': 'cc-by.png',
-            'license_name': 'Creative Commons Attribution 4.0 International License'})
-
+        name="{0} {1}".format(glottolog.publication.web.name, version),
+        publisher_name=glottolog.publication.publisher.name,
+        publisher_place=glottolog.publication.publisher.place,
+        publisher_url=glottolog.publication.publisher.url,
+        license=glottolog.publication.license.url,
+        domain=purl.URL(glottolog.publication.web.url).domain(),
+        contact=glottolog.publication.web.contact,
+        jsondata={'license_icon': 'cc-by.png', 'license_name': glottolog.publication.license.name},
+    )
     data = Data()
-    for i, (id_, name) in enumerate([
-        ('hammarstroem', 'Harald Hammarström'),
-        ('forkel', 'Robert Forkel'),
-        ('haspelmath', 'Martin Haspelmath'),
-    ]):
-        ed = data.add(common.Contributor, id_, id=id_, name=name)
+
+    for i, (id_, editor) in enumerate(e for e in glottolog.editors.items() if e[1].current):
+        ed = data.add(common.Contributor, id_, id=id_, name=editor.name)
         common.Editor(dataset=dataset, contributor=ed, ord=i + 1)
     DBSession.add(dataset)
 
-    clf = data.add(common.Contribution, 'clf', id='clf', name='Classification')
+    contrib = data.add(common.Contribution, 'glottolog', id='glottolog', name='Glottolog')
     DBSession.add(common.ContributionContributor(
-        contribution=clf, contributor=data['Contributor']['hammarstroem']))
+        contribution=contrib, contributor=data['Contributor']['hammarstroem']))
 
-    for pid, pname in [
-        ('fc', 'Family classification'),
-        ('sc', 'Subclassification'),
-        ('vitality', 'Degree of endangerment'),
-    ]:
-        data.add(common.Parameter, pid, id=pid, name=pname)
+    #
+    # Add Parameters:
+    #
+    add = functools.partial(add_parameter, data)
+    add('fc', name='Family classification')
+    add('sc', name='Subclassification')
+    add('aes',
+        args.repos.aes_status.values(),
+        name=args.repos.aes_status.__defaults__['name'],
+        pkw=dict(
+            jsondata=dict(
+                reference_id=args.repos.aes_status.__defaults__['reference_id'],
+                sources=[attr.asdict(v) for v in args.repos.aes_sources.values()],
+                scale=[attr.asdict(v) for v in args.repos.aes_status.values()])),
+        dekw=lambda de: dict(name=de.name, number=de.ordinal, jsondata=dict(icon=de.icon)),
+    )
+    add('med',
+        args.repos.med_types.values(),
+        name='Most Extensive Description',
+        dekw=lambda de: dict(
+            name=de.name, description=de.description, number=de.rank, jsondata=dict(icon=de.icon)),
+    )
+    add('macroarea',
+        args.repos.macroareas.values(),
+        pkw=dict(
+            description=args.repos.macroareas.__defaults__['description'],
+            jsondata=dict(reference_id=args.repos.macroareas.__defaults__['reference_id'])),
+        dekw=lambda de: dict(name=de.name, description=de.description),
+    )
+    add('ltype',
+        args.repos.language_types.values(),
+        name='Language Type',
+        dekw=lambda de: dict(name=de.category, description=de.description),
+        delookup='category',
+    )
+    add('country',
+        args.repos.countries,
+        dekw=lambda de: dict(name=de.id, description=de.name),
+    )
 
     legacy = jsonlib.load(gc2version(args))
     for gc, version in legacy.items():
         data.add(models.LegacyCode, gc, id=gc, version=version)
 
-    for ma in Macroarea:
-        data.add(
-            models.Macroarea,
-            ma.name,
-            id=ma.name,
-            name=ma.value,
-            description=ma.description)
-
-    for country in glottolog.countries:
-        data.add(models.Country, country.id, id=country.id, name=country.name)
-
-    lgcodes, mas, countries, lgsources = {}, {}, {}, defaultdict(list)
-    languoids = list(glottolog.languoids())
-    nodemap = {l.id: l for l in languoids}
-    for lang in languoids:
+    #
+    # Now load languoid data, keeping track of relations that can only be inserted later.
+    #
+    lgsources = defaultdict(list)
+    # Note: We rely on languoids() yielding languoids in the "right" order, i.e. such that top-level
+    # nodes will precede nested nodes. This order must be preserved using an `OrderedDict`:
+    nodemap = OrderedDict([(l.id, l) for l in glottolog.languoids()])
+    lgcodes = {k: v.id for k, v in args.repos.languoids_by_code(nodemap).items()}
+    for lang in nodemap.values():
         for ref in lang.sources:
             lgsources['{0.provider}#{0.bibkey}'.format(ref)].append(lang.id)
-        load_languoid(data, lang, nodemap)
-        mas[lang.id] = [ma.name for ma in lang.macroareas]
-        countries[lang.id] = [c.id for c in lang.countries]
-        lgcodes[lang.id] = lang.id
-        if lang.hid:
-            lgcodes[lang.hid] = lang.id
-        if lang.iso:
-            lgcodes[lang.iso] = lang.id
+        load_languoid(glottolog, data, lang, nodemap)
 
     for gc in glottolog.glottocodes:
         if gc not in data['Languoid'] and gc not in legacy:
@@ -108,17 +128,6 @@ def load(args):
             model=common.Source)
 
     DBSession.flush()
-    for lid, maids in mas.items():
-        for ma in maids:
-            DBSession.add(models.Languoidmacroarea(
-                languoid_pk=data['Languoid'][lid].pk,
-                macroarea_pk=data['Macroarea'][ma].pk))
-
-    for lid, cids in countries.items():
-        for cid in cids:
-            DBSession.add(models.Languoidcountry(
-                languoid_pk=data['Languoid'][lid].pk,
-                country_pk=data['Country'][cid].pk))
 
     for doctype in glottolog.hhtypes:
         data.add(
@@ -141,17 +150,18 @@ def load(args):
 
     s = time()
     for i, entry in enumerate(
-            BibFile(glottolog.build_path('monster-utf8.bib')).iterentries()):
+            BibFile(glottolog.build_path('monster-utf8.bib'), api=glottolog).iterentries()):
         if i % 10000 == 0:
             args.log.info('{0}: {1:.3}'.format(i, time() - s))
             s = time()
         ref = load_ref(data, entry, lgcodes, lgsources)
         if 'macro_area' in entry.fields:
+            mas = []
             for ma in split_text(entry.fields['macro_area'], separators=',;', strip=True):
                 ma = 'North America' if ma == 'Middle America' else ma
-                ma = Macroarea.get('Papunesia' if ma == 'Papua' else ma)
-                DBSession.add(models.Refmacroarea(
-                    ref_pk=ref.pk, macroarea_pk=data['Macroarea'][ma.name].pk))
+                ma = glottolog.macroareas.get('Papunesia' if ma == 'Papua' else ma)
+                mas.append(ma.name)
+            ref.macroareas = ', '.join(mas)
 
 
 def prime(args):
@@ -159,183 +169,219 @@ def prime(args):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+    #
+    # Now that we loaded all languoids and refs, we can compute the MED values.
+    #
+    meds = defaultdict(list)
+    for lpk, spk, sid, sname, med_type, year, pages in DBSession.execute("""\
+select
+  l.pk, r.pk, s.id, s.name, r.med_type, s.year_int, r.med_pages
+from
+  languagesource as ls,
+  language as l,
+  source as s,
+  ref as r
+where
+  ls.active = TRUE and l.pk = ls.language_pk and s.pk = ls.source_pk and s.pk = r.pk
+order by
+  l.id, r.med_index desc, r.med_pages, coalesce(s.year_int, 0), s.pk
+"""):
+        meds[lpk].append((spk, sid, sname, med_type, year, pages))  # The last one is the overall MED
+
+    # Now weed out the "newer but worse" sources:
+    for lpk, sources in {k: reversed(v) for k, v in meds.items()}.items():
+        relevant, lastyear = [], 10000
+        for spk, sid, sname, med_type, year, pages in sources:
+            if year and year < lastyear:  # If year is more recent, this is a "newer but worse" item
+                relevant.append((spk, sid, sname, med_type, year, pages))
+                lastyear = year
+        meds[lpk] = relevant
+
+    med_param = common.Parameter.get('med')
+    med_domain = {de.id: de for de in med_param.domain}
+    contrib = common.Contribution.get('glottolog')
+
+    for l in DBSession.query(common.Language).filter(common.Language.pk.in_(list(meds.keys()))):
+        l.update_jsondata(meds=[
+            (sid, med_type, year, pages, sname) for spk, sid, sname, med_type, year, pages in meds[l.pk]])
+        if not meds[l.pk]:
+            continue
+
+        med = meds[l.pk][0]
+        # Record the overall MED as value for the 'med' Parameter:
+        vs = common.ValueSet(
+            id=idjoin('med', l.id),
+            contribution=contrib,
+            parameter=med_param,
+            language=l,
+        )
+        DBSession.add(common.Value(
+            id=idjoin('med', l.id),
+            name=getattr(args.repos.med_types, med[3]).name,
+            domainelement=med_domain[idjoin('med', med[3])],
+            valueset=vs,
+        ))
+        DBSession.flush()
+        DBSession.add(common.ValueSetReference(source_pk=med[0], valueset_pk=vs.pk))
+
     recreate_treeclosure()
 
-    for lpk, mas in DBSession.execute("""\
+    macroareas = {r[0]: (r[1], r[2]) for r in DBSession.execute("""\
+select de.pk, de.id, de.name
+from domainelement as de, parameter as p
+where de.parameter_pk = p.pk and p.id = 'macroarea'
+""")}
+
+    for lid, lpk, cpk, ppk, mas in DBSession.execute("""\
 select
-  l.pk, array_agg(distinct lma.macroarea_pk)
+  l.id, l.pk, vs.contribution_pk, vs.parameter_pk, array_agg(distinct v.domainelement_pk)
 from
   language as l,
   treeclosuretable as t,
-  languoidmacroarea as lma,
-  macroarea as ma
+  parameter as p,
+  valueset as vs,
+  value as v
 where
   l.pk = t.parent_pk and
-  t.child_pk = lma.languoid_pk and
-  lma.macroarea_pk = ma.pk and
-  l.pk not in (select languoid_pk from languoidmacroarea)
-group by l.pk"""):
-        for mapk in mas:
-            DBSession.add(models.Languoidmacroarea(languoid_pk=lpk, macroarea_pk=mapk))
+  t.child_pk = vs.language_pk and
+  vs.parameter_pk = p.pk and
+  p.id = 'macroarea' and
+  v.valueset_pk = vs.pk and
+  l.pk not in (
+    select language_pk 
+    from valueset as _vs, parameter as _p 
+    where _vs.parameter_pk = _p.pk and _p.id = 'macroarea'
+  )
+group by l.id, l.pk, vs.contribution_pk, vs.parameter_pk"""):
+        for i, mapk in enumerate(mas):
+            if i == 0:
+                vs = common.ValueSet(
+                    id=idjoin('macroarea', lid),
+                    language_pk=lpk,
+                    parameter_pk=ppk,
+                    contribution_pk=cpk)
+            DBSession.add(common.Value(
+                id=idjoin(macroareas[mapk][0], lid),
+                name=macroareas[mapk][1],
+                domainelement_pk=mapk,
+                valueset=vs))
+
+    for vs in DBSession.query(common.ValueSet)\
+            .join(common.Language)\
+            .join(common.Parameter)\
+            .filter(common.Parameter.id == 'macroarea')\
+            .options(joinedload(common.ValueSet.values), joinedload(common.ValueSet.language)):
+        vs.language.macroareas = ', '.join([macroareas[v.domainelement_pk][1] for v in vs.values])
 
     for row in list(DBSession.execute(
         "select pk, pages, pages_int, startpage_int from source where pages_int < 0"
     )):
-        pk, pages, number, start = row
-        _start, _end, _number = compute_pages(pages)
-        if _number > 0 and _number != number:
-            DBSession.execute(
-                "update source set pages_int = %s, startpage_int = %s where pk = %s" %
-                (_number, _start, pk))
-            DBSession.execute(
-                "update ref set endpage_int = %s where pk = %s" %
-                (_end, pk))
+        raise ValueError(row)
 
-    version = assert_release(args.repos.repos)
+    version = VERSION or assert_release(args.repos.repos)
     with jsonlib.update(gc2version(args), indent=4) as legacy:
         for lang in DBSession.query(common.Language):
             if lang.id not in legacy:
                 lang.update_jsondata(new=True)
                 legacy[lang.id] = version
 
-    def items(s):
-        if not s:
-            return set()
-        r = []
-        for ss in set(s.strip().split()):
-            if '**:' in ss:
-                ss = ss.split('**:')[0] + '**'
-            if ss.endswith(','):
-                ss = ss[:-1].strip()
-            r.append(ss)
-        return set(r)
-
+    valuesets = {
+        r[0]: r[1] for r in DBSession.query(common.ValueSet.id, common.ValueSet.pk)}
     refs = {
         r[0]: r[1]
         for r in DBSession.query(models.Refprovider.id, models.Refprovider.ref_pk)}
-    valuesets = {
-        r[0]: r[1] for r in DBSession.query(common.ValueSet.id, common.ValueSet.pk)}
+
+    for vsid, vspk in valuesets.items():
+        if vsid.startswith('macroarea-'):
+            DBSession.add(common.ValueSetReference(
+                source_pk=refs[args.repos.macroareas.__defaults__['reference_id']],
+                valueset_pk=vspk))
+
+    for vs in DBSession.query(common.ValueSet)\
+            .join(common.Parameter)\
+            .filter(common.Parameter.id == 'aes'):
+        if vs.jsondata['reference_id']:
+            DBSession.add(common.ValueSetReference(
+                source_pk=refs[vs.jsondata['reference_id']], valueset_pk=vs.pk))
 
     for lang in args.repos.languoids():
-        if lang.category == models.BOOKKEEPING:
+        if lang.category == args.repos.language_types.bookkeeping.category:
             continue
         clf = lang.classification_comment
         if clf:
-            if clf.subrefs:
-                if items(lang.cfg['classification']['subrefs']) != \
-                        items(lang.cfg['classification'].get('sub')):
-                    vspk = valuesets['sc-{0}'.format(lang.id)]
-                    for ref in clf.subrefs:
-                        spk = refs.get(ref.key)
-                        DBSession.add(
-                            common.ValueSetReference(source_pk=spk, valueset_pk=vspk))
-            if clf.familyrefs:
-                if items(lang.cfg['classification']['familyrefs']) != \
-                        items(lang.cfg['classification'].get('family')):
-                    vspk = valuesets['fc-{0}'.format(lang.id)]
-                    for ref in clf.familyrefs:
-                        spk = refs.get(ref.key)
-                        if spk:
-                            DBSession.add(
-                                common.ValueSetReference(source_pk=spk, valueset_pk=vspk))
+            for pid, attr_ in [('sc', 'sub'), ('fc', 'family')]:
+                if getattr(clf, attr_ + 'refs'):
+                    if split_items(lang.cfg['classification'][attr_ + 'refs']) != \
+                            split_items(lang.cfg['classification'].get(attr_)):
+                        vspk = valuesets['{0}-{1}'.format(pid, lang.id)]
+                        for ref in getattr(clf, attr_ + 'refs'):
+                            spk = refs.get(ref.key)
+                            if spk:
+                                DBSession.add(
+                                    common.ValueSetReference(source_pk=spk, valueset_pk=vspk))
 
 
-def add_identifier(languoid, data, name, type, description, lang='en'):
-    if len(lang) > 3:
-        # Weird stuff introduced via hhbib_lgcode names. Roll back language parsing.
-        name, lang = '{0} [{1}]'.format(name, lang), 'en'
-    identifier = data['Identifier'].get((name, type, description, lang))
-    if not identifier:
-        identifier = data.add(
-            common.Identifier,
-            (name, type, description, lang),
-            id='{0}-{1}-{2}-{3}'.format(
-                slug(name), slug(type), slug(description or ''), lang),
-            name=name,
-            type=type,
-            description=description,
-            lang=lang)
-    DBSession.add(common.LanguageIdentifier(language=languoid, identifier=identifier))
+def load_languoid(glottolog, data, lang, nodemap):
+    """
+    Load data from one Languoid object.
 
-
-def load_languoid(data, lang, nodemap):
+    :param glottolog: A `pyglottolog.Glottolog` instance.
+    :param data: A `dict` providing access to previously loaded data.
+    :param lang: The `pyglottolog.languoids.Languoid` object.
+    :param nodemap: A `dict` mapping glottocodes to `pyglottolog.languoids.Languoid`s.
+    :return:
+    """
     dblang = data.add(
         models.Languoid,
         lang.id,
         id=lang.id,
         hid=lang.hid,
         name=lang.name,
-        bookkeeping=lang.category == models.BOOKKEEPING,
+        bookkeeping=lang.category == glottolog.language_types.bookkeeping.category,
+        category=lang.category,
         newick=lang.newick_node(nodemap).newick,
         latitude=lang.latitude,
         longitude=lang.longitude,
-        #
-        # TODO: switch to using the AES labels, i.e. lang.endangerment.description!
-        #
-        status=models.LanguoidStatus.get(
-            lang.endangerment.name if lang.endangerment else 'safe'),
         level=models.LanguoidLevel.from_string(lang.level.name),
-        father=data['Languoid'][lang.lineage[-1][1]] if lang.lineage else None)
+        father=data['Languoid'][lang.lineage[-1][1]] if lang.lineage else None,
+        jsondata=dict(
+            iso_retirement=lang.iso_retirement.__json__() if lang.iso_retirement else None,
+            ethnologue_comment=lang.ethnologue_comment.__json__()
+            if lang.ethnologue_comment else None,
+            links=[l.__json__() for l in lang.links],
+        )
+    )
     if lang.iso:
         add_language_codes(data, dblang, lang.iso)
 
-    for prov, names in lang.names.items():
-        for name in names:
-            l = 'en'
-            if '[' in name and name.endswith(']'):
-                name, l = [s.strip() for s in name[:-1].split('[', 1)]
-            add_identifier(dblang, data, name, 'name', prov, lang=l)
+    add_identifiers(data, dblang, lang.names, name_type=True)
+    add_identifiers(data, dblang, lang.identifier, name_type=False)
 
-    for prov, ids in lang.identifier.items():
-        for id_ in split_text(ids, separators=',;'):
-            add_identifier(dblang, data, id_, prov, None)
+    add = functools.partial(add_values, data, dblang)
+    add('macroarea', [(m.id, m.name) for m in lang.macroareas])
+    add('country', [(c.id, c.name) for c in lang.countries])
+    if lang.endangerment:
+        add('aes',
+            [(lang.endangerment.status.id, lang.endangerment.status.name)],
+            source=lang.endangerment.source.name,
+            jsondata=attr.asdict(lang.endangerment.source),
+            description=lang.endangerment.comment,
+        )
+    if lang.level == glottolog.languoid_levels.language:
+        add('ltype', [(lang.category, lang.category)])
 
     if not dblang.bookkeeping:
         # Languages in Bookkeeping do not have a meaningful classification!
         clf = lang.classification_comment
         if clf:
-            for attr, pid in [('sub', 'sc'), ('family', 'fc')]:
-                val = getattr(clf, attr)
-                if attr == 'sub' and not val:
-                    # Handle cases with subrefs but no sub comment.
-                    val = getattr(clf, 'subrefs')
-                    if val:
-                        val = ', '.join('{0}'.format(r) for r in val)
-                if attr == 'family' and not val:
-                    # Handle cases with subrefs but no sub comment.
-                    val = getattr(clf, 'familyrefs')
-                    if val:
-                        val = ', '.join('{0}'.format(r) for r in val)
+            for attr_, pid in [('sub', 'sc'), ('family', 'fc')]:
+                val = getattr(clf, attr_)
                 if not val:
-                    continue
-                vs = common.ValueSet(
-                    id='%s-%s' % (pid, lang.id),
-                    description=val,
-                    language=dblang,
-                    parameter=data['Parameter'][pid],
-                    contribution=data['Contribution']['clf'])
-                DBSession.add(common.Value(id='%s-%s' % (pid, lang.id), valueset=vs))
-
-    iso_ret = lang.iso_retirement
-    if iso_ret:
-        DBSession.add(models.ISORetirement(
-            id=iso_ret.code,
-            name=iso_ret.name,
-            description=iso_ret.comment,
-            effective=iso_ret.effective,
-            reason=iso_ret.reason,
-            remedy=iso_ret.remedy,
-            change_request=iso_ret.change_request,
-            languoid=dblang))
-
-    eth_cmt = lang.ethnologue_comment
-    if eth_cmt:
-        DBSession.add(models.EthnologueComment(
-            comment=eth_cmt.comment,
-            code=eth_cmt.isohid,
-            type=eth_cmt.comment_type,
-            affected=eth_cmt.ethnologue_versions,
-            languoid=dblang))
+                    val = getattr(clf, attr_ + 'refs')
+                    if val:
+                        val = ', '.join('{0}'.format(r) for r in val)
+                if val:
+                    add(pid, [('1', '')], with_de=False, description=val)
 
 
 def load_ref(data, entry, lgcodes, lgsources):
@@ -354,46 +400,17 @@ def load_ref(data, entry, lgcodes, lgsources):
     except ValueError:
         btype = EntryType.misc
 
-    # try to extract numeric year, startpage, endpage, numberofpages, ...
-    if kw.get('year'):
-        # prefer years in brackets over the first 4-digit number.
-        match = PREF_YEAR_PATTERN.search(kw.get('year'))
-        if match:
-            kw['year_int'] = int(match.group('year'))
-        else:
-            match = YEAR_PATTERN.search(kw.get('year'))
-            if match:
-                kw['year_int'] = int(match.group('year'))
-    if kw.get('publisher'):
-        p = kw.get('publisher')
-        if ':' in p:
-            address, publisher = [s.strip() for s in kw['publisher'].split(':', 1)]
-            if 'address' not in kw or kw['address'] == address:
-                kw['address'], kw['publisher'] = address, publisher
-
-    if kw.get('numberofpages'):
-        try:
-            pages = int(kw.get('numberofpages').strip())
-            if pages < MAX_PAGE:
-                kw['pages_int'] = pages
-        except ValueError:
-            pass
-
-    if kw.get('pages'):
-        start, end, number = compute_pages(kw['pages'])
-        if start is not None:
-            kw['startpage_int'] = start
-        if end is not None:
-            kw['endpage_int'] = end
-        if number is not None and 'pages_int' not in kw:
-            kw['pages_int'] = number
-
     kw.update(
+        publisher=entry.publisher_and_address[0],
+        address=entry.publisher_and_address[1],
+        year_int=entry.year_int,
+        pages_int=entry.pages_int,
+        med_index=-entry.weight[0],
+        med_pages=entry.weight[1],
+        med_type=entry.med_type.id,
         id=entry.fields['glottolog_ref_id'],
-        fts=fts.tsvector(
-            '\n'.join(v for k, v in entry.fields.items() if k != 'abstract')),
-        name='%s %s' % (
-            entry.fields.get('author', 'na'), entry.fields.get('year', 'nd')),
+        fts=fts.tsvector('\n'.join(v for k, v in entry.fields.items() if k != 'abstract')),
+        name='{} {}'.format(entry.fields.get('author', 'na'), entry.fields.get('year', 'nd')),
         description=entry.fields.get('title') or entry.fields.get('booktitle'),
         bibtex_type=btype)
     ref = models.Ref(**kw)
@@ -406,8 +423,7 @@ def load_ref(data, entry, lgcodes, lgsources):
     for key in entry.fields['srctrickle'].split(','):
         key = key.strip()
         if key:
-            if key in lgsources:
-                reflangs.extend(lgsources[key])
+            reflangs.extend(lgsources.get(key, []))
             prov, key = key.split('#', 1)
             provs.add(prov)
             DBSession.add(models.Refprovider(
@@ -423,7 +439,8 @@ def load_ref(data, entry, lgcodes, lgsources):
 
     for lid in set(reflangs + langs):
         DBSession.add(
-            common.LanguageSource(language_pk=data['Languoid'][lid].pk, source_pk=ref.pk))
+            common.LanguageSource(
+                language_pk=data['Languoid'][lid].pk, source_pk=ref.pk, active=not bool(trigger)))
     if trigger:
         ref.ca_language_trigger = trigger
 

@@ -6,12 +6,12 @@ from collections import OrderedDict
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
-from sqlalchemy import and_, true, false, null, or_
+from sqlalchemy import and_, true, false, null, or_, not_, desc
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    Language, Source, LanguageIdentifier, Identifier, IdentifierType,
+    Language, Source, LanguageIdentifier, Identifier, IdentifierType, Parameter,
 )
 from clld.db.util import icontains
 from clld.web.util.helpers import JS
@@ -20,14 +20,10 @@ from clld.web.util.multiselect import MultiSelect
 from clld.lib import bibtex
 from clld.interfaces import IRepresentation
 
-from glottolog3.models import (
-    Languoid, LanguoidStatus, LanguoidLevel, Macroarea, Doctype, Refprovider,
-    TreeClosureTable, BOOKKEEPING,
-)
-from glottolog3.config import CFG
+from glottolog3.models import Languoid, LanguoidLevel, Doctype, TreeClosureTable, get_parameter
+from glottolog3.config import PUBLICATIONS
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
-from glottolog3.models import Country, SPECIAL_FAMILIES
 from glottolog3.adapters import get_selected_languages_map
 
 
@@ -60,29 +56,18 @@ def iso(request):
 
 
 def glottologmeta(request):
-    q = DBSession.query(Languoid)
-    qt = q.filter(Languoid.father_pk == null())
-    res = {
+    q = DBSession.query(Languoid).filter(Languoid.father_pk == null())
+    return {
         'last_update': DBSession.query(Language.updated)
-        .order_by(Language.updated.desc()).first()[0],
-        'number_of_families': qt.filter(Languoid.level == LanguoidLevel.family).count(),
-        'number_of_isolates': qt.filter(Languoid.level == LanguoidLevel.language).count(),
+            .order_by(Language.updated.desc()).first()[0],
+        'number_of_families': q.filter(Languoid.level == LanguoidLevel.family).count(),
+        'number_of_isolates': q.filter(Languoid.level == LanguoidLevel.language).count(),
+        'number_of_languages': OrderedDict(DBSession
+            .query(Languoid.category, func.count(Languoid.pk).label('c'))
+            .filter(and_(Languoid.level == LanguoidLevel.language, not_(Languoid.bookkeeping)))
+            .group_by(Languoid.category)
+            .order_by(desc('c')))
     }
-    bookkeeping = DBSession.query(Language).filter(Language.name == BOOKKEEPING).one()
-    ql = q.filter(and_(
-        Languoid.level == LanguoidLevel.language,
-        or_(Languoid.family_pk != bookkeeping.pk, Languoid.family_pk == null())))
-    res['number_of_languages'] = {'all': ql.count()}
-
-    res['special_families'] = OrderedDict()
-    res['number_of_languages']['l1'] = res['number_of_languages']['all']
-    for name in SPECIAL_FAMILIES:
-        l = qt.filter(Language.name == name).one()
-        res['special_families'][name] = l
-        res['number_of_languages'][name] = l.child_language_count
-        res['number_of_languages']['l1'] -= l.child_language_count
-
-    return res
 
 
 def childnodes(request):
@@ -135,12 +120,14 @@ def credits(request):
 
 def glossary(request):
     return {
-        'macroareas': DBSession.query(Macroarea).order_by(Macroarea.id),
+        'macroareas': DBSession.query(Parameter).filter(Parameter.id == 'macroarea')
+            .options(joinedload(Parameter.domain))
+            .one(),
         'doctypes': DBSession.query(Doctype).order_by(Doctype.name)}
 
 
 def cite(request):
-    return {'date': date.today(), 'refs': CFG['PUBLICATIONS']}
+    return {'date': date.today(), 'refs': PUBLICATIONS}
 
 
 def downloads(request):
@@ -202,6 +189,11 @@ def getLanguoids(name=False,
     return query
 
 
+def countries_as_json():
+    return json.dumps([
+        '%s (%s)' % (c.description, c.name) for c in get_parameter('country').domain])
+
+
 def quicksearch(request):
     message = None
     query = DBSession.query(Languoid)
@@ -218,8 +210,7 @@ def quicksearch(request):
         message = ('Please enter at least four characters for a name search '
             'or three characters for an iso code')
     elif len(term) == 3 and not titlecase:
-        query = query.filter(Languoid.identifiers.any(
-            type=IdentifierType.iso.value, name=term))
+        query = query.filter(Languoid.identifiers.any(type=IdentifierType.iso.value, name=term))
         kind = 'ISO 639-3'
     elif len(term) == 8 and GLOTTOCODE_PATTERN.match(term):
         query = query.filter(Languoid.id == term)
@@ -235,7 +226,6 @@ def quicksearch(request):
                     Identifier.type == u'name',
                     Identifier.description == Languoid.GLOTTOLOG_NAME,
                     func.lower(Identifier.name).contains(term)))))
-
         kind = 'name part'
         params['name'] = term
 
@@ -255,11 +245,8 @@ def quicksearch(request):
     if not layer.data['features']:
         map_ = None
 
-    countries = json.dumps(['%s (%s)' % (c.name, c.id) for c in
-        DBSession.query(Country).order_by(Country.description)])
-
     return {'message': message, 'params': params, 'languoids': languoids,
-        'map': map_, 'countries': countries}
+        'map': map_, 'countries': countries_as_json()}
 
 
 def languages(request):
@@ -267,9 +254,7 @@ def languages(request):
         return quicksearch(request)
 
     res = dict(
-        countries=json.dumps([
-            '%s (%s)' % (c.name, c.id) for c in
-            DBSession.query(Country).order_by(Country.description)]),
+        countries=countries_as_json(),
         params={
             'name': '',
             'iso': '',
@@ -328,7 +313,7 @@ def langdoccomplexquery(request):
     res = {
         'dt': None,
         'doctypes': DBSession.query(Doctype).order_by(Doctype.id),
-        'macroareas': DBSession.query(Macroarea).order_by(Macroarea.id),
+        'macroareas': get_parameter('macroarea').domain,
         'ms': {}
     }
 

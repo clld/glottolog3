@@ -6,18 +6,18 @@
     Please consult
 </p>
 <dl>
-    <dt>${h.external_link('https://github.com/clld/glottolog/releases')}</dt>
+    <dt>${h.external_link('https://github.com/glottolog/glottolog/releases')}</dt>
     <dd>for information about released versions of Glottolog</dd>
-    <dt>${h.external_link('https://github.com/clld/glottolog/issues')}</dt>
+    <dt>${h.external_link('https://github.com/glottolog/glottolog/issues')}</dt>
     <dd>for a list of issues or errata reported for Glottolog data</dd>
-    <dt>${h.external_link('https://github.com/clld/glottolog/pulls')}</dt>
+    <dt>${h.external_link('https://github.com/glottolog/glottolog/pulls')}</dt>
     <dd>for a list of proposed changes to Glottolog data</dd>
 </dl>
 
 <h4>Glottolog 3.1 - 2017-11-22</h4>
 
 From this release on, we keep a
-${h.external_link('https://github.com/clld/glottolog/blob/master/CHANGES.md', label='change log')}
+${h.external_link('https://github.com/glottolog/glottolog/blob/master/CHANGES.md', label='change log')}
 in the data repository.
 
 
@@ -43,9 +43,9 @@ in the data repository.
         The language classification has changed in many - smaller and bigger - ways
         since Glottolog 2.7 more than a year ago. We hope to make these changes more
         transparent and tractable by
-        ${h.external_link('https://github.com/clld/glottolog', label='using version control for the Glottolog data')}
+        ${h.external_link('https://github.com/glottolog/glottolog', label='using version control for the Glottolog data')}
         and
-        ${h.external_link('https://github.com/clld/glottolog/pulls?q=is%3Apr+label%3Aclassification', label='labelling changes to the classification')}
+        ${h.external_link('https://github.com/glottolog/glottolog/pulls?q=is%3Apr+label%3Aclassification', label='labelling changes to the classification')}
         appropriately.
     </dd>
 </dl>
@@ -90,10 +90,7 @@ in the data repository.
 <p>
     This edition introduces only minor changes to both, languoids and references. Instead,
     our focus was on improving the release procedures, and in particular aligning data
-    curation
-    in ${h.external_link('https://github.com/clld/glottolog-data', label='glottolog-data')}
-    and publication at http://glottolog.org. We hope these improvements will allow for
-    more
+    curation and publication. We hope these improvements will allow for more
     frequent updates of the published version of Glottolog in the future.
 </p>
 
@@ -145,23 +142,9 @@ in the data repository.
     </dd>
     <dt>Project Infrastructure</dt>
     <dd>
-        The Glottolog data is now curated in a
-        ${h.external_link('https://github.com/clld/glottolog-data', label='Git repository hosted at GitHub')}
-        .
-        Thus,
-        <ul>
-            <li>changes to the data in between updates of the Glottolog website are more
-                transparent and traceable;
-            </li>
-            <li>you can notify us about issues with the data by opening - well -
-                ${h.external_link('https://github.com/clld/glottolog-data/issues', label='issues')}
-                ;
-            </li>
-            <li>or even better, you can propose updates to the data using
-                ${h.external_link('https://help.github.com/articles/using-pull-requests/', label='pull requests')}
-                .
-            </li>
-        </ul>
+        The Glottolog data is now curated in a Git repository hosted at GitHub.
+        Thus, changes to the data in between updates of the Glottolog website are more
+        transparent and traceable;
     </dd>
 </dl>
 

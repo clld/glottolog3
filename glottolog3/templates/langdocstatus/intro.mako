@@ -59,8 +59,10 @@
 <h3>GlottoScope</h3>
 <p>
     <b>GlottoScope</b> provides a visualisation of the combination of
-    <b>Agglomerated Endangerment Status (AES)</b>
-    and <b>Descriptive Status</b> of the languages of the world.
+    <b>${aes.name} (${aes.id.upper()})</b>
+    and <b>${med.name}</b> of the languages of the world (but since descriptive status
+    can only be reliably computed from Glottolog data for spoken L1 languages and sign
+    languages, we only display these).
 </p>
 
 <p>
@@ -72,14 +74,8 @@
 </p>
 
 <p>
-    For more information see:
+    For more information see ${h.link(req, ref)}.
 </p>
-<blockquote>
-    Harald Hammarström and Thom Castermans and Robert Forkel and Kevin Verbeek and Michel A. Westenberg and Bettina Speckmann.
-    2018. Simultaneous Visualization of Language Endangerment and Language Description.
-    <i>Language Documentation & Conservation</i>, 12, 359-392.<br>
-    ${h.external_link('http://hdl.handle.net/10125/24792')}
-</blockquote>
 
 <h4>Agglomerated Endangerment Status</h4>
 <p>
@@ -91,6 +87,25 @@
     and
     ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}.
 </p>
+<table class="table table-nonfluid">
+    <thead>
+    <tr>
+        <th>AES status</th>
+        <th># of languages</th>
+        <th>% of languages</th>
+    </tr>
+    </thead>
+    <tbody>
+        % for de in aes.domain:
+            <tr>
+                <th>${de.name}</th>
+                <td class="right">${aes_status_count[de.pk]}</td>
+                <td class="right">${'{0:.2f}'.format(float(aes_status_count[de.pk]) * 100 / sum(aes_status_count.values()))}%</td>
+            </tr>
+        % endfor
+    <tr><th>total:</th><td class="right">${sum(aes_status_count.values())}</td><td> </td></tr>
+    </tbody>
+</table>
 
 
 <h4>Descriptive Status</h4>
@@ -112,38 +127,20 @@ _anchor='sec-descriptivestatusofalanguage')}">descriptive
     <thead>
     <tr>
         <th>MED type</th>
-        <th>Glottolog doctypes</th>
+        <th>Description</th>
         <th># of languages</th>
         <th>% of languages</th>
     </tr>
     </thead>
     <tbody>
-        % for sdt, c, a in sdts:
+        % for de in med.domain:
             <tr>
-                <th>${sdt.name}</th>
-                <td>
-                    <ul class="unstyled">
-                        % for dt, sdtindex in doctypes:
-                            % if sdtindex == sdt.ord or (sdt.name == 'long grammar' and dt.id == 'grammar'):
-                                <li>
-                                    <a href="${request.route_url('glossary', _anchor='doctype-{0}'.format(dt.id))}">
-                                        ${dt}
-                                    </a>
-                                    % if dt.id == 'grammar':
-                                        % if sdt.name == 'long grammar':
-                                            with more than 300 pages
-                                        % else:
-                                            with less than 300 pages
-                                        % endif
-                                    % endif
-                                </li>
-                            % endif
-                        % endfor
-                    </ul>
-                </td>
-                <td class="right">${c}</td>
-                <td class="right">${'{0:.2f}'.format(float(c) * 100 / a)}%</td>
+                <th>${de.name}</th>
+                <td>${de.description}</td>
+                <td class="right">${med_type_count[de.pk]}</td>
+                <td class="right">${'{0:.2f}'.format(float(med_type_count[de.pk]) * 100 / sum(med_type_count.values()))}%</td>
             </tr>
         % endfor
+    <tr><th>total:</th><td> </td><td class="right">${sum(med_type_count.values())}</td><td> </td></tr>
     </tbody>
 </table>

@@ -1,19 +1,16 @@
-from __future__ import unicode_literals
-
 from sqlalchemy import or_, and_, func
-from sqlalchemy.orm import aliased, joinedload, subqueryload, contains_eager
+from sqlalchemy.orm import aliased, joinedload, contains_eager
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
-from clld.db.util import get_distinct_values, icontains
-from clld.db.models.common import Language, LanguageSource, Source
+from clld.db.util import icontains
+from clld.db.models.common import Language, LanguageSource, Source, Parameter
 from clld.web.datatables.base import DataTable, Col, DetailsRowLinkCol, LinkCol
 from clld.web.datatables.language import Languages
 from clld.web.datatables.source import Sources
 from clld.web.util.helpers import icon
 
 from glottolog3.models import (
-    Macroarea, Languoid, TreeClosureTable,
-    LanguoidLevel, LanguoidStatus, Provider, Refprovider, Doctype, Ref,
+    Languoid, TreeClosureTable, LanguoidLevel, Provider, Refprovider, Doctype, Ref,
 )
 from glottolog3.util import getRefs, get_params, languoid_link, format_ca_icon
 
@@ -40,19 +37,6 @@ class Providers(DataTable):
 class NameCol(Col):
     def format(self, item):
         return languoid_link(self.dt.req, item)
-
-
-class StatusCol(Col):
-    def __init__(self, dt, name, **kw):
-        #kw['sFilter'] = LanguoidStatus.
-        kw['choices'] = get_distinct_values(Languoid.status)
-        super(StatusCol, self).__init__(dt, name, **kw)
-
-    def search(self, qs):
-        return Languoid.status == getattr(LanguoidStatus, qs, None)
-
-    def order(self):
-        return Languoid.status
 
 
 class LevelCol(Col):
@@ -86,7 +70,8 @@ class LevelCol(Col):
 
 class MacroareaCol(Col):
     def __init__(self, dt, name, **kw):
-        self.macroareas = DBSession.query(Macroarea).order_by(Macroarea.id).all()
+        ma = DBSession.query(Parameter).filter(Parameter.id == 'macroarea').one()
+        kw['choices'] = [de.name for de in ma.domain]
         kw['bSortable'] = False
         kw['sDescription'] = HTML.span(
             'see ',
@@ -94,15 +79,8 @@ class MacroareaCol(Col):
                    href=dt.req.route_url('home.glossary', _anchor='macroarea')))
         super(MacroareaCol, self).__init__(dt, name, **kw)
 
-    def format(self, item):
-        return ', '.join(a.name for a in item.macroareas)
-
     def search(self, qs):
-        return Languoid.macroareas.any(pk=int(qs))
-
-    @property
-    def choices(self):
-        return [(a.pk, a.name) for a in self.macroareas]
+        return Languoid.macroareas.contains(qs)
 
 
 class IsoCol(Col):
@@ -147,7 +125,7 @@ class Families(Languages):
             .outerjoin(self.top_level_family, self.top_level_family.pk == Languoid.family_pk)\
             .options(
                 contains_eager(Languoid.family, alias=self.top_level_family),
-                subqueryload(Languoid.macroareas))
+            )
 
         if self.type == 'families':
             return query.filter(
@@ -162,7 +140,7 @@ class Families(Languages):
             return [
                 NameCol(self, 'name'),
                 LevelCol(self, 'level'),
-                MacroareaCol(self, 'macro-area'),
+                MacroareaCol(self, 'macro-area', model_col=Languoid.macroareas),
                 Col(self, 'child_family_count', model_col=Languoid.child_family_count, sTitle='Sub-families'),
                 Col(self, 'child_language_count', model_col=Languoid.child_language_count, sTitle='Child languages'),
                 FamilyCol(self, 'top-level family'),
@@ -172,7 +150,7 @@ class Families(Languages):
             NameCol(self, 'name'),
             FamilyCol(self, 'top-level family'),
             IsoCol(self, 'iso', sTitle='ISO-639-3'),
-            MacroareaCol(self, 'macro-area'),
+            MacroareaCol(self, 'macro-area', model_col=Languoid.macroareas),
             Col(self, 'child_dialect_count', model_col=Languoid.child_dialect_count, sTitle='Child dialects', sClass='right'),
             Col(self, 'latitude'),
             Col(self, 'longitude'),
@@ -303,7 +281,14 @@ class Refs(Sources):
 
     def default_order(self):
         if self.language and self.language.level != LanguoidLevel.family:
-            return Source.pages_int.desc().nullslast(), Source.pk.desc()
+            #
+            # Order my med!
+            #
+            return (
+                Ref.med_index,
+                Ref.med_pages.desc().nullslast(),
+                Source.year_int.desc(), Source.pk.desc(),
+            )
         return Source.pk.desc()
 
     def col_defs(self):
@@ -333,7 +318,8 @@ class Refs(Sources):
             cols.append(DirectAssignmentCol(
                 self, 'd',
                 sTitle='da',
-                sDescription="Signals whether the reference is directly assigned to this languoid or inherited from daughter languoids.",
+                sDescription="Signals whether the reference is directly assigned to this languoid "
+                             "or inherited from daughter languoids.",
                 bSortable=False,
                 bSearchable=False))
         return cols

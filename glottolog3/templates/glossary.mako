@@ -75,21 +75,15 @@
         are distinguished in Glottolog:
     </p>
     <dl>
-        % for macroarea in macroareas:
-            <dt id="macroarea-${macroarea.id}">${macroarea}</dt>
+        % for macroarea in macroareas.domain:
+            <dt id="macroarea-${macroarea.id}">${macroarea.name}</dt>
             <dd>${macroarea.description}</dd>
         % endfor
     </dl>
-    <p>
-        The division of the inhabited landmass into these macro-areas is optimal
-        in the following sense. It is the division
-    </p>
-    <ol type="i">
-        <li>into 6 areas,</li>
-        <li>for which there are at least 250 languages in each area, such that</li>
-        <li>the distance between the component parts inside each area is minimized, and</li>
-        <li>the length of intersections between pairs of macro-areas is minimized.</li>
-    </ol>
+    ${u.markdown(macroareas.description.replace('1. ', '\n1. '))|n}
+        ##
+        ## FIXME: replace ref with link! read from macroareas.jsondata['reference_id'] !
+        ##
     <blockquote>
         Hammarström, Harald & Mark Donohue. (2014) Principles on Macro-Areas in Linguistic Typology. <br/>
         In Harald Hammarström & Lev Michael (eds.), Quantitative Approaches to Areal Linguistic Typology (Language

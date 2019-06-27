@@ -1,5 +1,5 @@
 
-# Releasing http://glottolog.org
+# Releasing https://glottolog.org
 
 - Checkout the corresponding release of clld/glottolog.
 - update editors in glottolog3/initdb.py
@@ -28,7 +28,6 @@
   cdstarcat, and the above command re-run.)
 - register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
-- run `glottolog-app ldstatus` to recreate `ldstatus.json`
 - `clld-llod` ?
 - update the landing page with the new ZENODO DOI
 

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, print_function, division
-
 import os
 import re
 import sys
@@ -9,22 +7,22 @@ import argparse
 import subprocess
 import collections
 from datetime import datetime
+from urllib.request import urlretrieve
 
 import configparser
-from six.moves.urllib.request import urlretrieve
 
 from pyramid.paster import get_appsettings
 from sqlalchemy import engine_from_config, create_engine
 
 import transaction
 from sqlalchemy import or_
-from sqlalchemy.orm import joinedload, joinedload_all
+from sqlalchemy.orm import joinedload
 
 from clldutils.clilib import ArgumentParserWithLogging, command, ParserError
 from clldutils.path import Path, write_text, md5, as_unicode
-from clldutils.jsonlib import load, update, dump
-from clldutils.dsv import UnicodeWriter
+from clldutils.jsonlib import load, update
 from clldutils.apilib import assert_release
+from csvw.dsv import UnicodeWriter
 from clld.scripts.util import setup_session
 from clld.db.meta import DBSession
 from clld.db.models import common
@@ -224,13 +222,12 @@ def sqldump(args):
 
 @command()
 def newick(args):
-    from pyglottolog.languoids import Level
     nodes = collections.OrderedDict((l.id, l) for l in args.repos.languoids())
     trees = []
     for lang in nodes.values():
         if not lang.lineage and not lang.category.startswith('Pseudo '):
             ns = lang.newick_node(nodes=nodes).newick
-            if lang.level == Level.language and not ns.startswith('('):
+            if lang.level == args.repos.languoid_levels.language and not ns.startswith('('):
                 # an isolate without dialects: we wrap it in a pseudo-family with the
                 # same name and ID.
                 ns = '({0}){0}'.format(ns)
@@ -253,23 +250,30 @@ def geo(args):
             'macroarea',
             'latitude',
             'longitude'])
+        ma_param = common.Parameter.get('macroarea')
         for l in DBSession.query(models.Languoid)\
                 .filter(or_(
                     models.Languoid.level == models.LanguoidLevel.dialect,
                     models.Languoid.level == models.LanguoidLevel.language))\
                 .options(
-                    joinedload(models.Languoid.macroareas),
-                    joinedload_all(
-                        common.Language.languageidentifier,
-                        common.LanguageIdentifier.identifier))\
+                    joinedload(common.Language.valuesets)
+                        .joinedload(common.ValueSet.values)
+                        .joinedload(common.Value.domainelement),
+                    joinedload(common.Language.languageidentifier)
+                        .joinedload(common.LanguageIdentifier.identifier))\
                 .order_by(common.Language.name):
+            macroareas = []
+            for vs in l.valuesets:
+                if vs.parameter_pk == ma_param.pk:
+                    macroareas = [v.domainelement.name for v in vs.values]
+                    break
             writer.writerow([
                 l.id,
                 l.name,
                 ' '.join(
                     i.name for i in l.get_identifier_objs(common.IdentifierType.iso)),
                 l.level,
-                l.macroareas[0].name if l.macroareas else '',
+                macroareas[0] if macroareas else '',
                 l.latitude if l.latitude is not None else '',
                 l.longitude if l.longitude is not None else ''])
 
@@ -298,7 +302,7 @@ def dbprime(args):
 
 
 @command()
-def dbinit(args):
+def dbinit(args):  # pragma: no cover
     """
     glottolog-app dbinit VERSION
     """
@@ -316,17 +320,6 @@ def dbinit(args):
     subprocess.check_call(['createdb', '-U', db.username, db.database])
     dbload(args)
     dbprime(args)
-
-
-@command()
-def ldstatus(args):
-    from glottolog3.langdocstatus import extract_data
-
-    endangerment = {
-        l.id: l.cfg['endangerment']
-        for l in args.repos.languoids() if 'endangerment' in l.cfg}
-    with_session(args)
-    dump(extract_data(endangerment), 'glottolog3/static/ldstatus.json', indent=4)
 
 
 def db_url(args):

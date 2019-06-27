@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 from itertools import groupby
 from functools import reduce
 
@@ -34,7 +33,7 @@ T = Template("""\
                     <div class="alert alert-error">
                         You are browsing an outdated version of Glottolog. The current
                         version can be found at
-                        <a href="http://glottolog.org">http://glottolog.org</a>.
+                        <a href="https://glottolog.org">https://glottolog.org</a>.
                     </div>
                 </div>
             </div>
@@ -184,6 +183,23 @@ def dump(out, version, all_langs, identifiers):
 
 
 def aggregate(version, langs, identifiers):
+    """
+    Aggregate language data across database versions.
+
+    This requires a compatible core schema across **all** Glottolog versions >= 2.0!
+    The minimal requirements can be gleaned from the SQL queries in this function; almost all
+    are implemented in the clld core schema, except a table
+
+    languoid
+    - level
+    - father_pk
+
+    and optionally a table
+
+    superseded
+    - languoid_pk
+    - replacement_pk
+    """
     db = create_engine('postgresql://postgres@/glottolog-{0}'.format(version))
     langs[version] = {
         r['id']: L(r['pk'], r['id'], r['name'], version, r['level'], r['father_pk'])

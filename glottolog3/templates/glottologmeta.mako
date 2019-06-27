@@ -25,7 +25,9 @@
             <a href="/resource/languoid/id/b10b1234"><span style="font-family: monospace">b10b1234</span></a>).
         </p>
         <p>
-            Currently ${str(last_update).split(' ')[0]} there are <strong>${number_of_languages['l1']} spoken L1 languages</strong> (i.e. spoken languages traditionally used by a community of speakers as their first language).
+            Currently ${str(last_update).split(' ')[0]} there are
+            <strong>${number_of_languages['Spoken L1 Language']} spoken L1 languages</strong>
+            (i.e. spoken languages traditionally used by a community of speakers as their first language).
         </p>
     <p>
         Languages are classified (see below) into <strong>${number_of_families} families</strong> and
@@ -38,17 +40,13 @@
         classification.
     </p>
     <p>
-        In addition to the genealogical trees (families and isolates), the Families page also includes the following <strong>non-genealogical trees</strong>:
+        In addition to the genealogical trees (families and isolates), the Families page also includes the following
+        <strong>non-genealogical trees</strong>:
     </p>
         <ul>
-        ## TODO: link to glossary! and to family page!?
-          <li>Unattested languages</li>
-          <li>Unclassifiable languages</li>
-          <li>Pidgin languages</li>
-          <li>Mixed languages</li>
-          <li>Speech registers</li>
-          <li>Artificial spoken languages</li>
-          <li>Sign languages and auxiliary sign systems</li>
+            % for key in [k for k in number_of_languages if k not in ['Bookkeeping', 'Spoken L1 Language']]:
+                <li>${key}</li>
+            % endfor
         </ul>
     <p>
         (Glottolog also contains lists of putative languages that are not regarded as real languoids by the editors but that are given a Glottocode for bookkeeping purposes;
@@ -61,22 +59,15 @@
     <div class="span5 offset1">
         <table class="table table-striped" style="float: inline;">
             <tbody>
-                <tr>
-                    <th>Spoken L1 languages</th>
-                    <td class="right">
-                        ${'{0:,}'.format(number_of_languages['l1'])}
-                        <!--p>***# leaves in lff.txt + #Unclassified lof.txt + Mixed Languages in lof.txt + unattested Languages in lof.txt *** </p-->
-                    </td>
-                </tr>
-                % for label in special_families:
+                % for label, count in number_of_languages.items():
                     <tr>
-                        <th>${h.link(request, special_families[label])}</th>
-                        <td class="right">${'{0:,}'.format(number_of_languages[label])}</td>
+                        <th>${label}</th>
+                        <td class="right">${'{0:,}'.format(count)}</td>
                     </tr>
                 % endfor
                 <tr>
                     <td>All</td>
-                    <td class="right">${'{0:,}'.format(number_of_languages['all'])}</td>
+                    <td class="right">${'{0:,}'.format(sum(number_of_languages.values()))}</td>
                 </tr>
             </tbody>
         </table>

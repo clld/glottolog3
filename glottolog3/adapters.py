@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import datetime
 import xml.etree.ElementTree as et
 from itertools import cycle
@@ -9,18 +7,19 @@ import sqlalchemy as sa
 import sqlalchemy.orm
 from pyramid.httpexceptions import HTTPFound
 
-from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex
+from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex, IParameter
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump
-from clld.web.adapters.geojson import GeoJsonLanguages
+from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter
 from clld.web.adapters.md import BibTex
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
-from clld.db.models.common import Language, LanguageIdentifier, Identifier
+from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter
 from clld.web.icon import ORDERED_ICONS
 from clld.lib import bibtex
 
-from glottolog3.models import Languoid, LanguoidLevel, Languoidcountry, Country
+from glottolog3.models import Languoid, LanguoidLevel
 from glottolog3.interfaces import IProvider
+from glottolog3 import maps
 
 
 class BibTexCitation(BibTex):
@@ -41,14 +40,13 @@ class LanguoidCsvDump(CsvDump):
     def query(self, req):
         Family = sa.orm.aliased(Language, flat=True)
         Father = sa.orm.aliased(Language, flat=True)
-        _Country = sa.orm.aliased(Country, name='_country')
+        _Country = sa.orm.aliased(DomainElement, name='_country')
 
         query = req.db.query(
                 Languoid.id, Family.id.label('family_id'), Father.id.label('parent_id'),
                 Languoid.name,
                 Languoid.bookkeeping,
                 sa.type_coerce(Languoid.level, sa.Text).label('level'),
-                sa.type_coerce(Languoid.status, sa.Text).label('status'),
                 Languoid.latitude, Languoid.longitude,
                 sa.select([Identifier.name])
                     .where(LanguageIdentifier.identifier_pk == Identifier.pk)
@@ -57,9 +55,12 @@ class LanguoidCsvDump(CsvDump):
                     .label('iso639P3code'),
                 Languoid.description, Languoid.markup_description,
                 Languoid.child_family_count, Languoid.child_language_count, Languoid.child_dialect_count,
-                sa.select([sa.literal_column("string_agg(_country.id, ' ' ORDER BY _country.id)")])
-                    .where(Languoidcountry.country_pk == _Country.pk)
-                    .where(Languoidcountry.languoid_pk == Languoid.pk)
+                sa.select([sa.literal_column("string_agg(_country.name, ' ' ORDER BY _country.name)")])
+                    .where(Value.domainelement_pk == _Country.pk)
+                    .where(Value.valueset_pk == ValueSet.pk)
+                    .where(ValueSet.parameter_pk == Parameter.pk)
+                    .where(Parameter.id == 'country')
+                    .where(ValueSet.language_pk == Languoid.pk)
                     .label('country_ids'),
             ).select_from(Languoid).filter(Languoid.active)\
             .outerjoin(Family, Family.pk == Languoid.family_pk)\
@@ -227,12 +228,12 @@ class MapView(Index):
 
     def template_context(self, ctx, req):
         if 'country' in req.params:
-            country = Country.get(req.params['country'], default=None)
+            country = DomainElement.get('country-' + req.params['country'], default=None)
         else:
             country = None
 
         if country:
-            languages = country.languoids
+            languages = [v.valueset.language for v in country.values]
         else:
             languages = list(ctx.get_query(limit=8000))
         map_, icon_map, family_map = get_selected_languages_map(req, languages)
@@ -244,7 +245,19 @@ class MapView(Index):
             'languages': languages}
 
 
+class GeoJsonFeature(GeoJsonParameter):
+    def feature_iterator(self, ctx, req):
+        if ctx.id in ['fc', 'sc', 'country']:
+            return []
+        return GeoJsonParameter.feature_iterator(self, ctx, req)
+
+    def get_language(self, ctx, req, valueset):
+        l = valueset.language
+        return maps.Language(l.pk, l.name, l.longitude, l.latitude, l.id)
+
+
 def includeme(config):
+    config.register_adapter(GeoJsonFeature, IParameter)
     config.register_adapter(BibTexCitation, IDataset, IMetadata)
     config.register_adapter(Redirect, IProvider)
     config.register_adapter(Bigmap, ILanguage)

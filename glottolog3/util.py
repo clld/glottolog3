@@ -1,15 +1,14 @@
-from __future__ import unicode_literals
 import re
-from itertools import cycle
+from itertools import cycle, groupby
 
+from sqlalchemy import or_
 from purl import URL
 import colander
 from markdown import markdown
 from markupsafe import Markup
 from clld.db.meta import DBSession
-from clld.db.models.common import Language, Source, LanguageSource
+from clld.db.models.common import Language, Source, LanguageSource, DomainElement
 from clld.db.util import icontains
-from clld.web.adapters.download import download_dir, download_asset_spec
 from clld.web.util.helpers import link, icon, button
 from clld.web.util.htmllib import HTML, literal
 from clld.web.icon import SHAPES
@@ -20,10 +19,10 @@ from clldutils.jsonlib import load
 from pyglottolog.languoids import Reference
 
 from glottolog3.models import (
-    Languoid, Provider, Ref, Refprovider,
-    Macroarea, Refmacroarea, TreeClosureTable, Doctype, Refdoctype,
+    Languoid, Provider, Ref, Refprovider, TreeClosureTable, Doctype, Refdoctype,
 )
 from glottolog3.maps import LanguoidMap
+from glottolog3.config import PartnerSite, ISOSite
 
 
 LANG_PATTERN = re.compile('\[(?P<id>[^\]]+)\]')
@@ -89,7 +88,7 @@ class ModelInstance(object):
     def serialize(self, node, appstruct):
         if appstruct is colander.null:
             return colander.null
-        if not isinstance(appstruct, self.cls):
+        if self.cls and not isinstance(appstruct, self.cls):
             raise colander.Invalid(node, '%r is not a %s' % (appstruct, self.cls))
         return getattr(appstruct, self.attr)
 
@@ -103,9 +102,9 @@ class ModelInstance(object):
                         or (self.alias and getattr(obj, self.alias) == cstruct):
                     value = obj
         else:
-            value = self.cls.get(cstruct, key=self.attr, default=None)
+            value = self.cls.get(cstruct, key=self.attr, default=None) if self.cls else cstruct
             if self.alias and value is None:
-                value = self.cls.get(cstruct, key=self.alias, default=None)
+                value = self.cls.get(cstruct, key=self.alias, default=None) if self.cls else cstruct
         if value is None:
             raise colander.Invalid(node, 'no single result found')
         return value
@@ -138,7 +137,10 @@ def get_params(params, **kw):
 
     schema = colander.SchemaNode(colander.Mapping())
     for name, cls in dict(
-            languoid=Languoid, doctype=Doctype, macroarea=Macroarea).items():
+            languoid=Languoid,
+            doctype=Doctype,
+            macroarea=None,
+    ).items():
         plural = name + 's'
         _kw = dict(collection=kw.get(plural))
         if name == 'languoid':
@@ -192,10 +194,8 @@ def getRefs(params):
 
     if params.get('macroareas'):
         filtered = True
-        subquery = DBSession.query(Refmacroarea).filter_by(ref_pk=Ref.pk)\
-            .filter(Refmacroarea.macroarea_pk.in_(
-                [m.pk for m in params['macroareas']]))
-        query = query.filter(subquery.exists())
+        names = [getattr(ma, 'name', None) or DomainElement.get(ma).name for ma in params['macroareas']]
+        query = query.filter(or_(*[Ref.macroareas.contains(n) for n in names]))
 
     if not filtered:
         return DBSession.query(Ref).filter(Ref.pk == -1)
@@ -388,33 +388,65 @@ def infobox(*content):
 
 
 def format_ethnologue_comment(req, lang):
-    return infobox(md(req, lang.ethnologue_comment.comment))
+    return infobox(md(req, lang.jsondata['ethnologue_comment']['comment']))
 
 
 def format_iso_retirement(req, lang):
-    ir = lang.iso_retirement
+    ir = lang.jsondata['iso_retirement']
     _md, comment = [], ''
-    if ir.description:
+    if ir['comment']:
         comment = HTML.div(
             HTML.p(HTML.strong("Excerpt from change request document:")),
-            HTML.blockquote(md(req, ir.description, small=True)))
+            HTML.blockquote(md(req, ir['comment'], small=True)))
 
-    if ir.change_request:
+    if ir['change_request']:
         _md.append((
             'Change request:',
             link(
                 req,
-                Refprovider.get('iso6393:{0}'.format(ir.change_request)).ref,
-                label=ir.change_request)))
-    _md.append(('ISO 639-3:', ir.id))
-    _md.append(('Name:', ir.name))
-    if ir.reason:
-        _md.append(('Reason:', ir.reason))
-    _md.append(('Effective:', ir.effective))
+                Refprovider.get('iso6393:{0}'.format(ir['change_request'])).ref,
+                label=ir['change_request'])))
+    _md.append(('ISO 639-3:', ir['code']))
+    _md.append(('Name:', ir['name']))
+    if ir['reason']:
+        _md.append(('Reason:', ir['reason']))
+    _md.append(('Effective:', ir['effective']))
 
     return infobox(
         HTML.p(
             HTML.strong("Retired in ISO 639-3: "),
-            linkify_iso_codes(req, ir.remedy, class_='iso639-3')),
-        HTML.ul(*[HTML.li(HTML.strong(dt), Markup('&nbsp;'), dd) for dt, dd in _md], **{'class': 'inline'}),
+            linkify_iso_codes(req, ir['remedy'], class_='iso639-3')),
+        HTML.ul(
+            *[HTML.li(HTML.strong(dt), Markup('&nbsp;'), dd)
+              for dt, dd in _md], **{'class': 'inline'}),
         comment)
+
+
+def format_links(req, lang):
+    def link(href, label, img, alt=None):
+        return HTML.li(
+            HTML.a(
+                HTML.img(
+                    src=req.static_url('glottolog3:static/' + img),
+                    height="20",
+                    width="20",
+                    alt=alt or label),
+                ' ',
+                label,
+                href=href,
+                target = "_blank",
+                title=label,
+            )
+        )
+
+    links = []
+    if lang.iso_code:
+        for isosite in ISOSite.__subclasses__():
+            isosite = isosite()
+            links.append(link(*isosite.href_label_img_alt(lang.iso_code)))
+    pss = [ps() for ps in PartnerSite.__subclasses__()]
+    for domain, _links in groupby(lang.jsondata['links'], lambda l: URL(l['url']).domain()):
+        for ps in pss:
+            if ps.match(domain):
+                links.extend([link(*ps.href_label_img_alt(l)) for l in _links])
+    return HTML.ul(*links, **{'class': "nav nav-tabs nav-stacked"})

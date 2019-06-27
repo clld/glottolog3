@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Project related model.
 """
@@ -9,7 +8,6 @@ from zope.interface import implementer
 from sqlalchemy import (
     Column,
     String,
-    Date,
     Boolean,
     Unicode,
     Integer,
@@ -21,22 +19,30 @@ from sqlalchemy import (
     Text,
     Index,
 )
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, joinedload
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.sql.expression import func
 
 from clld.interfaces import ISource, ILanguage
 from clld.db.meta import DBSession, Base, CustomModelMixin
 from clld.db.models.common import (
-    Language, Source, HasSourceMixin, IdNameDescriptionMixin, IdentifierType, Identifier,
+    Language, Source, IdNameDescriptionMixin, IdentifierType, Identifier, Parameter,
 )
 from clld.util import DeclEnum
 
 from glottolog3.interfaces import IProvider
+from glottolog3.config import github
 
 
-def github(path):
-    return 'https://github.com/clld/glottolog/blob/master/{0}'.format(path)
+def get_parameter(pid):
+    return DBSession.query(Parameter)\
+        .filter(Parameter.id == pid)\
+        .options(joinedload(Parameter.domain))\
+        .one()
+
+
+def get_source(key):
+    return DBSession.query(Ref).join(Refprovider).filter(Refprovider.id == key).one()
 
 
 @implementer(IProvider)
@@ -58,48 +64,6 @@ class Provider(Base, IdNameDescriptionMixin):
     @property
     def github_url(self):
         return github('references/bibtex/{0}.bib'.format(self.id))
-
-
-class Macroarea(Base, IdNameDescriptionMixin):
-    pass
-
-
-class Country(Base, IdNameDescriptionMixin):
-    """
-    alpha2 -> id
-    name -> name
-    """
-
-
-class Languoidmacroarea(Base):
-    __table_args__ = (UniqueConstraint('languoid_pk', 'macroarea_pk'),)
-    macroarea_pk = Column(Integer, ForeignKey('macroarea.pk'), nullable=False)
-    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
-
-
-class Languoidcountry(Base):
-    __table_args__ = (UniqueConstraint('languoid_pk', 'country_pk'),)
-    country_pk = Column(Integer, ForeignKey('country.pk'), nullable=False)
-    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
-
-
-DOCTYPES = [
-    'grammar',
-    'grammar_sketch',
-    'dictionary',
-    'specific_feature',
-    'phonology',
-    'text',
-    'new_testament',
-    'wordlist',
-    'comparative',
-    'minimal',
-    'socling',
-    'dialectology',
-    'overview',
-    'ethnographic',
-    'bibliographical',
-    'unknown']
 
 
 class Doctype(Base, IdNameDescriptionMixin):
@@ -141,18 +105,6 @@ class Refprovider(Base):
                 .all()}
 
 
-class Refmacroarea(Base):
-    __table_args__ = (UniqueConstraint('ref_pk', 'macroarea_pk'),)
-    macroarea_pk = Column(Integer, ForeignKey('macroarea.pk'), nullable=False)
-    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
-
-
-class Refcountry(Base):
-    __table_args__ = (UniqueConstraint('ref_pk', 'country_pk'),)
-    country_pk = Column(Integer, ForeignKey('country.pk'), nullable=False)
-    ref_pk = Column(Integer, ForeignKey('ref.pk'), nullable=False)
-
-
 #-----------------------------------------------------------------------------
 # specialized common mapper classes
 #-----------------------------------------------------------------------------
@@ -160,29 +112,6 @@ class LanguoidLevel(DeclEnum):
     family = 'family', 'family'
     language = 'language', 'language'
     dialect = 'dialect', 'dialect'
-
-
-class LanguoidStatus(DeclEnum):
-    safe = 'safe', 'not endangered'
-    vulnerable = 'vulnerable', 'threatened'
-    definite = 'definitely endangered', 'shifting'
-    severe = 'severely endangered', 'moribund'
-    critical = 'critically endangered', 'nearly extinct'
-    extinct = 'extinct', 'extinct'
-
-
-SPECIAL_FAMILIES = (
-    u'Unattested',
-    u'Unclassifiable',
-    u'Pidgin',
-    u'Mixed Language',
-    u'Artificial Language',
-    u'Speech Register',
-    u'Sign Language',
-)
-
-
-BOOKKEEPING = u'Bookkeeping'
 
 
 @implementer(ILanguage)
@@ -207,13 +136,14 @@ class Languoid(CustomModelMixin, Language):
     family_pk = Column(Integer, ForeignKey('languoid.pk'))
 
     level = Column(LanguoidLevel.db_type())
-    status = Column(LanguoidStatus.db_type())
     bookkeeping = Column(Boolean, default=False)
+    category = Column(Unicode)
     newick = Column(Unicode)
 
     child_family_count = Column(Integer)
     child_language_count = Column(Integer)
     child_dialect_count = Column(Integer)
+    macroareas = Column(Unicode)
 
     descendants = relationship(
         'Languoid',
@@ -225,16 +155,6 @@ class Languoid(CustomModelMixin, Language):
         order_by='Languoid.name, Languoid.id',
         foreign_keys=[father_pk],
         backref=backref('father', remote_side=[pk]))
-    macroareas = relationship(
-        Macroarea,
-        secondary=Languoidmacroarea.__table__,
-        order_by='Macroarea.id',
-        backref=backref('languoids', order_by='Languoid.name, Languoid.id'))
-    countries = relationship(
-        Country,
-        secondary=Languoidcountry.__table__,
-        order_by='Country.name',
-        backref=backref('languoids', order_by='Languoid.name, Languoid.id'))
 
     def get_identifier_objs(self, type_):
         if getattr(type_, 'value', type_) == IdentifierType.glottolog.value:
@@ -274,7 +194,7 @@ class Languoid(CustomModelMixin, Language):
             res['classification'] = [ancestor(l) for l in reversed(list(self.get_ancestors()))]
             if self.iso_code:
                 res[IdentifierType.iso.value] = self.iso_code
-            res['macroareas'] = {ma.id: ma.name for ma in self.macroareas}
+            res['macroareas'] = {}#{ma.id: ma.name for ma in self.macroareas}
         return res
 
     def get_geocoords(self):
@@ -301,17 +221,13 @@ class Languoid(CustomModelMixin, Language):
             .filter(TreeClosureTable.parent_pk.in_(child_pks))\
             .filter(Language.latitude != None)
 
+    @property
+    def valueset_dict(self):
+        return {vs.parameter.id: vs for vs in self.valuesets}
+
     def classification(self, type_):
         assert type_ in ['fc', 'sc']
-        for vs in self.valuesets:
-            if vs.parameter.id == type_:
-                return vs
-
-    @property
-    def endangerment(self):
-        for vs in self.valuesets:
-            if vs.parameter.id == 'vitality':
-                return vs.values[0].name
+        return self.valueset_dict.get(type)
 
     @property
     def fc(self):
@@ -370,12 +286,8 @@ class Languoid(CustomModelMixin, Language):
             yield 'skos:narrower', request.resource_url(child)
         if not self.active:
             yield 'skos:changeNote', 'obsolete'
-        if self.status:
-            yield 'skos:editorialNote', self.status.description
-        for area in self.macroareas:
-            yield 'dcterms:spatial', area.name
-        for country in self.countries:
-            yield 'dcterms:spatial', 'http://www.geonames.org/countries/%s/' % country.id
+        for area in (self.macroareas or '').split(', '):
+            yield 'dcterms:spatial', area
 
     def jqtree(self, icon_map=None):
         tree_ = []
@@ -386,7 +298,7 @@ class Languoid(CustomModelMixin, Language):
             Languoid.father_pk,
             Languoid.pk, Languoid.id, Languoid.name,
             Languoid.latitude, Languoid.hid,
-            cast(Languoid.level, Text), cast(Languoid.status, Text),
+            cast(Languoid.level, Text),
             Languoid.child_language_count, TreeClosureTable.depth)\
         .select_from(Languoid).join(TreeClosureTable,
             Languoid.pk == TreeClosureTable.child_pk)\
@@ -394,7 +306,7 @@ class Languoid(CustomModelMixin, Language):
         .order_by(TreeClosureTable.depth, Languoid.name)
 
         for row in query:
-            fpk, cpk, id_, name, lat, hid, level, status, clc, depth = row
+            fpk, cpk, id_, name, lat, hid, level, clc, depth = row
             if hid and len(hid) != 3:
                 hid = None
 
@@ -404,7 +316,7 @@ class Languoid(CustomModelMixin, Language):
             #label = '%s [%s]' % (name, id_)
             #if level == 'language' and hid and len(hid) == 3:
             #    label += '[%s]' % hid
-            node = {'id': id_, 'pk': cpk, 'iso': hid, 'level': level, 'status': status, 'label': label, 'children': []}
+            node = {'id': id_, 'pk': cpk, 'iso': hid, 'level': level, 'label': label, 'children': []}
             if icon_map and id_ == self.id and lat:
                 node['map_marker'] = icon_map[cpk]
             if cpk in children_of_self:
@@ -481,19 +393,10 @@ class Ref(CustomModelMixin, Source):
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
 
-    macroareas = relationship(
-        Macroarea,
-        secondary=Refmacroarea.__table__,
-        order_by='Macroarea.id',
-        backref=backref(
-            'refs', order_by='Source.author, Source.year, Source.description'))
-
-    countries = relationship(
-        Country,
-        secondary=Refcountry.__table__,
-        order_by='Country.name',
-        backref=backref(
-            'refs', order_by='Source.author, Source.year, Source.description'))
+    macroareas = Column(Unicode)
+    med_index = Column(Integer)
+    med_pages = Column(Integer)
+    med_type = Column(Unicode)
 
     providers = relationship(
         Provider,
@@ -554,26 +457,3 @@ class LegacyCode(Base):
         files = req.registry.settings['clld.files']
         page_url = str(files / 'glottolog-{0}'.format(self.version) / '{0}.html'.format(self.id))
         return req.static_url(page_url)
-
-
-class EthnologueComment(Base):
-    comment = Column(Unicode)
-    code = Column(Unicode)
-    type = Column(Unicode)
-    affected = Column(Unicode)
-    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
-    languoid = relationship(
-        Languoid, backref=backref('ethnologue_comment', uselist=False))
-
-
-class ISORetirement(Base, IdNameDescriptionMixin):
-    # id -> ISO code
-    # name -> name
-    # description -> comment
-    effective = Column(Date)
-    reason = Column(Unicode)
-    change_request = Column(Unicode)  # how to link? it is a bibtex key in iso6393.bib or None
-    remedy = Column(Unicode)
-    languoid_pk = Column(Integer, ForeignKey('languoid.pk'), nullable=False)
-    languoid = relationship(
-        Languoid, backref=backref('iso_retirement', uselist=False))

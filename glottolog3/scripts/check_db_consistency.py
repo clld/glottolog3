@@ -1,19 +1,16 @@
 """
 Tests for some application-specific db invariants
 """
-from __future__ import unicode_literals, print_function
 import itertools
 
 from sqlalchemy import func, or_, and_, literal, union_all, select, true
 from sqlalchemy import orm
-import six
 
 from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 from clld.db.models import Config, Language, LanguageIdentifier, Identifier, ValueSet
 
-from glottolog3.models import SPECIAL_FAMILIES, BOOKKEEPING,\
-    Languoid, LanguoidLevel, LanguoidStatus, TreeClosureTable, Ref
+from glottolog3.models import Languoid, LanguoidLevel, TreeClosureTable, Ref
 
 
 class CheckMeta(type):
@@ -29,7 +26,7 @@ class CheckMeta(type):
         return iter(self.__instances)
 
 
-class Check(six.with_metaclass(CheckMeta, object)):
+class Check(metaclass=CheckMeta):
 
     detail = True
 
@@ -39,7 +36,7 @@ class Check(six.with_metaclass(CheckMeta, object)):
     def validate(self):
         self.invalid_count = self.query.count()
         print(self)
-        if self.invalid_count:
+        if self.invalid_count:  # pragma: no cover
             if self.detail:
                 self.invalid = self.query.all()
                 self.display()
@@ -49,15 +46,15 @@ class Check(six.with_metaclass(CheckMeta, object)):
             return True
 
     def invalid_query(self, session, **kw):
-        raise NotImplementedError()
+        raise NotImplementedError()  # pragma: no cover
 
-    def display(self, number=25):
+    def display(self, number=25):  # pragma: no cover
         ids = (i.id for i in itertools.islice(self.invalid, number))
         cont = ', ...' if number < self.invalid_count else ''
         print('    %s%s' % (', '.join(ids), cont))
 
     def __str__(self):
-        if self.invalid_count:
+        if self.invalid_count:  # pragma: no cover
             msg = '%d invalid\n    (violating %s)' % (self.invalid_count, self.__doc__)
         else:
             msg = 'OK'
@@ -175,7 +172,8 @@ class ChildCounts(Check):
 class FamilyLanguages(Check):
     """Family has at least two languages."""
 
-    def invalid_query(self, session, exclude=SPECIAL_FAMILIES):
+    def invalid_query(self, session, exclude=None):
+        exclude = ['Unclassified', 'Unattested'] if exclude is None else exclude
         child = orm.aliased(Languoid, flat=True)
         return session.query(Languoid)\
             .filter_by(active=True, level=LanguoidLevel.family)\
@@ -190,22 +188,12 @@ class FamilyLanguages(Check):
             .order_by(Languoid.id)
 
 
-##class SpuriousRetiredBookkeeping(Check):
-##    """Spurious retired languoids are under Bookkeeping."""
-##
-##    def invalid_query(self, session, **kw):
-##        return session.query(Languoid)\
-##            .filter_by(status=LanguoidStatus.spurious_retired)\
-##            .filter(~Languoid.father.has(name=BOOKKEEPING))\
-##            .order_by(Languoid.id)
-
-
 class BookkeepingNoChildren(Check):
     """Bookkeeping languoids lack children."""
 
     def invalid_query(self, session, **kw):
         return session.query(Languoid)\
-            .filter(Languoid.father.has(name=BOOKKEEPING))\
+            .filter(Languoid.category == 'Bookkeeping')\
             .filter(Languoid.children.any())\
             .order_by(Languoid.id)
 
@@ -242,17 +230,6 @@ class UniqueIsoCode(Check):
             .order_by(lang.id)
 
 
-class GlottologName(Check):
-    """Languoid has its name as Glottolog identifier."""
-
-    def invalid_query(self, session, type='name',
-                      description=Languoid.GLOTTOLOG_NAME, **kw):
-        return session.query(Languoid)\
-            .filter(~Languoid.identifiers.any(
-                name=Languoid.name, type=type, description=description))\
-            .order_by(Languoid.id)
-
-
 class CleanName(Check):
     """Glottolog names lack problematic characters."""
 
@@ -260,8 +237,8 @@ class CleanName(Check):
                       description=Languoid.GLOTTOLOG_NAME, **kw):
         return session.query(Languoid)\
             .filter(Languoid.identifiers.any(or_(
-                Identifier.name.op('~')(ur'^\s|\s$'),
-                Identifier.name.op('~')(ur'[`_*:\xa4\xab\xb6\xbc]'),
+                Identifier.name.op('~')(r'^\s|\s$'),
+                Identifier.name.op('~')(r'[`_*:\xa4\xab\xb6\xbc]'),
             ), type=type, description=description))\
             .order_by(Languoid.id)
 
@@ -335,5 +312,5 @@ def main(args):
             check.validate()
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: no cover
     main(parsed_args())

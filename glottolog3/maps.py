@@ -57,10 +57,7 @@ class LanguoidMap(Map):
             res['hash'] = True
         else:
             res['sidebar'] = True
-        if self.ctx.level != LanguoidLevel.family:
-            res['zoom'] = 4
-        else:
-            res['zoom'] = 6
+        res['zoom'] = 4 if self.ctx.level != LanguoidLevel.family else 6
         return res
 
     def get_legends(self):

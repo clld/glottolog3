@@ -9,10 +9,9 @@ setup(
     description='glottolog3',
     keywords='web pyramid pylons',
     license='Apache 2',
-    url='',
     packages=find_packages(),
     platforms='any',
-    python_requires='>=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*',
+    python_requires='>=3.5',
     include_package_data=True,
     zip_safe=False,
     entry_points={
@@ -25,7 +24,7 @@ setup(
         'clldmpg>=3.3.1',
         'markdown',
         'newick>=0.4',
-        'pyglottolog~=1.1',
+        'pyglottolog~=2.0',
     ],
     extras_require={
         'dev': [

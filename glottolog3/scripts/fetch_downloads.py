@@ -1,7 +1,8 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-
-from six.moves.urllib.request import urlretrieve
+"""
+Script called from a fab task (running on the server) to fetch downloads after deploying
+a new release.
+"""
+from urllib.request import urlretrieve
 
 from clldutils.jsonlib import load
 from clldutils.path import Path, md5

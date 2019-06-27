@@ -5,7 +5,7 @@ CLLD.MapIcons.div = function(feature, size, url) {
         });
 };
 
-GLOTTOLOG3 = {}
+GLOTTOLOG3 = {};
 GLOTTOLOG3.filterMarkers = function(ctrl) {
     ctrl = $(ctrl);
     CLLD.mapFilterMarkers('map', function(marker){
@@ -89,13 +89,15 @@ GLOTTOLOG3.LangdocStatus = (function(){
         update: function(){
             var j, k, total,
                 stats = [
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0],
-                    [0, 0, 0, 0, 0, 0]
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0]
                 ],
-                totals = [0, 0, 0, 0, 0, 0],
+                totals = [0, 0, 0, 0, 0, 0, 0],
                 year = $("#year").val(),
                 map = CLLD.Maps['map'];
 
@@ -123,8 +125,8 @@ GLOTTOLOG3.LangdocStatus = (function(){
                             if (source.year <= year) {
                                 url = source.icon;
                                 marker.feature.properties.info_query['source'] = source.id;
-                                marker.feature.properties.info_query['doctype'] = source.doctype;
-                                sdt = source.sdt;
+                                marker.feature.properties.info_query['med_type'] = source.med_type;
+                                sdt = source.med_rank;
                                 break;
                             }
                         }
@@ -257,12 +259,6 @@ GLOTTOLOG3.languoidLink = function(spec){
         href = CLLD.route_url('language', {'id': spec.id});
     if (spec.level == 'language' && spec.iso) {
         title += '[ISO 639-3: ' + spec.iso + ']';
-    }
-    if (spec.status) {
-        cls += ' ' + spec.status;
-        if (spec.status != 'established'){
-            title += ' - ' + spec.status;
-        }
     }
     return '<a href="'+href+'" class="'+cls+'" title="'+title+'">'+spec.name+'</a>';
 };

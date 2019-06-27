@@ -1,5 +1,5 @@
 from clld.web.assets import environment
-from clldutils.path import Path
+from pathlib import Path
 
 import glottolog3
 

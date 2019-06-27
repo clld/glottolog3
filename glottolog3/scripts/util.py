@@ -1,105 +1,93 @@
-from __future__ import unicode_literals, print_function
-import re
-
 from clld.db.meta import DBSession
-from pyglottolog.references import romanint
+from clld.db.models import common
+from clldutils import misc
+from clldutils.text import split_text
 
 from glottolog3.models import TreeClosureTable
 
-ROMAN = '[ivxlcdmIVXLCDM]+'
-ROMANPATTERN = re.compile(ROMAN + '$')
-ARABIC = '[0-9]+'
-ARABICPATTERN = re.compile(ARABIC + '$')
-SEPPAGESPATTERN = re.compile(
-    '(?P<n1>{0}|{1})\s*(,|;|\.|\+|/)\s*(?P<n2>{0}|{1})'.format(ROMAN, ARABIC))
-PAGES_PATTERN = re.compile(
-    '(?P<start>{0}|{1})\s*\-\-?\s*(?P<end>{0}|{1})'.format(ROMAN, ARABIC))
-ART_NO_PATTERN = re.compile('\(art\.\s*[0-9]+\)')
-MAX_PAGE = 10000
+
+def split_items(s):  # pragma: no cover
+    if not s:
+        return set()
+    r = []
+    for ss in set(s.strip().split()):
+        if '**:' in ss:
+            ss = ss.split('**:')[0] + '**'
+        if ss.endswith(','):
+            ss = ss[:-1].strip()
+        r.append(ss)
+    return set(r)
 
 
-def get_int(s):
-    s = s.strip()
-    try:
-        return int(s)
-    except ValueError:
-        if ROMANPATTERN.match(s):
-            return romanint(s.lower())
+def add_identifiers(data, dblang, items, name_type=False):
+    for prov, names in items.items():
+        if not isinstance(names, (list, tuple)):
+            names = split_text(names, separators=',;')
+        for name in names:
+            lang = 'en'
+            if name_type:
+                if '[' in name and name.endswith(']'):
+                    name, lang = [s.strip() for s in name[:-1].split('[', 1)]
+                add_identifier(
+                    dblang,
+                    data,
+                    name,
+                    'name' if name_type else prov,
+                    prov if name_type else None,
+                    lang)
 
 
-def compute_pages(pages):
-    """
-    >>> compute_pages('x+23')
-    (None, None, 33)
-    >>> compute_pages('x + 23')
-    (None, None, 33)
-    >>> compute_pages('x. 23')
-    (None, None, 33)
-    >>> compute_pages('23,xi')
-    (None, None, 34)
-    >>> compute_pages('23,ix')
-    (None, None, 32)
-    >>> compute_pages('ix')
-    (1, 9, 9)
-    >>> compute_pages('12-45')
-    (12, 45, 34)
-    >>> compute_pages('125-9')
-    (125, 129, 5)
-    >>> compute_pages('7-3')
-    (3, 7, 5)
-    """
-    pages = ART_NO_PATTERN.sub('', pages)
-    pages = pages.strip().replace('\u2013', '-')
-    if pages.endswith('.'):
-        pages = pages[:-1]
-    if pages.endswith('pp'):
-        pages = pages[:-2]
+def add_identifier(languoid, data, name, type, description, lang):
+    if len(lang) > 3:
+        # Weird stuff introduced via hhbib_lgcode names. Roll back language parsing.
+        name, lang = '{0} [{1}]'.format(name, lang), 'en'
+    identifier = data['Identifier'].get((name, type, description, lang))
+    if not identifier:
+        identifier = data.add(
+            common.Identifier,
+            (name, type, description, lang),
+            id=idjoin(slug(name, escape=type == 'name'), slug(type), slug(description or ''), lang),
+            name=name,
+            type=type,
+            description=description,
+            lang=lang)
+    DBSession.add(common.LanguageIdentifier(language=languoid, identifier=identifier))
 
-    # trivial case: just one number:
-    number = get_int(pages)
-    if number:
-        start = 1
-        if number > MAX_PAGE:
-            number, start = None, None
-        return (start, number, number)
 
-    # next case: ,|.|+ separated numbers:
-    m = SEPPAGESPATTERN.match(pages)
-    if m:
-        number = sum(map(get_int, [m.group('n1'), m.group('n2')]))
-        if number > MAX_PAGE:
-            number = None
-        return (None, None, number)
+def add_parameter(data, id_, domain=None, name=None, pkw=None, dekw=None, delookup='id'):
+    p = data.add(common.Parameter, id_, id=id_, name=name or id_.capitalize(), **pkw or {})
+    for de in sorted(domain or []):
+        kw = dict(id=idjoin(p.id, de.id), parameter=p)
+        if dekw:
+            kw.update(dekw(de))
+        data.add(common.DomainElement, (p.id, getattr(de, delookup)), **kw)
 
-    # next case: ranges:
-    start = None
-    end = None
-    number = None
 
-    for match in PAGES_PATTERN.finditer(pages):
-        s_start, s_end = match.group('start'), match.group('end')
-        s, e = get_int(s_start), get_int(s_end)
-        if ARABICPATTERN.match(s_end) and ARABICPATTERN.match(s_start) \
-                and len(s_end) < len(s_start):
-            # the case 516-32:
-            s_end = s_start[:-len(s_end)] + s_end
-            e = get_int(s_end)
-        if s > e:
-            # the case 532-516:
-            e, s = s, e
-        if start is None:
-            start = s
-        end = e
-        number = (number or 0) + (end - s + 1)
+def add_values(data, dblang, pid, values, with_de=True, **vskw):
+    vs = None
+    for i, (vid, vname) in enumerate(values):
+        if i == 0:
+            vs = common.ValueSet(
+                id=idjoin(pid, dblang.id),
+                language=dblang,
+                parameter=data['Parameter'][pid],
+                contribution=data['Contribution']['glottolog'],
+                **vskw)
+        vkw = dict(id=idjoin(pid, slug(vid), dblang.id), name=vname, valueset=vs)
+        if with_de:
+            vkw['domainelement'] = data['DomainElement'][pid, vid]
+        DBSession.add(common.Value(**vkw))
 
-    if start and start > MAX_PAGE:
-        start = None
-    if end and end > MAX_PAGE:
-        end = None
-    if number and number > MAX_PAGE:
-        number = None
 
-    return (start, end, number if (number is not None and number > 0) else None)
+def idjoin(*args):
+    if len(args) == 1 and isinstance(args[0], (tuple, list)):
+        args = args[0]
+    return '-'.join(['{0}'.format(a) for a in args])
+
+
+def slug(s, escape=False, **kw):
+    # That's some weird stuff coming in with ElCat alternative names ...
+    return misc.slug(''.join(hex(ord(c)) if escape else c for c in s if ord(c) != 2), **kw)
 
 
 def recreate_treeclosure(session=None):

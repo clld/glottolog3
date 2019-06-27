@@ -1,23 +1,34 @@
 from functools import partial
 
-from pyramid.httpexceptions import HTTPGone, HTTPMovedPermanently
+from pyramid.httpexceptions import HTTPMovedPermanently
 from pyramid.config import Configurator
 from pyramid.response import Response
-from sqlalchemy.orm import joinedload, joinedload_all
-from clld.interfaces import ICtxFactoryQuery, IDownload
+from sqlalchemy.orm import joinedload
+from clld.interfaces import ICtxFactoryQuery, IDownload, IMapMarker, IDomainElement, IValueSet
 from clld.web.app import menu_item, CtxFactoryQuery
+from clld.web.icon import MapMarker
 from clld.web.adapters.base import adapter_factory, Index
 from clld.web.adapters.download import N3Dump, Download
-from clld.web.adapters.cldf import CldfDownload
 from clld.db.models.common import Language, Source, ValueSet, ValueSetReference
+from clldutils import svg
 
-import glottolog3
 from glottolog3 import views
 from glottolog3 import models
 from glottolog3 import adapters
-from glottolog3.config import CFG
 from glottolog3.interfaces import IProvider
 from glottolog3.datatables import Providers
+
+
+class GlottologMapMarker(MapMarker):
+    def __call__(self, ctx, req):
+        if IValueSet.providedBy(ctx):
+            if ctx.values and ctx.values[0].domainelement:
+                if 'icon' in ctx.values[0].domainelement.jsondatadict:
+                    return svg.data_url(svg.icon(ctx.values[0].domainelement.jsondata['icon']))
+        if IDomainElement.providedBy(ctx):
+            if 'icon' in ctx.jsondatadict:
+                return svg.data_url(svg.icon(ctx.jsondata['icon']))
+        return super(GlottologMapMarker, self).__call__(ctx, req)
 
 
 class GLCtxFactoryQuery(CtxFactoryQuery):
@@ -26,8 +37,11 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
             query = query.options(
                 joinedload(models.Languoid.family),
                 joinedload(models.Languoid.children),
-                joinedload_all(
-                    Language.valuesets, ValueSet.references, ValueSetReference.source)
+                joinedload(Language.valuesets)
+                    .joinedload(ValueSet.references)
+                    .joinedload(ValueSetReference.source),
+                joinedload(Language.valuesets).joinedload(ValueSet.values),
+                joinedload(Language.valuesets).joinedload(ValueSet.parameter),
             )
         return query
 
@@ -38,11 +52,11 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
                 legacy = models.LegacyCode.get(req.matchdict['id'], default=None)
                 if legacy:
                     raise HTTPMovedPermanently(location=legacy.url(req))
-            #
-            # FIXME: how to serve HTTP 410 for legacy codes?
-            #
+                # Fall through to `clld.web.app.ctx_factory` handling dealt out but no longer
+                # active glottocodes by looking up `Config`.
         elif model == Source:
             if ':' in req.matchdict['id']:
+                # We support Source URLs using the "qualified" bibtex key as ID.
                 ref = req.db.query(models.Source)\
                     .join(models.Refprovider)\
                     .filter(models.Refprovider.id == req.matchdict['id'])\
@@ -55,7 +69,6 @@ class GLCtxFactoryQuery(CtxFactoryQuery):
 def main(global_config, **settings):
     """ This function returns a Pyramid WSGI application.
     """
-    settings.update(CFG)
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
         'languages': '/glottolog/language',
@@ -82,6 +95,7 @@ def main(global_config, **settings):
             'Sitemap: {0}\nUser-agent: *\nDisallow: /files/\n'.format(
                 req.route_url('sitemapindex')),
             content_type='text/plain'))
+    config.registry.registerUtility(GlottologMapMarker(), IMapMarker)
     config.registry.registerUtility(GLCtxFactoryQuery(), ICtxFactoryQuery)
     config.register_menu(
         #('dataset', partial(menu_item, 'dataset', label='Home')),
