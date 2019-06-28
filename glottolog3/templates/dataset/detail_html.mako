@@ -84,7 +84,7 @@
         </p>
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}<br>
-    <a href="https://doi.org/10.5281/zenodo.2620814"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.2620814.svg" alt="DOI"></a>
+    <a href="https://doi.org/10.5281/zenodo.3260726"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.3260726.svg" alt="DOI"></a>
 </blockquote>
         <p>
             Particularly important contributors to the Langdoc database are Alain Fabre,
@@ -93,13 +93,13 @@
         </p>
         <p>
             The data published by Glottolog is curated in the public GitHub repository
-            ${h.external_link("https://github.com/clld/glottolog", label='clld/glottolog')}.
-            The Glottolog web application at http://glottolog.org serves the latest
-            ${h.external_link("https://github.com/clld/glottolog/releases", label='released version')}
+            ${h.external_link("https://github.com/glottolog/glottolog", label='glottolog/glottolog')}.
+            The Glottolog web application at https://glottolog.org serves the latest
+            ${h.external_link("https://github.com/glottolog/glottolog/releases", label='released version')}
             of the data in this repository.
         <p>
             You may report errors you found in Glottolog using this repositories
-            ${h.external_link("https://github.com/clld/glottolog/issues", label='issue tracker')}.
+            ${h.external_link("https://github.com/glottolog/glottolog/issues", label='issue tracker')}.
         </p>
     </div>
 </div>

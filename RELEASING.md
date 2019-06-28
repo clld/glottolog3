@@ -1,14 +1,13 @@
 
 # Releasing https://glottolog.org
 
-- Checkout the corresponding release of clld/glottolog.
-- update editors in glottolog3/initdb.py
+- Checkout the corresponding release of glottolog/glottolog.
 - For major or minor releases: create the static archive including the last release:
   ```bash
   glottolog-app create_archive
   tar -czf archive.tgz archive/
   ```
-- initialize the DB running (about 50 mins)
+- initialize the DB running (about 60 mins)
   ```bash
   glottolog-app dbinit
   ```

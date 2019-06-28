@@ -158,7 +158,7 @@ def dump(out, version, all_langs, identifiers):
             fpk = langs_by_pk[fpk].fpk
 
         versions = [
-            '<strong><a href="http://glottolog.org/resource/languoid/id/{0}">[{0}] in current Glottolog</a></strong>'.format(lang.id)]
+            '<strong><a href="https://glottolog.org/resource/languoid/id/{0}">[{0}] in current Glottolog</a></strong>'.format(lang.id)]
         for v in sorted(all_langs.keys()):
             if v != version:
                 if lang.id in all_langs[v]:

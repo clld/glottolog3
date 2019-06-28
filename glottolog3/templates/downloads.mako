@@ -12,15 +12,23 @@
 <div class="alert alert-info">
     <p>
         The data served by <a href="https://glottolog.org">glottolog.org</a> including the downloads
-        linked below is created from the data curated in the GitHub repository
-        ${h.external_link("https://github.com/clld/glottolog", label='clld/glottolog')}.
+        linked below are created from the data curated in the GitHub repository
+        ${h.external_link("https://github.com/glottolog/glottolog", label='glottolog/glottolog')}.
     </p>
     <p>
-        ${h.external_link("https://github.com/clld/glottolog/releases", label="Releases")}
+        ${h.external_link("https://github.com/glottolog/glottolog/releases", label="Releases")}
         of this repository are archived with and retrievable from ZENODO at
     </p>
     <p>
         <strong>${h.external_link("https://doi.org/10.5281/zenodo.596479", label="DOI: 10.5281/zenodo.596479")}</strong>
+    </p>
+    <p>
+       To allow easier access to (most of) the Glottolog data, a
+        ${h.external_link("https://cldf.clld.org", label="CLDF")} dataset is released with each Glottolog
+        data release (starting with release 4.0). These CLDF datasets are archived with and retrievable from ZENODO at
+    </p>
+    <p>
+        <strong>${h.external_link("https://doi.org/10.5281/zenodo.3260727", label="DOI: 10.5281/zenodo.3260727")}</strong>
     </p>
 </div>
 
@@ -64,11 +72,11 @@
     <%util:well title="Glottolog Data">
         <p>
             The data published by Glottolog is curated in the public GitHub repository
-            ${h.external_link("https://github.com/clld/glottolog", label='clld/glottolog')}.
+            ${h.external_link("https://github.com/glottolog/glottolog", label='glottolog/glottolog')}.
         </p>
         <p>
             You may report errors you found in Glottolog using this repositories
-            ${h.external_link("https://github.com/clld/glottolog/issues", label='issue tracker')}.
+            ${h.external_link("https://github.com/glottolog/glottolog/issues", label='issue tracker')}.
         </p>
     </%util:well>
 </%def>

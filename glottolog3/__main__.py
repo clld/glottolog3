@@ -67,6 +67,7 @@ def mark_new_languages(args):
     version = assert_release(args.repos.repos)
     cfg = get_release_config()
     last = sorted(set(cfg.sections()) - {version}, key=lambda s: float(s[1:]))[-1][1:]
+    print('previous version: {0}'.format(last))
     cdb = create_engine('postgresql://postgres@/glottolog3')
     ldb = create_engine('postgresql://postgres@/glottolog-{0}'.format(last))
     sql = "select id from language as l, languoid as ll where l.pk = ll.pk and ll.level = 'language'"
@@ -164,6 +165,7 @@ def cdstar(args):
         # FIXME: there must be a way to overwrite old releases in case of bugfixes!
         #
         if release in downloads:
+            print('adding bitstreams to {0}'.format(downloads[release]['oid']))
             # This is a bugfix release, we don't have to create a new object on CDSTAR!
             obj = cat.api.get_object(uid=downloads[release]['oid'])
         else:

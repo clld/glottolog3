@@ -1,5 +1,3 @@
-# coding: utf8
-from __future__ import unicode_literals, division
 from collections import defaultdict, OrderedDict
 from time import time
 import functools
@@ -20,13 +18,8 @@ from pyglottolog.references import BibFile
 
 from glottolog3 import models
 from glottolog3.scripts.util import (
-    recreate_treeclosure, idjoin, add_parameter, split_items, add_identifiers, slug, add_values,
+    recreate_treeclosure, idjoin, add_parameter, split_items, add_identifiers, add_values,
 )
-
-#
-# FIXME!
-#
-VERSION = '3.5'
 
 
 def gc2version(args):
@@ -37,7 +30,7 @@ def load(args):
     glottolog = args.repos
     fts.index('fts_index', models.Ref.fts, DBSession.bind)
     DBSession.execute("CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;")
-    version = VERSION or assert_release(glottolog.repos)
+    version = assert_release(glottolog.repos)
     dataset = common.Dataset(
         id='glottolog',
         name="{0} {1}".format(glottolog.publication.web.name, version),
@@ -278,7 +271,7 @@ group by l.id, l.pk, vs.contribution_pk, vs.parameter_pk"""):
     )):
         raise ValueError(row)
 
-    version = VERSION or assert_release(args.repos.repos)
+    version = assert_release(args.repos.repos)
     with jsonlib.update(gc2version(args), indent=4) as legacy:
         for lang in DBSession.query(common.Language):
             if lang.id not in legacy:
