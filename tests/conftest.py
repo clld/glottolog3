@@ -2,7 +2,6 @@ import pytest
 
 import sqlalchemy as sa
 import pyramid.paster
-from pyramid.paster import bootstrap
 
 
 @pytest.fixture(scope='session')

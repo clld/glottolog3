@@ -1,7 +1,4 @@
-from __future__ import unicode_literals
 import datetime
-
-from six import text_type
 
 import pytest
 
@@ -88,7 +85,7 @@ def test_pages(app, method, path, status, match):
 
 
 def test_body(app):
-    assert '[atha1245]' in text_type(app.get('/resource/languoid/id/chil1280.newick.txt').body)
+    assert '[atha1245]' in str(app.get('/resource/languoid/id/chil1280.newick.txt').body)
 
 
 def test_name_characters(app):
