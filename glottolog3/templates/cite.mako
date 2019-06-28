@@ -12,19 +12,20 @@
 </blockquote>
 <p>
     Academic publications which deal with Glottolog include:
-    <ul class="unstyled">
+</p>
+<ul class="unstyled">
     % for ref in refs:
         <li>
             <blockquote>
                 <strong>${ref['author']}</strong> ${ref['year']}.<br>
                 <em>${ref['title']}</em>.<br>
-            % for attr in 'journal volume number series booktitle editor address publisher pages howpublished note isbn doi'.split():
-                % if attr in ref:
-                <span class="bib${attr}">${ref[attr]}</span>
-                % endif
-            % endfor
-            % if 'url' in ref:
-                <br>
+                % for attr in 'journal volume number series booktitle editor address publisher pages howpublished note isbn doi'.split():
+                    % if attr in ref:
+                        <span class="bib${attr}">${ref[attr]}</span>
+                    % endif
+                % endfor
+                % if 'url' in ref:
+                    <br>
                 ${h.external_link(ref['url'])}
                 % endif
                 <br>
@@ -32,6 +33,5 @@
                 <pre>${ref}</pre>
             </blockquote>
         </li>
-        % endfor
-    </ul>
-</p>
+    % endfor
+</ul>

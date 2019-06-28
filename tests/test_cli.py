@@ -33,6 +33,7 @@ def testdb(mocker):
 def test_dbinit(mocker, testdb, capsys):
     from glottolog3.scripts import check_db_consistency
 
+    mocker.patch('glottolog3.initdb.assert_release', mocker.Mock(return_value='1.0'))
     args = mocker.Mock(
         repos=Glottolog(pathlib.Path(__file__).parent / 'repos'),
         pkg_dir=pathlib.Path(__file__).parent,

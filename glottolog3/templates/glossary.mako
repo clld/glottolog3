@@ -53,6 +53,7 @@
         to some other variety or a mix of varieties from various locales.
     </p>
 </%util:section>
+
 <%util:section title="Document type" level="4" id="Doctype">
     <p>
         The class a document belongs to. There are ${doctypes.count()} classes.
@@ -66,6 +67,7 @@
         % endfor
     </dl>
 </%util:section>
+
 <%util:section title="Macro-area" level="4" id="macroarea">
     <div class="span6 pull-right well well-small">
         <img src="${request.static_url('glottolog3:static/macroareas.png')}"/>
@@ -81,14 +83,9 @@
         % endfor
     </dl>
     ${u.markdown(macroareas.description.replace('1. ', '\n1. '))|n}
-        ##
-        ## FIXME: replace ref with link! read from macroareas.jsondata['reference_id'] !
-        ##
-    <blockquote>
-        Hammarström, Harald & Mark Donohue. (2014) Principles on Macro-Areas in Linguistic Typology. <br/>
-        In Harald Hammarström & Lev Michael (eds.), Quantitative Approaches to Areal Linguistic Typology (Language
-        Dynamics & Change Special Issue), 167-187. Leiden: Brill.
-    </blockquote>
+    <p>
+        See ${h.link(req, macroareas_ref)}.
+    </p>
 </%util:section>
 <%util:section title="Pseudo-families" level="4">
     <p>
@@ -158,7 +155,7 @@
         the ranking is grammar, grammar sketch, dictionary/phonology/specific
         feature/text, wordlist, followed by the remaining document types. Note that
         'description' here refers to grammatical description rather than, e.g., lexical
-        documentation, so grammar trump dictionary.
+        documentation, so grammar trumps dictionary.
     </p>
 </%util:section>
 

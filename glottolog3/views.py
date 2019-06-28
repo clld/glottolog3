@@ -20,7 +20,7 @@ from clld.web.util.multiselect import MultiSelect
 from clld.lib import bibtex
 from clld.interfaces import IRepresentation
 
-from glottolog3.models import Languoid, LanguoidLevel, Doctype, TreeClosureTable, get_parameter
+from glottolog3.models import Languoid, LanguoidLevel, Doctype, TreeClosureTable, get_parameter, get_source
 from glottolog3.config import PUBLICATIONS
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
@@ -119,11 +119,13 @@ def credits(request):
 
 
 def glossary(request):
-    return {
+    res = {
         'macroareas': DBSession.query(Parameter).filter(Parameter.id == 'macroarea')
             .options(joinedload(Parameter.domain))
             .one(),
         'doctypes': DBSession.query(Doctype).order_by(Doctype.name)}
+    res['macroareas_ref'] = get_source(res['macroareas'].jsondata['reference_id'])
+    return res
 
 
 def cite(request):
