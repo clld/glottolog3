@@ -63,7 +63,7 @@ def intro(req):
         'med': med,
         'ref': get_source(aes.jsondata['reference_id']),
         'macroareas': get_parameter('macroarea').domain,
-        'families': family_query().options(joinedload(Languoid.macroareas)),
+        'families': family_query(),
         'med_type_count': {pk: c for pk, c in count(med.pk)},
         'aes_status_count': {pk: c for pk, c in count(aes.pk)},
     }
