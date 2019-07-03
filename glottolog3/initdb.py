@@ -44,9 +44,10 @@ def load(args):
     )
     data = Data()
 
-    for i, (id_, editor) in enumerate(e for e in glottolog.editors.items() if e[1].current):
-        ed = data.add(common.Contributor, id_, id=id_, name=editor.name)
-        common.Editor(dataset=dataset, contributor=ed, ord=i + 1)
+    for e in glottolog.editors.values():
+        if e.current:
+            ed = data.add(common.Contributor, e.id, id=e.id, name=e.name)
+            common.Editor(dataset=dataset, contributor=ed, ord=int(e.ord))
     DBSession.add(dataset)
 
     contrib = data.add(common.Contribution, 'glottolog', id='glottolog', name='Glottolog')
