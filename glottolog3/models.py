@@ -227,7 +227,7 @@ class Languoid(CustomModelMixin, Language):
 
     def classification(self, type_):
         assert type_ in ['fc', 'sc']
-        return self.valueset_dict.get(type)
+        return self.valueset_dict.get(type_)
 
     @property
     def fc(self):
