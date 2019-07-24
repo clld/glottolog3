@@ -157,6 +157,11 @@ class PartnerSite(object):
         return link['url'], label, self.img, self.name
 
 
+class PHOIBLE(PartnerSite):
+    domain = 'phoible.org'
+    img = 'phoible.png'
+
+
 class WALS(PartnerSite):
     domain = 'wals.info'
     img = 'wals.png'
