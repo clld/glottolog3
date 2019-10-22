@@ -175,3 +175,14 @@ class APiCS(PartnerSite):
 class Endangered_Laguages(PartnerSite):
     domain = 'endangeredlanguages.com'
     img = 'ELP.png'
+
+
+class Wikipedia(PartnerSite):
+    domain = 'en.wikipedia.org'
+    img = 'wikipedia.png'
+
+
+class Wikidata(PartnerSite):
+    domain = 'www.wikidata.org'
+    img = 'wikidata.png'
+
