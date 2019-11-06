@@ -36,6 +36,14 @@
         A table of source bibliographies for Glottolog is available at
         <a href="${request.route_url('providers')}">References information</a>.
     </p>
+    <p>
+    The Agglomerated Endangerment Status (AES) is derived from the databases of
+    ${h.external_link("http://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
+    ,
+    ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}
+    and
+    ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}. For more information see ${h.link(req, ref)}.
+    </p>
 </div>
 <div class="span4 well well-small">
     <img src="${request.static_url('glottolog3:static/Spitzweg.jpg')}"/>
