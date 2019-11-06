@@ -520,6 +520,7 @@
         <%util:section title="Acknowledgements" prefix="">
             <p>Thanks </p>
             <ul class="itemize1">
+                <li class="itemize">To Hedvig Skirgård for miscellaneous corrections and issued raised</li>
                 <li class="itemize">To Tim Usher for many points of dicussion re Papuan languages</li>
                 <li class="itemize">To Mark Donohue for many points of dicussion re Papuan and Austronesian languages
                 </li>
