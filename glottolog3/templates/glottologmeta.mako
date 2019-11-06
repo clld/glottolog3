@@ -501,6 +501,22 @@
                 Glottolog never retires Glottocodes and keeps them also for bookkeeping purposes.
             </p>
         </%util:section>
+ 
+ 
+
+        <%util:section title="Agglomerated Endangerment Status (AES)" prefix="">
+        <p>
+    The Agglomerated Endangerment Status (AES) is derived from the databases of
+    ${h.external_link("http://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
+    ,
+    ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}
+    and
+    ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}. For more information see ${h.link(req, ref)}.
+</p>
+        </%util:section>
+        
+        
+        
         <%util:section title="Acknowledgements" prefix="">
             <p>Thanks </p>
             <ul class="itemize1">
