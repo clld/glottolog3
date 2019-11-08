@@ -28,7 +28,7 @@ class BibTexCitation(BibTex):
         url = '%s accessed %s' % (req.resource_url(ctx), datetime.date.today())
         return bibtex.Record('misc', req.dataset.id,
             author=[c.contributor.name for c in ctx.editors],
-            title=getattr(ctx, 'citation_name', ctx.__unicode__()),
+            title=getattr(ctx, 'citation_name', ctx.__str__()),
             url=url,
             address=req.dataset.publisher_place,
             howpublished=req.dataset.publisher_name,

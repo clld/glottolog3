@@ -172,7 +172,7 @@ class APiCS(PartnerSite):
     img = 'apics.png'
 
 
-class Endangered_Laguages(PartnerSite):
+class Endangered_Languages_Project(PartnerSite):
     domain = 'endangeredlanguages.com'
     img = 'ELP.png'
 

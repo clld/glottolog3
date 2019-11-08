@@ -5,7 +5,6 @@ from mako.template import Template
 import attr
 from sqlalchemy import create_engine
 from clldutils.path import write_text, remove, Path
-from clldutils.misc import UnicodeMixin
 from clldutils import jsonlib
 
 
@@ -94,7 +93,7 @@ def link_list(l):
 
 
 @attr.s
-class L(UnicodeMixin):
+class L:
     pk = attr.ib()
     id = attr.ib()
     name = attr.ib()
@@ -103,7 +102,7 @@ class L(UnicodeMixin):
     fpk = attr.ib(default=None)
     replacements = attr.ib(default=attr.Factory(list))
 
-    def __unicode__(self):
+    def __str__(self):
         res = '{0.name} [{0.id}]'.format(self)
         if self.level:
             res += ' {0.level}'.format(self)
@@ -113,7 +112,7 @@ class L(UnicodeMixin):
 
     @property
     def text(self):
-        return self.__unicode__()
+        return self.__str__()
 
     @property
     def link(self):
@@ -125,13 +124,13 @@ class L(UnicodeMixin):
 
 
 @attr.s
-class I(UnicodeMixin):
+class I:
     lpk = attr.ib()
     name = attr.ib()
     description = attr.ib()
     type = attr.ib()
 
-    def __unicode__(self):
+    def __str__(self):
         if self.type == 'name':
             return '{0.description} name: {0.name}'.format(self)
         return '{0.type}: {0.name}'.format(self)
