@@ -1,10 +1,10 @@
-from itertools import groupby
-from functools import reduce
+import pathlib
+import functools
+import itertools
 
 from mako.template import Template
 import attr
 from sqlalchemy import create_engine
-from clldutils.path import write_text, remove, Path
 from clldutils import jsonlib
 
 
@@ -139,7 +139,7 @@ class I:
 def dump(out, version, all_langs, identifiers):
     if out.exists():
         for p in out.iterdir():
-            remove(p)
+            p.unlink()
     else:
         out.mkdir()
 
@@ -148,7 +148,7 @@ def dump(out, version, all_langs, identifiers):
 
     children = {
         pk: list(c)
-        for pk, c in groupby(sorted(langs, key=lambda l: l.fpk or 0), lambda l: l.fpk)}
+        for pk, c in itertools.groupby(sorted(langs, key=lambda l: l.fpk or 0), lambda l: l.fpk)}
 
     for lang in langs:
         ancestors, fpk = [], lang.fpk
@@ -165,19 +165,19 @@ def dump(out, version, all_langs, identifiers):
         clf = [link_list(children.get(lang.pk, []))]
         clf.append(lang.text)
         clf.extend(a.link for a in ancestors)
-        write_text(
-            out.joinpath('{0}.html'.format(lang.id)),
+        out.joinpath('{0}.html'.format(lang.id)).write_text(
             T.render_unicode(
                 version=version,
                 lang=lang,
-                clf=reduce(wrap, clf) if not lang.replacements else '',
+                clf=functools.reduce(wrap, clf) if not lang.replacements else '',
                 versions=versions,
                 identifiers=identifiers.get(lang.pk, []),
                 replacements=[all_langs[version][lid].link for lid in lang.replacements
                               if lid in all_langs[version]],
                 wrap=wrap,
                 link_list=link_list,
-            )
+            ),
+            encoding='utf8',
         )
 
 
@@ -229,7 +229,7 @@ where li.identifier_pk = i.pk order by li.language_pk, i.type, i.description, i.
 
 
 def create(versions, out=None):
-    out = out or Path('archive')
+    out = out or pathlib.Path('archive')
     if not out.exists():
         out.mkdir()
 
@@ -242,7 +242,7 @@ def create(versions, out=None):
             out.joinpath('glottolog-{0}'.format(version)),
             version, 
             langs,
-            {pk: list(c) for pk, c in groupby(identifiers[version], lambda i: i.lpk)})
+            {pk: list(c) for pk, c in itertools.groupby(identifiers[version], lambda i: i.lpk)})
 
     gc2v = {}
     for v in versions:

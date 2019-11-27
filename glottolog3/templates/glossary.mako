@@ -69,23 +69,11 @@
 </%util:section>
 
 <%util:section title="Macro-area" level="4" id="macroarea">
-    <div class="span6 pull-right well well-small">
-        <img src="${request.static_url('glottolog3:static/macroareas.png')}"/>
-    </div>
-    <p>
-        An area of the globe of roughly continent size. The following areas
-        are distinguished in Glottolog:
-    </p>
-    <dl>
-        % for macroarea in macroareas.domain:
-            <dt id="macroarea-${macroarea.id}">${macroarea.name}</dt>
-            <dd>${macroarea.description}</dd>
-        % endfor
-    </dl>
+    <p>An area of the globe of roughly continent size.</p>
     ${u.markdown(macroareas.description.replace('1. ', '\n1. '))|n}
-    <p>
-        See ${h.link(req, macroareas_ref)}.
-    </p>
+    <p>See ${h.link(req, macroareas_ref)}.</p>
+    <p>The following areas are distinguished in Glottolog:</p>
+    ${macroarea_map.render()}
 </%util:section>
 <%util:section title="Pseudo-families" level="4">
     <p>

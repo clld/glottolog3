@@ -186,3 +186,7 @@ class Wikidata(PartnerSite):
     domain = 'www.wikidata.org'
     img = 'wikidata.png'
 
+
+class AIATSIS(PartnerSite):
+    domain = 'collection.aiatsis.gov.au'
+    img = 'aiatsis.png'

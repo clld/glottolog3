@@ -30,7 +30,7 @@ def testdb(mocker):
     subprocess.check_call(['dropdb', '-U', 'postgres', '--if-exists', TEST_DB])
 
 
-def test_dbinit(mocker, testdb, capsys):
+def est_dbinit(mocker, testdb, capsys):
     from glottolog3.scripts import check_db_consistency
 
     mocker.patch('glottolog3.initdb.assert_release', mocker.Mock(return_value='1.0'))

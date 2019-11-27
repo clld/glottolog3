@@ -1,3 +1,6 @@
+import json
+import pathlib
+
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clldutils import misc
@@ -52,6 +55,20 @@ def add_identifier(languoid, data, name, type, description, lang):
             description=description,
             lang=lang)
     DBSession.add(common.LanguageIdentifier(language=languoid, identifier=identifier))
+
+
+def read_macroarea_geojson(api, name, desc):
+    p = {
+        p.stem.replace('_', ''): p
+        for p in api.path('config', 'macroareas', 'voronoi').glob('*.geojson')
+    }[name.lower().replace(' ', '')]
+
+    with p.open(encoding='utf-8-sig') as fp:
+        d = json.load(fp)
+        d['properties'] = {
+            'label': name,
+            'description': '<strong>{0}:</strong> {1}'.format(name, desc)}
+        return d
 
 
 def add_parameter(data, id_, domain=None, name=None, pkw=None, dekw=None, delookup='id'):

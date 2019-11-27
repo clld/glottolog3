@@ -96,5 +96,10 @@ class LanguoidMap(Map):
             yield legend
 
 
+class MacroareaMap(Map):
+    def get_layers(self):
+        yield Layer('macroareas', 'macroareas', self.req.route_url('macroareas_geojson'))
+
+
 def includeme(config):
     config.register_map('language', LanguoidMap)

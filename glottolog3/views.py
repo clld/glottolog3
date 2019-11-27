@@ -11,7 +11,7 @@ from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
 from clld.db.models.common import (
-    Language, Source, LanguageIdentifier, Identifier, IdentifierType, Parameter,
+    Language, Source, LanguageIdentifier, Identifier, IdentifierType, Parameter, DomainElement,
 )
 from clld.db.util import icontains
 from clld.web.util.helpers import JS
@@ -41,6 +41,14 @@ class LanguoidsMultiSelect(MultiSelect):
         opts['formatResult'] = JS('GLOTTOLOG3.formatLanguoid')
         opts['formatSelection'] = JS('GLOTTOLOG3.formatLanguoid')
         return opts
+
+
+def macroareas_geojson(request):
+    mas = DBSession.query(DomainElement).join(Parameter).filter(Parameter.id == 'macroarea')
+    return {
+        'type': 'FeatureCollection',
+        'properties': {'layer': 'macroareas'},
+        'features': [ma.jsondata['geojson'] for ma in mas]}
 
 
 def iso(request):
@@ -118,8 +126,10 @@ def credits(request):
     return HTTPMovedPermanently(location=request.route_url('about'))
 
 
-def glossary(request):
+def glossary(ctx, request):
+    from glottolog3.maps import MacroareaMap
     res = {
+        'macroarea_map': MacroareaMap(ctx, request),
         'macroareas': DBSession.query(Parameter).filter(Parameter.id == 'macroarea')
             .options(joinedload(Parameter.domain))
             .one(),

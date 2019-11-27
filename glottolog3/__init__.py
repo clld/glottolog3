@@ -86,7 +86,6 @@ def main(global_config, **settings):
     #
     config.add_route('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml')
     config.add_route('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')
-
     config.include('clldmpg')
     config.add_route_and_view(
         'robots',
@@ -111,6 +110,10 @@ def main(global_config, **settings):
         adapter_factory('provider/index_html.mako', base=Index), IProvider)
     config.add_view(views.redirect_languoid_xhtml, route_name='languoid.xhtml')
     config.add_view(views.redirect_reference_xhtml, route_name='reference.xhtml')
+
+    config.add_route('macroareas_geojson', '/macroareas.geojson')
+    config.add_view(views.macroareas_geojson, route_name='macroareas_geojson', renderer='json')
+
     config.add_route_and_view('news', '/news', views.news, renderer='news.mako')
     config.add_route_and_view(
         'glottolog.meta',

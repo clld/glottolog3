@@ -19,6 +19,7 @@ from pyglottolog.references import BibFile
 from glottolog3 import models
 from glottolog3.scripts.util import (
     recreate_treeclosure, idjoin, add_parameter, split_items, add_identifiers, add_values,
+    read_macroarea_geojson,
 )
 
 
@@ -81,7 +82,11 @@ def load(args):
         pkw=dict(
             description=args.repos.macroareas.__defaults__['description'],
             jsondata=dict(reference_id=args.repos.macroareas.__defaults__['reference_id'])),
-        dekw=lambda de: dict(name=de.name, description=de.description),
+        dekw=lambda de: dict(
+            name=de.name,
+            description=de.description,
+            jsondata=dict(geojson=read_macroarea_geojson(args.repos, de.name, de.description)),
+        ),
     )
     add('ltype',
         args.repos.language_types.values(),
