@@ -8,7 +8,7 @@ from clld.scripts.util import get_env_and_settings
 
 
 def run(args):
-    _, settings = get_env_and_settings(args.pkg_dir.parent / 'development.ini')
+    _, settings = get_env_and_settings(str(args.pkg_dir.parent / 'development.ini'))
     fname = args.pkg_dir / 'static' / 'download' / 'glottolog.sql.gz'
 
     subprocess.check_call([

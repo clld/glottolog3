@@ -17,6 +17,7 @@ def register(parser):
         from cdstarcat.catalog import Catalog
     except ImportError:
         raise ParserError('pip install cdstarcat')
+    parser.add_argument('version')
     parser.add_argument(
         '--catalog', type=pathlib.Path, default=pathlib.Path(os.environ['CDSTAR_CATALOG']))
     parser.add_argument('--url', default=os.environ['CDSTAR_URL'])
@@ -32,7 +33,7 @@ def run(args):
     #
     dlfname = args.pkg_dir.joinpath('static', 'downloads.json')
     downloads = load(dlfname)
-    release = args.args[0]
+    release = args.version
     title_pattern = re.compile('glottolog (?P<version>[0-9.]+) - downloads')
     with args.catalog_class(args.catalog, args.url, args.user, args.pwd) as cat:
         #
@@ -69,6 +70,7 @@ def run(args):
                 if not skip:
                     print(fname.name)
                     obj.add_bitstream(fname=fname.as_posix(), name=bsname)
+        obj.read()
         cat.add(obj, update=True)
 
     with update(dlfname, default=collections.OrderedDict(), indent=4, sort_keys=True) as downloads:

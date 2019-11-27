@@ -3,16 +3,16 @@
 
 - Checkout the corresponding release of glottolog/glottolog.
 - For major or minor releases: create the static archive including the last release:
-  ```bash
+  ```shell script
   glottolog-app create_archive
   tar -czf archive.tgz archive/
   ```
 - initialize the DB running (about 60 mins)
-  ```bash
+  ```shell script
   glottolog-app dbinit
   ```
 - mark new languages running
-  ```bash
+  ```shell script
   glottolog-app mark_new_languages
   ```
 - remove old downloads:`rm glottolog3/static/download/glottolog*`
@@ -35,13 +35,13 @@
   - create release on GitHub
 
 - Now deploy to server:
-```
+```shell script
 workon appconfig
 cd appconfig/apps
 ```
 **Note**: For new major or minor releases, we must adapt the `dbdump` option in `apps.ini[glottolog3]` 
 to the new version.
-```
+```shell script
 cd appconfig/apps/glottolog3
 fab copy_archive:../../../../glottolog/glottolog3/archive.tgz
 fab deploy:production
