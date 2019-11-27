@@ -450,3 +450,7 @@ def format_links(req, lang):
             if ps.match(domain):
                 links.extend([link(*ps.href_label_img_alt(l)) for l in _links])
     return HTML.ul(*links, **{'class': "nav nav-tabs nav-stacked"})
+
+
+def dataset_detail_html(request=None, context=None, **kw):
+    return {'numrefs': '{0:,}'.format(DBSession.query(Source).count())}

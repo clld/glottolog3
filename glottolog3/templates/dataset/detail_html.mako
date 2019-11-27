@@ -57,7 +57,7 @@
         <p>
             The <a href="${request.route_url('sources')}" title="langdoc">References </a>
             section ('langdoc') provides a comprehensive collection of bibliographical data for the world's lesser
-            known languages. It provides access to more than 180,000 references of descriptive works such as
+            known languages. It provides access to ${numrefs} references of descriptive works such as
             grammars, dictionaries, word lists, texts etc. Search criteria include author, year, title,
             country, and genealogical affiliation. References can be downloaded as txt, bib, html,
             or with the
