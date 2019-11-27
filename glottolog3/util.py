@@ -371,6 +371,8 @@ def language_snippet_html(request=None, context=None, **kw):
 
 
 def md(req, s, small=False):
+    s = s.replace('``', '\u201c')
+    s = s.replace("''", '\u201d')
     res = linkify_iso_codes(req, s)
     res = format_comment(req, res)
     res = markdown(res, extensions=['markdown.extensions.tables'])
