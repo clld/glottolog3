@@ -31,7 +31,7 @@
 
 <div class="row-fluid">
     <div class="span6">
-        <h3>GlottoScope</h3>
+        <h3>GlottoScope${' - {0}'.format(' and '.join(countries.values())) if countries else ''}</h3>
 
         <div class="alert alert-info">
             You can investigate the documentation status for the selected languages and year
@@ -81,22 +81,24 @@
             </tr>
             </thead>
             <tbody>
-            <tr>
-                <td>Macroarea:</td>
-                <td>
-                    <select id="macroarea">
-                        <option value=""${' selected="selected"' if not macroarea else ''}>any</option>
-                        % for ma in macroareas.domain:
-                        <option value="${ma.name}"${' selected="selected"' if macroarea == ma.name else ''}>${ma.name}</option>
-                        % endfor
-                    </select>
-                    <input type="hidden" id="countries" value="${' '.join(countries)}"/>
-                </td>
-            </tr>
-            <tr>
-                <td>Family:</td>
-                <td>${families.render()}</td>
-            </tr>
+            % if not countries:
+                <tr>
+                    <td>Macroarea:</td>
+                    <td>
+                        <select id="macroarea">
+                            <option value=""${' selected="selected"' if not macroarea else ''}>any</option>
+                            % for ma in macroareas.domain:
+                                <option value="${ma.name}"${' selected="selected"' if macroarea == ma.name else ''}>${ma.name}</option>
+                            % endfor
+                        </select>
+                        <input type="hidden" id="countries" value="${' '.join(countries)}"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Family:</td>
+                    <td>${families.render()}</td>
+                </tr>
+            % endif
             <tr>
                 <td>Focus:</td>
                 <td>

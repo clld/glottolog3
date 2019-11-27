@@ -5,7 +5,7 @@ Language Description Status Browser
 The description status of languages can be investigated in relation to the vitality (or
 endangerment) of a language.
 """
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import json
 
 import attr
@@ -274,10 +274,17 @@ def browser(req):
             spec = shape + color
             icon_map[spec] = req.static_url('clld:web/static/icons/%s.png' % spec)
 
+    countries = OrderedDict()
+    for c in req.params.getall('country'):
+        countries[c] = DBSession.query(common.DomainElement).join(common.Parameter)\
+            .filter(common.Parameter.id == 'country')\
+            .filter(common.DomainElement.name == c)\
+            .one().description
+
     return {
         'families': ms,
         'macroareas': get_parameter('macroarea'),
-        'countries': req.params.getall('country'),
+        'countries': countries,
         'map': DescStatsMap(language_query(req), req, icon_map, focus, im),
         'icon_map': icon_map,
         'focus': focus,

@@ -6,7 +6,11 @@
 <h2>
     ${_('Languages')}
     % if country:
-        of ${country.name}
+        of ${country.description}
+        ${h.button(
+            h.icon('search'),
+            href=req.route_url('langdocstatus.browser',_query={'focus': 'ed', 'country': country.name}),
+            title="go to GlottoScope", class_='btn-mini')}
     % endif
 </h2>
 
