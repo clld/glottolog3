@@ -510,7 +510,7 @@
                 ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}
                 and
                 ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}. For more information see
-                <a href="${req.route_url('langdocstatus')}">GlottoScope</a>.
+                <a href="${req.route_url('langdocstatus')}">GlottoScope</a>, which also contains information on descriptive status.
             </p>
         </%util:section>
 
