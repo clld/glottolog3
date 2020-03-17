@@ -9,13 +9,14 @@ from pyramid.httpexceptions import HTTPFound
 
 from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex, IParameter
 from clld.web.adapters.base import Representation, Index
-from clld.web.adapters.download import CsvDump, N3Dump
+from clld.web.adapters.download import CsvDump, N3Dump, Download
 from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter
 from clld.web.adapters.md import BibTex
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter
 from clld.web.icon import ORDERED_ICONS
 from clld.lib import bibtex
+from clldutils.misc import to_binary
 
 from glottolog3.models import Languoid, LanguoidLevel
 from glottolog3.interfaces import IProvider
@@ -75,6 +76,25 @@ class LanguoidCsvDump(CsvDump):
 
     def row(self, req, fd, item, index):
         return item
+
+
+class TurtleDump(Download):
+    ext = 'ttl'
+
+    def dump_rendered(self, req, fp, item, index, rendered):
+        header, body = rendered.split(to_binary('\n\n'), 1)
+        if index == 0:
+            fp.write(header)
+            fp.write(to_binary('\n\n'))
+        fp.write(body)
+
+
+class LanguoidTurtleDump(TurtleDump):
+
+    def query(self, req):
+        return req.db.query(Language).options(sa.orm.joinedload_all(
+            Language.languageidentifier, LanguageIdentifier.identifier))\
+            .order_by(Language.pk)
 
 
 class LanguoidN3Dump(N3Dump):

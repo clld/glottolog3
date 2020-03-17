@@ -156,6 +156,8 @@ def main(global_config, **settings):
     assert config.registry.unregisterUtility(provided=IDownload, name='dataset.cldf')
     config.register_download(adapters.LanguoidCsvDump(
         models.Languoid, 'glottolog3', description="Languoids as CSV"))
+    config.register_download(adapters.LanguoidTurtleDump(
+        Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(adapters.LanguoidN3Dump(
         Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
