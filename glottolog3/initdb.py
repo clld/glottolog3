@@ -430,13 +430,14 @@ def load_ref(data, entry, lgcodes, lgsources):
                 ref_pk=ref.pk,
                 id='{0}:{1}'.format(prov, key)))
 
-    langs, trigger = entry.languoids(lgcodes)
-    if trigger and ((provs in no_ca) or (reflangs)):
-        # Discard computerized assigned languoids for bibs where this does not make sense,
-        # or for bib entries that have been manually assigned in a Languoid's ini file.
-        langs, trigger = [], None
+    if not reflangs:
+        reflangs, trigger = entry.languoids(lgcodes)
+        if trigger and ((provs in no_ca) or (reflangs)):
+            # Discard computerized assigned languoids for bibs where this does not make sense,
+            # or for bib entries that have been manually assigned in a Languoid's ini file.
+            reflangs, trigger = [], None
 
-    for lid in set(reflangs + langs):
+    for lid in set(reflangs):
         DBSession.add(
             common.LanguageSource(
                 language_pk=data['Languoid'][lid].pk, source_pk=ref.pk, active=not bool(trigger)))
