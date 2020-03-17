@@ -11,6 +11,7 @@
   ```shell script
   glottolog-app dbinit
   ```
+  and check language associations, see e.g. https://github.com/glottolog/glottolog/issues/485
 - mark new languages running
   ```shell script
   glottolog-app mark_new_languages
