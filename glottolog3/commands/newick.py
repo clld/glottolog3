@@ -8,7 +8,9 @@ def run(args):
     nodes = collections.OrderedDict((l.id, l) for l in args.repos.languoids())
     trees = []
     for lang in nodes.values():
-        if not lang.lineage and not lang.category.startswith('Pseudo '):
+        if not lang.lineage and (
+                lang.id == args.repos.language_types['sign_language'].pseudo_family_id or
+                not lang.category.startswith('Pseudo ')):
             ns = lang.newick_node(nodes=nodes).newick
             if lang.level == args.repos.languoid_levels.language and not ns.startswith('('):
                 # an isolate without dialects: we wrap it in a pseudo-family with the

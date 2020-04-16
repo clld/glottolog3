@@ -416,7 +416,7 @@ def load_ref(data, entry, lgcodes, lgsources):
     DBSession.add(ref)
     DBSession.flush()
 
-    reflangs = []
+    reflangs, trigger = [], None
     no_ca = [{'degruyter'}, {'benjamins'}]
     provs = set()
     for key in entry.fields['srctrickle'].split(','):
