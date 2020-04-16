@@ -17,7 +17,7 @@ def register(parser):
         from cdstarcat.catalog import Catalog
     except ImportError:
         raise ParserError('pip install cdstarcat')
-    parser.add_argument('version')
+    parser.add_argument('version', help="version number without 'v' prefix")
     parser.add_argument(
         '--catalog', type=pathlib.Path, default=pathlib.Path(os.environ['CDSTAR_CATALOG']))
     parser.add_argument('--url', default=os.environ['CDSTAR_URL'])

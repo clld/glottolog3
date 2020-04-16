@@ -1,6 +1,8 @@
 
 # Releasing https://glottolog.org
 
+- Remove hacked in editor in glottolog3/templates/dataset/md_txt.mako !
+
 - Checkout the corresponding release of glottolog/glottolog.
 - For major or minor releases: create the static archive including the last release:
   ```shell script
