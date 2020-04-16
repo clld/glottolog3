@@ -9,10 +9,17 @@ from clldutils.apilib import assert_release
 from glottolog3.cli_util import get_releases
 
 
+def register(parser):
+    parser.add_argument('--previous', help='previous version to compare against', default=None)
+
+
 def run(args):
     version = assert_release(args.repos.repos)
-    rels = get_releases(args)
-    last = sorted(set(rel.tag for rel in rels) - {version}, key=lambda s: float(s[1:]))[-1][1:]
+    if args.previous:
+        last = args.previous
+    else:
+        rels = get_releases(args)
+        last = sorted(set(rel.tag for rel in rels) - {version}, key=lambda s: float(s[1:]))[-1][1:]
     print('previous version: {0}'.format(last))
 
     cdb = create_engine('postgresql://postgres@/glottolog3')
