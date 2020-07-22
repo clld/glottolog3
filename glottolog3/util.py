@@ -286,9 +286,9 @@ def normalize_language_explanation(chunk):
 
 def format_languages(req, ref):
     ldict = {l.hid: l for l in ref.languages}
-    in_note = {}
+    ldict.update({l.id: l for l in ref.languages})
+    in_note = set()
     lnotes = map(normalize_language_explanation, (ref.jsondata.get('lgcode', '')).split('],'))
-
     for lnote in lnotes:
         note = []
         start = 0
@@ -297,7 +297,7 @@ def format_languages(req, ref):
             note.append(lnote[start:m.start()])
             note.append('[')
             if m.group('id') in ldict:
-                in_note[m.group('id')] = 1
+                in_note.add(m.group('id'))
                 lang = ldict[m.group('id')]
                 note.append(link(req, lang, label=lang.id, title=lang.name))
             else:
@@ -308,8 +308,8 @@ def format_languages(req, ref):
             note.append(lnote[m.end():])
         yield HTML.li(*note)
 
-    for lang in ldict.values():
-        if lang.hid not in in_note:
+    for lang in set(ldict.values()):
+        if (lang.hid not in in_note) and (lang.id not in in_note):
             yield HTML.li(
                 lang.name + ' [', link(req, lang, label=lang.id, title=lang.name), ']')
 
