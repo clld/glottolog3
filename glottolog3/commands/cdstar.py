@@ -12,7 +12,7 @@ from clldutils.path import md5
 from clldutils.clilib import ParserError
 
 
-def register(parser):
+def register(parser):  # pragma: no cover
     try:
         from cdstarcat.catalog import Catalog
     except ImportError:
@@ -26,7 +26,7 @@ def register(parser):
     parser.add_argument('--catalog_class', help=argparse.SUPPRESS, default=Catalog)
 
 
-def run(args):
+def run(args):  # pragma: no cover
     #
     # FIXME: look up oid for release in downloads.json! if it exists, replace the bitstreams
     # rather than creating a new object!

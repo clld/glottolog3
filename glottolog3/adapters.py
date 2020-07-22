@@ -7,11 +7,11 @@ import sqlalchemy as sa
 import sqlalchemy.orm
 from pyramid.httpexceptions import HTTPFound
 
-from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex, IParameter
+from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex, IParameter, IRepresentation
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump, Download
 from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter
-from clld.web.adapters.md import BibTex
+from clld.web.adapters.md import BibTex, ReferenceManager
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter
 from clld.web.icon import ORDERED_ICONS
@@ -21,19 +21,34 @@ from clldutils.misc import to_binary
 from glottolog3.models import Languoid, LanguoidLevel
 from glottolog3.interfaces import IProvider
 from glottolog3 import maps
+from glottolog3.util import DOI
+
+
+def rec(ctx, req):
+    url = '%s accessed %s' % (req.resource_url(ctx), datetime.date.today())
+    return bibtex.Record(
+        'book',
+        req.dataset.id,
+        author=[c.contributor.name for c in ctx.editors],
+        title=getattr(ctx, 'citation_name', ctx.__str__()),
+        url=url,
+        address=req.dataset.publisher_place,
+        howpublished=req.dataset.publisher_name,
+        year=str(req.dataset.published.year),
+        doi=DOI,
+    )
 
 
 class BibTexCitation(BibTex):
 
     def rec(self, ctx, req):
-        url = '%s accessed %s' % (req.resource_url(ctx), datetime.date.today())
-        return bibtex.Record('misc', req.dataset.id,
-            author=[c.contributor.name for c in ctx.editors],
-            title=getattr(ctx, 'citation_name', ctx.__str__()),
-            url=url,
-            address=req.dataset.publisher_place,
-            howpublished=req.dataset.publisher_name,
-            year=str(req.dataset.published.year))
+        return rec(ctx, req)
+
+
+class RIS(ReferenceManager):
+
+    def rec(self, ctx, req):
+        return rec(ctx, req)
 
 
 class LanguoidCsvDump(CsvDump):
@@ -279,6 +294,9 @@ class GeoJsonFeature(GeoJsonParameter):
 def includeme(config):
     config.register_adapter(GeoJsonFeature, IParameter)
     config.register_adapter(BibTexCitation, IDataset, IMetadata)
+    config.register_adapter(BibTexCitation, IDataset, IRepresentation)
+    config.register_adapter(RIS, IDataset, IMetadata)
+    config.register_adapter(RIS, IDataset, IRepresentation)
     config.register_adapter(Redirect, IProvider)
     config.register_adapter(Bigmap, ILanguage)
     config.register_adapter(PhyloXML, ILanguage)

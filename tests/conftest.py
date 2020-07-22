@@ -25,4 +25,3 @@ def data(settings):
     yield engine
 
     DBSession.close()
-

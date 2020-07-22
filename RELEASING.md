@@ -9,7 +9,7 @@
   ```
 - initialize the DB running (about 60 mins)
   ```shell script
-  glottolog-app dbinit
+  clld initdb development.ini
   ```
   and check language associations, see e.g. https://github.com/glottolog/glottolog/issues/485
 - mark new languages running
@@ -18,7 +18,13 @@
   ```
 - remove old downloads:`rm glottolog3/static/download/glottolog*`
 - run `clld-create-downloads development.ini` - about 45 mins
-- run `glottolog-app downloads` to create
+- run
+  ```shell script
+  glottolog-app newick
+  glottolog-app geo development.ini
+  glottolog-app sqldump development.ini
+  ``` 
+  to create
   - global newick tree
   - languages_and_dialects_geo.csv
   - gzipped db dump
@@ -29,7 +35,7 @@
 - register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
 - `clld-llod` ?
-- update the landing page with the new ZENODO DOI
+- update `glottolog3.util.DOI` with the new ZENODO DOI
 
 - draft release of clld/glottolog3
   - commit all changes to glottolog3

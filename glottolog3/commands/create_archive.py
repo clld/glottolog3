@@ -7,7 +7,7 @@ from glottolog3.cli_util import get_releases
 from glottolog3 import static_archive
 
 
-def register(parser):
+def register(parser):  # pragma: no cover
     parser.add_argument(
         '--output',
         type=pathlib.Path,
@@ -15,7 +15,7 @@ def register(parser):
     )
 
 
-def run(args):
+def run(args):  # pragma: no cover
     rels = get_releases(args)
     for rel in rels:
         rel.load_sql_dump(args.log)

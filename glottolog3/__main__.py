@@ -13,7 +13,6 @@ import glottolog3
 import glottolog3.commands
 
 
-
 def main(args=None, catch_all=False, parsed_args=None, log=None):
     try:
         repos = Config.from_file().get_clone('glottolog')
@@ -37,7 +36,7 @@ def main(args=None, catch_all=False, parsed_args=None, log=None):
 
     args = parsed_args or parser.parse_args(args=args)
 
-    if not hasattr(args, "main"):
+    if not hasattr(args, "main"):  # pragma: no cover
         parser.print_help()
         return 1
 
@@ -56,7 +55,7 @@ def main(args=None, catch_all=False, parsed_args=None, log=None):
             return args.main(args) or 0
         except KeyboardInterrupt:  # pragma: no cover
             return 0
-        except ParserError as e:
+        except ParserError as e:  # pragma: no cover
             print(e)
             return main([args._command, '-h'])
         except Exception as e:  # pragma: no cover

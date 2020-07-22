@@ -1,10 +1,11 @@
+import pathlib
 from collections import defaultdict, OrderedDict
 from time import time
 import functools
 
 import attr
 import purl
-from clld.scripts.util import Data, add_language_codes
+from clld.cliutil import Data, add_language_codes
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.db import fts
@@ -14,8 +15,10 @@ from clldutils.text import split_text
 from clldutils.apilib import assert_release
 from sqlalchemy.orm import joinedload
 
+from pyglottolog import Glottolog
 from pyglottolog.references import BibFile
 
+import glottolog3
 from glottolog3 import models
 from glottolog3.scripts.util import (
     recreate_treeclosure, idjoin, add_parameter, split_items, add_identifiers, add_values,
@@ -23,12 +26,16 @@ from glottolog3.scripts.util import (
 )
 
 
-def gc2version(args):
-    return args.pkg_dir.parent / 'archive' / 'glottocode2version.json'
+def gc2version():
+    return pathlib.Path(glottolog3.__file__).parent.parent / 'archive' / 'glottocode2version.json'
 
 
-def load(args):
-    glottolog = args.repos
+def get_glottolog_api(repos):
+    return Glottolog(repos or pathlib.Path(glottolog3.__file__).parent.parent.joinpath('glottolog'))
+
+
+def main(args, repos=None):
+    glottolog = get_glottolog_api(repos)
     fts.index('fts_index', models.Ref.fts, DBSession.bind)
     DBSession.execute("CREATE EXTENSION IF NOT EXISTS unaccent WITH SCHEMA public;")
     version = assert_release(glottolog.repos)
@@ -41,14 +48,15 @@ def load(args):
         license=glottolog.publication.license.url,
         domain=purl.URL(glottolog.publication.web.url).domain(),
         contact=glottolog.publication.web.contact,
-        jsondata={'license_icon': 'cc-by.png', 'license_name': glottolog.publication.license.name},
+        jsondata={
+            'license_icon': 'cc-by.png',
+            'license_name': glottolog.publication.license.name},
     )
     data = Data()
 
-    for e in glottolog.editors.values():
-        if e.current:
-            ed = data.add(common.Contributor, e.id, id=e.id, name=e.name)
-            common.Editor(dataset=dataset, contributor=ed, ord=int(e.ord))
+    for e in glottolog.current_editors:
+        ed = data.add(common.Contributor, e.id, id=e.id, name=e.name)
+        common.Editor(dataset=dataset, contributor=ed, ord=int(e.ord))
     DBSession.add(dataset)
 
     contrib = data.add(common.Contribution, 'glottolog', id='glottolog', name='Glottolog')
@@ -62,44 +70,44 @@ def load(args):
     add('fc', name='Family classification')
     add('sc', name='Subclassification')
     add('aes',
-        args.repos.aes_status.values(),
-        name=args.repos.aes_status.__defaults__['name'],
+        glottolog.aes_status.values(),
+        name=glottolog.aes_status.__defaults__['name'],
         pkw=dict(
             jsondata=dict(
-                reference_id=args.repos.aes_status.__defaults__['reference_id'],
-                sources=[attr.asdict(v) for v in args.repos.aes_sources.values()],
-                scale=[attr.asdict(v) for v in args.repos.aes_status.values()])),
+                reference_id=glottolog.aes_status.__defaults__['reference_id'],
+                sources=[attr.asdict(v) for v in glottolog.aes_sources.values()],
+                scale=[attr.asdict(v) for v in glottolog.aes_status.values()])),
         dekw=lambda de: dict(name=de.name, number=de.ordinal, jsondata=dict(icon=de.icon)),
     )
     add('med',
-        args.repos.med_types.values(),
+        glottolog.med_types.values(),
         name='Most Extensive Description',
         dekw=lambda de: dict(
             name=de.name, description=de.description, number=de.rank, jsondata=dict(icon=de.icon)),
     )
     add('macroarea',
-        args.repos.macroareas.values(),
+        glottolog.macroareas.values(),
         pkw=dict(
-            description=args.repos.macroareas.__defaults__['description'],
-            jsondata=dict(reference_id=args.repos.macroareas.__defaults__['reference_id'])),
+            description=glottolog.macroareas.__defaults__['description'],
+            jsondata=dict(reference_id=glottolog.macroareas.__defaults__['reference_id'])),
         dekw=lambda de: dict(
             name=de.name,
             description=de.description,
-            jsondata=dict(geojson=read_macroarea_geojson(args.repos, de.name, de.description)),
+            jsondata=dict(geojson=read_macroarea_geojson(glottolog, de.name, de.description)),
         ),
     )
     add('ltype',
-        args.repos.language_types.values(),
+        glottolog.language_types.values(),
         name='Language Type',
         dekw=lambda de: dict(name=de.category, description=de.description),
         delookup='category',
     )
     add('country',
-        args.repos.countries,
+        glottolog.countries,
         dekw=lambda de: dict(name=de.id, description=de.name),
     )
 
-    legacy = jsonlib.load(gc2version(args))
+    legacy = jsonlib.load(gc2version())
     for gc, version in legacy.items():
         data.add(models.LegacyCode, gc, id=gc, version=version)
 
@@ -110,7 +118,7 @@ def load(args):
     # Note: We rely on languoids() yielding languoids in the "right" order, i.e. such that top-level
     # nodes will precede nested nodes. This order must be preserved using an `OrderedDict`:
     nodemap = OrderedDict([(l.id, l) for l in glottolog.languoids()])
-    lgcodes = {k: v.id for k, v in args.repos.languoids_by_code(nodemap).items()}
+    lgcodes = {k: v.id for k, v in glottolog.languoids_by_code(nodemap).items()}
     for lang in nodemap.values():
         for ref in lang.sources:
             lgsources['{0.provider}#{0.bibkey}'.format(ref)].append(lang.id)
@@ -163,7 +171,7 @@ def load(args):
             ref.macroareas = ', '.join(mas)
 
 
-def prime(args):
+def prime_cache(args, repos=None):
     """If data needs to be denormalized for lookup, do that here.
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
@@ -171,6 +179,7 @@ def prime(args):
     #
     # Now that we loaded all languoids and refs, we can compute the MED values.
     #
+    glottolog = get_glottolog_api(repos)
     meds = defaultdict(list)
     for lpk, spk, sid, sname, med_type, year, pages in DBSession.execute("""\
 select
@@ -216,7 +225,7 @@ order by
         )
         DBSession.add(common.Value(
             id=idjoin('med', l.id),
-            name=getattr(args.repos.med_types, med[3]).name,
+            name=getattr(glottolog.med_types, med[3]).name,
             domainelement=med_domain[idjoin('med', med[3])],
             valueset=vs,
         ))
@@ -277,8 +286,8 @@ group by l.id, l.pk, vs.contribution_pk, vs.parameter_pk"""):
     )):
         raise ValueError(row)
 
-    version = assert_release(args.repos.repos)
-    with jsonlib.update(gc2version(args), indent=4) as legacy:
+    version = assert_release(glottolog.repos)
+    with jsonlib.update(gc2version(), indent=4) as legacy:
         for lang in DBSession.query(common.Language):
             if lang.id not in legacy:
                 lang.update_jsondata(new=True)
@@ -293,7 +302,7 @@ group by l.id, l.pk, vs.contribution_pk, vs.parameter_pk"""):
     for vsid, vspk in valuesets.items():
         if vsid.startswith('macroarea-'):
             DBSession.add(common.ValueSetReference(
-                source_pk=refs[args.repos.macroareas.__defaults__['reference_id']],
+                source_pk=refs[glottolog.macroareas.__defaults__['reference_id']],
                 valueset_pk=vspk))
 
     for vs in DBSession.query(common.ValueSet)\
@@ -303,8 +312,8 @@ group by l.id, l.pk, vs.contribution_pk, vs.parameter_pk"""):
             DBSession.add(common.ValueSetReference(
                 source_pk=refs[vs.jsondata['reference_id']], valueset_pk=vs.pk))
 
-    for lang in args.repos.languoids():
-        if lang.category == args.repos.language_types.bookkeeping.category:
+    for lang in glottolog.languoids():
+        if lang.category == glottolog.language_types.bookkeeping.category:
             continue
         clf = lang.classification_comment
         if clf:

@@ -6,7 +6,6 @@ import itertools
 from sqlalchemy import func, or_, and_, literal, union_all, select, true
 from sqlalchemy import orm
 
-from clld.scripts.util import parsed_args
 from clld.db.meta import DBSession
 from clld.db.models import Config, Language, LanguageIdentifier, Identifier, ValueSet
 
@@ -310,7 +309,3 @@ def main(args):
         if cls.__name__ != 'Check':
             check = cls()
             check.validate()
-
-
-if __name__ == '__main__':  # pragma: no cover
-    main(parsed_args())

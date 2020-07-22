@@ -9,11 +9,11 @@ from clldutils.apilib import assert_release
 from glottolog3.cli_util import get_releases
 
 
-def register(parser):
+def register(parser):  # pragma: no cover
     parser.add_argument('--previous', help='previous version to compare against', default=None)
 
 
-def run(args):
+def run(args):  # pragma: no cover
     version = assert_release(args.repos.repos)
     if args.previous:
         last = args.previous

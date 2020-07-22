@@ -1,14 +1,8 @@
 import configparser
 
-from clld.scripts.util import setup_session
-
 from glottolog3.releases import Release
 
-__all__ = ['get_releases', 'get_release', 'with_session']
-
-
-def with_session(args):
-    setup_session(str(args.pkg_dir.parent.joinpath('development.ini')))
+__all__ = ['get_releases', 'get_release']
 
 
 def get_releases(args):

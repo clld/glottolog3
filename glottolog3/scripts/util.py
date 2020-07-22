@@ -41,7 +41,7 @@ def add_identifiers(data, dblang, items, name_type=False):
 
 
 def add_identifier(languoid, data, name, type, description, lang):
-    if len(lang) > 3:
+    if len(lang) > 3:  # pragma: no cover
         # Weird stuff introduced via hhbib_lgcode names. Roll back language parsing.
         name, lang = '{0} [{1}]'.format(name, lang), 'en'
     identifier = data['Identifier'].get((name, type, description, lang))
@@ -98,7 +98,7 @@ def add_values(data, dblang, pid, values, with_de=True, **vskw):
 
 def idjoin(*args):
     if len(args) == 1 and isinstance(args[0], (tuple, list)):
-        args = args[0]
+        args = args[0]  # pragma: no cover
     return '-'.join(['{0}'.format(a) for a in args])
 
 

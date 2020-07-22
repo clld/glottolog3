@@ -31,9 +31,7 @@ class LanguoidGeoJson(GeoJson):
         return {'layer': getattr(ctx, 'id', '')}
 
     def feature_properties(self, ctx, req, feature):
-        if self.icon_map:
-            return {'icon': self.icon_map[feature[0]], 'branch': feature[0]}
-        return {}
+        return {'icon': self.icon_map[feature[0]], 'branch': feature[0]} if self.icon_map else {}
 
     def get_language(self, ctx, req, feature):
         return Language(*feature)
