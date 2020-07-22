@@ -6,7 +6,7 @@ from collections import OrderedDict
 from pyramid.httpexceptions import (
     HTTPNotAcceptable, HTTPNotFound, HTTPFound, HTTPMovedPermanently,
 )
-from sqlalchemy import and_, true, false, null, or_, not_, desc
+from sqlalchemy import and_, true, null, or_, not_, desc
 from sqlalchemy.sql.expression import func
 from sqlalchemy.orm import joinedload
 from clld.db.meta import DBSession
@@ -133,7 +133,7 @@ def glossary(ctx, request):
         'macroareas': DBSession.query(Parameter).filter(Parameter.id == 'macroarea')
             .options(joinedload(Parameter.domain))
             .one(),
-        'doctypes': DBSession.query(Doctype).order_by(Doctype.name)}
+        'doctypes': DBSession.query(Doctype).order_by(desc(Doctype.ord))}
     res['macroareas_ref'] = get_source(res['macroareas'].jsondata['reference_id'])
     return res
 
