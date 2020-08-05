@@ -272,7 +272,7 @@ def browser(req):
     for shape in [o.shape for o in shapes.values()]:
         for color in [o.color for o in colors.values()] + ['ffffff']:
             spec = shape + color
-            icon_map[spec] = req.static_url('clld:web/static/icons/%s.png' % spec)
+            icon_map[spec] = svg.data_url(svg.icon(spec))
 
     countries = OrderedDict()
     for c in req.params.getall('country'):

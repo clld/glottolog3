@@ -116,7 +116,9 @@ GLOTTOLOG3.LangdocStatus = (function(){
                     // set the defaults:
                     url = marker.feature.properties.red_icon;
                     marker.feature.properties.info_query = {
-                        'glottoscope': 't', 'edsrc': marker.feature.properties.edsrc};
+                        'year': year,
+                        'glottoscope': 't',
+                        'edsrc': marker.feature.properties.edsrc};
 
                     if (marker.feature.properties.sources) {
                         // try to find a source respecting the cut-off year
