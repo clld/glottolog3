@@ -428,16 +428,23 @@ def load_ref(data, entry, lgcodes, lgsources):
     reflangs, trigger = [], None
     no_ca = [{'degruyter'}, {'benjamins'}]
     provs = set()
+    sources = defaultdict(list)
     for key in entry.fields['srctrickle'].split(','):
         key = key.strip()
         if key:
-            reflangs.extend(lgsources.get(key, []))
             prov, key = key.split('#', 1)
             provs.add(prov)
+            sources[prov].extend(lgsources.get(key, []))
             DBSession.add(models.Refprovider(
                 provider_pk=data['Provider'][prov].pk,
                 ref_pk=ref.pk,
                 id='{0}:{1}'.format(prov, key)))
+
+    if 'hh' in sources:
+        reflangs.extend(sources['hh'])
+    else:
+        for v in sources.values():
+            reflangs.extend(v)
 
     if not reflangs:
         reflangs, trigger = entry.languoids(lgcodes)
