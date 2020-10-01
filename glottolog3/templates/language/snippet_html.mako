@@ -6,7 +6,11 @@
     <h4>${valueset.parameter.id.upper()}</h4>
     <img src="${svg.data_url(svg.icon(valueset.values[0].domainelement.jsondata['icon']))}" width="20" height="20"/>
     <strong>${valueset.values[0].name}</strong>
-    (${h.linked_references(req, valueset)})
+    % if request.params.get('edsrc') == 'Glottolog':
+        (Glottolog)
+    % else:
+        (${h.linked_references(req, valueset)})
+    % endif
 </%def>
 
 

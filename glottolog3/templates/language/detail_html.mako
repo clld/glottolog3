@@ -90,7 +90,13 @@
                     <dt>AES status:</dt>
                     <dd>${aes.values[0].name}</dd>
                     <dt>Source:</dt>
-                    <dd>${h.linked_references(req, aes)}</dd>
+                    <dd>
+                        % if aes.jsondata['id'] == 'Glottolog':
+                            Glottolog
+                        % else:
+                            ${h.linked_references(req, aes)}
+                        % endif
+                    </dd>
                     % if aes.description:
                         <dt>Comment:</dt>
                         <dd>${aes.description}</dd>
