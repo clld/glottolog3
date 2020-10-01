@@ -95,8 +95,8 @@
                 into genealogical families (and isolates). The other kinds of languages are filed into
                 the other categories that were listed above. Glottolog is complete only for classifiable languages.
                 Regarding
-                unattested and unclassifiable languages, see <a href="${request.route_url('source', id=308733)}">Harald
-                Hammarström (2012)</a>.
+                unattested and unclassifiable languages, see <a href="${request.route_url('source', id=476024)}">Harald
+                Hammarström (2015)</a>.
                 A comprehensive listing of pidgins is <a href="${request.route_url('source', id=129370)}">Peter Bakker
                 and Mikael Parkvall (2010)</a>.
                 This listing differentiates different levels of
@@ -421,12 +421,15 @@
             <p>
                 For example, <a href="${request.route_url('language', id='tuca1253')}">Tucanoan</a> is a
                 South American language family. <a href="${request.route_url('source', id=310719)}">Chacon, Thiago C.
-                (2012)</a> contains a subgrouping based on
+                (2012)</a>, with later amendments in <a href="${request.route_url('source', id=576304)}">Ramirez, Henri.
+                (2019:5-7)</a>, contains a subgrouping based on
                 shared phonological innovations and defines the position in the tree for all the below nodes except
-                Arapaso, Miriti, Macaguaje and Tama, which fall outside the scope of his study. Thus, <a
-                    href="${request.route_url('source', id=310719)}">Chacon, Thiago C. (2012)</a> is given
-                as the reference justifying the top-level family as well as the reference justifying most intermediate
-                nodes.
+                Arapaso, Miriti, Macaguaje, Kueretu and Tama, which fall outside the scope of his study. Thus, <a
+                    href="${request.route_url('source', id=310719)}">Chacon, Thiago C. (2012)</a> and <a href="${request.route_url('source', id=576304)}">Ramirez, Henri.
+                (2019:5-7)</a> are given
+                as the references justifying the top-level family as well as the reference justifying most intermediate
+                nodes. For Western Tucanoan there's also the study by <a href="${request.route_url('source', id=557465)}">Skilton, Amalia.
+                (2013)</a>, which is added to the two for that node.
                 The remaining languages, Arapaso, Miriti, Macaguaje and Tama do exist (or did exist) and they are
                 arguably
                 Tucanoan. For Macaguaje and Tama, a small amount of data is attested and published, and this is enough
@@ -434,20 +437,23 @@
                 <a href="${request.route_url('source', id=56760)}">Sergio Elías Ortiz (1965:133)</a> to show that they
                 are within the
                 <a href="${request.route_url('language', id='sion1248')}">Siona-Secoya</a>
-                group. Thus, here <a href="${request.route_url('source', id=56760)}">Sergio Elías Ortiz (1965:133)</a>
-                is cited as
-                the reference justifying the position of Macaguaje and Tama. For Miriti and Arapaso, <a
+                group, and <a href="${request.route_url('source', id=576304)}">Ramirez, Henri.
+                (2019:5-7)</a> later makes a closer assessment of their position. Thus, here <a href="${request.route_url('source', id=56760)}">Sergio Elías Ortiz (1965:133)</a>
+                and <a href="${request.route_url('source', id=576304)}">Ramirez, Henri.
+                (2019:5-7)</a> are cited as
+                the references justifying the position of Macaguaje and Tama. For Miriti and Arapaso, <a
                     href="${request.route_url('source', id=9035)}">Brüzzi Alves da Silva, Alcionilio (1972)</a>
                 collected
                 short wordlists of them, and concluded that they were Tucanoan, but he gives no further information that
                 would
                 allow us to infer their relation to each other or to other Tucanoan languages. The wordlists themselves
                 were
-                never published, and are possibly now lost (but this is not certain). Hence, Arapaso and Miriti are
+                never published, and are possibly now lost (but this is not certain). However, another wordlist of Arapaso
+                collected a century earlier by Natterer has surfaced more recently, and this allowed
+                <a href="${request.route_url('source', id=576304)}">Ramirez, Henri.
+                (2019:5-7)</a> to place this language more specifically in Tucanoan. Miriti, however, is
                 labeled
-                <a href="${request.route_url('language', id='uncl1448')}">Unclassified Tucanoan</a> languages.
-                There is no implication that Arapaso and Miriti would form a subgroup in the
-                sense of having a common ancestor unique only to them.
+                <a href="${request.route_url('language', id='uncl1448')}">Unclassified Tucanoan</a> since no data has surfaced to allow its more precise placement within Tucanoan.
             </p>
         </%util:section>
         <%util:section title="Dialects" prefix="">
