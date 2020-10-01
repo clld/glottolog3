@@ -26,7 +26,7 @@ def add_identifiers(data, dblang, items, name_type=False):
     for prov, names in items.items():
         if not isinstance(names, (list, tuple)):
             names = split_text(names, separators=',;')
-        for name in names:
+        for name in sorted(set(names)):
             lang = 'en'
             if name_type:
                 if '[' in name and name.endswith(']'):

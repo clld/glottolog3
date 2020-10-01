@@ -3,6 +3,7 @@ from collections import defaultdict, OrderedDict
 from time import time
 import functools
 
+from tqdm import tqdm
 import attr
 import purl
 from clld.cliutil import Data, add_language_codes
@@ -31,7 +32,7 @@ def gc2version():
 
 
 def get_glottolog_api(repos):
-    return Glottolog(repos or pathlib.Path(glottolog3.__file__).parent.parent.joinpath('glottolog'))
+    return Glottolog(repos or pathlib.Path(glottolog3.__file__).parent.parent.parent.joinpath('glottolog'))
 
 
 def main(args, repos=None):
@@ -119,7 +120,7 @@ def main(args, repos=None):
     # nodes will precede nested nodes. This order must be preserved using an `OrderedDict`:
     nodemap = OrderedDict([(l.id, l) for l in glottolog.languoids()])
     lgcodes = {k: v.id for k, v in glottolog.languoids_by_code(nodemap).items()}
-    for lang in nodemap.values():
+    for lang in tqdm(list(nodemap.values())):
         for ref in lang.sources:
             lgsources['{0.provider}#{0.bibkey}'.format(ref)].append(lang.id)
         load_languoid(glottolog, data, lang, nodemap)

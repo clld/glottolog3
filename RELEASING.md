@@ -17,7 +17,7 @@
   glottolog-app mark_new_languages
   ```
 - remove old downloads:`rm glottolog3/static/download/glottolog*`
-- run `clld-create-downloads development.ini` - about 45 mins
+- run `clld create_downloads development.ini glottolog.org` - about 45 mins
 - run
   ```shell script
   glottolog-app newick
