@@ -282,9 +282,9 @@ class MapView(Index):
 
 class GeoJsonFeature(GeoJsonParameter):
     def feature_iterator(self, ctx, req):
-        if ctx.id in ['fc', 'sc', 'country']:
-            return []
-        return GeoJsonParameter.feature_iterator(self, ctx, req)
+        if ctx.id in ['aes', 'med']:
+            return GeoJsonParameter.feature_iterator(self, ctx, req)
+        return []
 
     def get_language(self, ctx, req, valueset):
         l = valueset.language
