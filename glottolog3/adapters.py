@@ -10,7 +10,7 @@ from pyramid.httpexceptions import HTTPFound
 from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex, IParameter, IRepresentation
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump, Download
-from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter
+from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter, GeoJsonParameterFlatProperties
 from clld.web.adapters.md import BibTex, ReferenceManager
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter
@@ -291,7 +291,14 @@ class GeoJsonFeature(GeoJsonParameter):
         return maps.Language(l.pk, l.name, l.longitude, l.latitude, l.id)
 
 
+class GeoJsonFeatureFlat(GeoJsonParameterFlatProperties):
+    def feature_iterator(self, ctx, req):
+        return []
+
+
+
 def includeme(config):
+    config.register_adapter(GeoJsonFeatureFlat, IParameter)
     config.register_adapter(GeoJsonFeature, IParameter)
     config.register_adapter(BibTexCitation, IDataset, IMetadata)
     config.register_adapter(BibTexCitation, IDataset, IRepresentation)
