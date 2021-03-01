@@ -28,10 +28,10 @@ def test_map(selenium):
 @pytest.mark.selenium
 def test_datatable_family(selenium):
     dt = selenium.get_datatable('/glottolog/family')
-    time.sleep(0.5)
+    time.sleep(1)
     dt.filter('level', '--any--')
-    time.sleep(0.5)
-    assert dt.get_info().filtered > 3500
+    time.sleep(1)
+    assert dt.get_info().filtered > 350
 
 
 @pytest.mark.selenium

@@ -34,7 +34,7 @@ setup(
             'twine'
         ],
         'test': [
-            'mock',
+            'cdstarcat',
             'psycopg2',
             'pytest',
             'pytest-clld>=0.4',
