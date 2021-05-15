@@ -107,16 +107,16 @@ class TurtleDump(Download):
 class LanguoidTurtleDump(TurtleDump):
 
     def query(self, req):
-        return req.db.query(Language).options(sa.orm.joinedload_all(
-            Language.languageidentifier, LanguageIdentifier.identifier))\
+        return req.db.query(Language).options(sa.orm.joinedload(
+            Language.languageidentifier).joinedload(LanguageIdentifier.identifier))\
             .order_by(Language.pk)
 
 
 class LanguoidN3Dump(N3Dump):
 
     def query(self, req):
-        return req.db.query(Language).options(sa.orm.joinedload_all(
-            Language.languageidentifier, LanguageIdentifier.identifier))\
+        return req.db.query(Language).options(sa.orm.joinedload(
+            Language.languageidentifier).joinedload(LanguageIdentifier.identifier))\
             .order_by(Language.pk)
 
 

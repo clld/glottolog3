@@ -400,12 +400,13 @@ class Ref(CustomModelMixin, Source):
 
     providers = relationship(
         Provider,
+        viewonly=True,
         secondary=Refprovider.__table__,
         order_by='Provider.id',
         backref=backref(
             'refs', order_by='Source.author, Source.year, Source.description'))
 
-    bibkeys = relationship(Refprovider, order_by='Refprovider.provider_pk')
+    bibkeys = relationship(Refprovider, order_by='Refprovider.provider_pk', viewonly=True)
 
     def __rdf__(self, request):
         """

@@ -28,7 +28,7 @@ from glottolog3.scripts.util import (
 
 
 def gc2version():
-    return pathlib.Path(glottolog3.__file__).parent.parent / 'archive' / 'glottocode2version.json'
+    return pathlib.Path(glottolog3.__file__).parent.parent / '../archive' / 'archive' / 'glottocode2version.json'
 
 
 def get_glottolog_api(repos):

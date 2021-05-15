@@ -24,10 +24,10 @@ from glottolog3.models import (
 from glottolog3.maps import LanguoidMap
 from glottolog3.config import PartnerSite, ISOSite
 
-DOI = "10.5281/zenodo.4061162"
+DOI = "10.5281/zenodo.4761960"
 
-LANG_PATTERN = re.compile('\[(?P<id>[^\]]+)\]')
-ISO_PATTERN = re.compile(r'\[(?P<iso>[a-z]{3})\]')
+LANG_PATTERN = re.compile(r'\[(?P<id>[^]]+)]')
+ISO_PATTERN = re.compile(r'\[(?P<iso>[a-z]{3})]')
 
 
 def set_focus(url, focus):
