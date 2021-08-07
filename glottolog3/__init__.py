@@ -91,8 +91,12 @@ def main(global_config, **settings):
         'robots',
         '/robots.txt',
         lambda req: Response(
-            'Sitemap: {0}\nUser-agent: *\nDisallow: /files/\n'.format(
-                req.route_url('sitemapindex')),
+            """Sitemap: {0}
+User-agent: Linespider
+Disallow: /
+User-agent: *
+Disallow: /files/
+""".format(req.route_url('sitemapindex')),
             content_type='text/plain'))
     config.registry.registerUtility(GlottologMapMarker(), IMapMarker)
     config.registry.registerUtility(GLCtxFactoryQuery(), ICtxFactoryQuery)
