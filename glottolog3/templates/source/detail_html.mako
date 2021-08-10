@@ -19,8 +19,6 @@ ${ctx.coins(request)|n}
     <ul class="nav nav-tabs">
         <li class="active"><a href="#tab1" data-toggle="tab">Text</a></li>
         <li><a href="#tab2" data-toggle="tab">BibTeX</a></li>
-        <li><a href="#tab3" data-toggle="tab">RIS</a></li>
-        <li><a href="#tab4" data-toggle="tab">MODS</a></li>
     </ul>
     <div class="tab-content">
         <% bibrec = ctx.bibtex() %>
