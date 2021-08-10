@@ -94,6 +94,10 @@ def main(global_config, **settings):
             """Sitemap: {0}
 User-agent: Linespider
 Disallow: /
+User-agent: SemrushBot
+Disallow: /
+User-agent: NaverBot
+Disallow: /
 User-agent: *
 Disallow: /files/
 """.format(req.route_url('sitemapindex')),
