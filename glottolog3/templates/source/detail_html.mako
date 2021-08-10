@@ -58,8 +58,6 @@ ${ctx.coins(request)|n}
             % endif
          </div>
         <div id="tab2" class="tab-pane"><pre>${bibrec}</pre></div>
-        <div id="tab3" class="tab-pane"><pre>${bibrec.format('ris')}</pre></div>
-        <div id="tab4" class="tab-pane"><pre>${bibrec.format('mods')}</pre></div>
     </div>
 </div>
 
