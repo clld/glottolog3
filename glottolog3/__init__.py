@@ -72,8 +72,8 @@ def main(global_config, **settings):
     settings['navbar.inverse'] = True
     settings['route_patterns'] = {
         'languages': '/glottolog/language',
-        'language': '/resource/languoid/id/{id:[^/\.]+}',
-        'source': '/resource/reference/id/{id:[^/\.]+}',
+        'language': r'/resource/languoid/id/{id:[^/\.]+}',
+        'source': r'/resource/reference/id/{id:[^/\.]+}',
         'sources': '/langdoc',
         #'provider': '/langdoc/langdocinformation#provider-{id}',
         'providers': '/langdoc/langdocinformation',
@@ -84,8 +84,8 @@ def main(global_config, **settings):
     # Note: The following routes must be registered before including the clld web app,
     # because they are special cases of a more general route pattern registered there.
     #
-    config.add_route('languoid.xhtml', '/resource/languoid/id/{id:[^/\.]+}.xhtml')
-    config.add_route('reference.xhtml', '/resource/reference/id/{id:[^/\.]+}.xhtml')
+    config.add_route('languoid.xhtml', r'/resource/languoid/id/{id:[^/\.]+}.xhtml')
+    config.add_route('reference.xhtml', r'/resource/reference/id/{id:[^/\.]+}.xhtml')
     config.include('clldmpg')
     config.add_route_and_view(
         'robots',
@@ -135,7 +135,7 @@ Disallow: /files/
         renderer='families.mako')
     config.add_route_and_view(
         'glottolog.iso',
-        '/resource/languoid/iso/{id:[^/\.]+}',
+        r'/resource/languoid/iso/{id:[^/\.]+}',
         views.iso)
     config.add_route_and_view(
         'glottolog.languages',

@@ -20,8 +20,8 @@ setup(
     },
     install_requires=[
         'cldfcatalog',
+        'clld>=8.0.0',
         'clldutils>=3.3.0',
-        'clld>=5.1.1',
         'clldmpg>=3.3.1',
         'markdown',
         'newick>=0.4',
@@ -35,7 +35,7 @@ setup(
         ],
         'test': [
             'cdstarcat',
-            'psycopg2',
+            'psycopg2-binary',
             'pytest',
             'pytest-clld>=0.4',
             'pytest-cov',

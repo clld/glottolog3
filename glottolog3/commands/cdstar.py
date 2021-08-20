@@ -19,10 +19,10 @@ def register(parser):  # pragma: no cover
         raise ParserError('pip install cdstarcat')
     parser.add_argument('version', help="version number without 'v' prefix")
     parser.add_argument(
-        '--catalog', type=pathlib.Path, default=pathlib.Path(os.environ['CDSTAR_CATALOG']))
-    parser.add_argument('--url', default=os.environ['CDSTAR_URL'])
-    parser.add_argument('--user', default=os.environ['CDSTAR_USER'])
-    parser.add_argument('--pwd', default=os.environ['CDSTAR_PWD'])
+        '--catalog', type=pathlib.Path, default=pathlib.Path(os.environ.get('CDSTAR_CATALOG') or 'cat.json'))
+    parser.add_argument('--url', default=os.environ.get('CDSTAR_URL'))
+    parser.add_argument('--user', default=os.environ.get('CDSTAR_USER'))
+    parser.add_argument('--pwd', default=os.environ.get('CDSTAR_PWD'))
     parser.add_argument('--catalog_class', help=argparse.SUPPRESS, default=Catalog)
 
 

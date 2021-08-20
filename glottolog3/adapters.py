@@ -11,7 +11,7 @@ from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex, IParameter, 
 from clld.web.adapters.base import Representation, Index
 from clld.web.adapters.download import CsvDump, N3Dump, Download
 from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter, GeoJsonParameterFlatProperties
-from clld.web.adapters.md import BibTex, ReferenceManager
+from clld.web.adapters.md import BibTex
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter
 from clld.web.icon import ORDERED_ICONS
@@ -40,12 +40,6 @@ def rec(ctx, req):
 
 
 class BibTexCitation(BibTex):
-
-    def rec(self, ctx, req):
-        return rec(ctx, req)
-
-
-class RIS(ReferenceManager):
 
     def rec(self, ctx, req):
         return rec(ctx, req)
@@ -302,8 +296,6 @@ def includeme(config):
     config.register_adapter(GeoJsonFeature, IParameter)
     config.register_adapter(BibTexCitation, IDataset, IMetadata)
     config.register_adapter(BibTexCitation, IDataset, IRepresentation)
-    config.register_adapter(RIS, IDataset, IMetadata)
-    config.register_adapter(RIS, IDataset, IRepresentation)
     config.register_adapter(Redirect, IProvider)
     config.register_adapter(Bigmap, ILanguage)
     config.register_adapter(PhyloXML, ILanguage)

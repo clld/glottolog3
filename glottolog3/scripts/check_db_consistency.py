@@ -70,7 +70,7 @@ class FamiliesDistinct(Check):
             .filter_by(active=True, level=LanguoidLevel.language)
             .join(TreeClosureTable, TreeClosureTable.child_pk == member.pk)
             .filter_by(parent_pk=Languoid.pk)
-            .order_by(member.pk).as_scalar())
+            .order_by(member.pk).scalar_subquery())
         cte = session.query(Languoid.id, extent.label('extent'))\
             .filter_by(active=True, level=LanguoidLevel.family)\
             .filter(~Languoid.name.startswith(exclude)).cte()
@@ -271,12 +271,12 @@ class RefRedirects(Check):
 
     def invalid_query(self, session, **kw):
         return session.query(
-            func.regexp_replace(Config.key, u'\D', '', u'g').label('id'),
-            func.nullif(Config.value, u'__gone__').label('target'))\
-            .filter(Config.key.like(u'__Source_%%__'))\
+            func.regexp_replace(Config.key, r'\D', '', u'g').label('id'),
+            func.nullif(Config.value, '__gone__').label('target'))\
+            .filter(Config.key.like('__Source_%%__'))\
             .filter(
                 session.query(orm.aliased(Config))
-                .filter_by(key=func.format(u'__Source_%s__', Config.value)).exists())\
+                .filter_by(key=func.format('__Source_%s__', Config.value)).exists())\
             .order_by('id', 'target')
 
 
@@ -287,7 +287,7 @@ class MarkupRefLinks(Check):
         vs_rid = select([
             ValueSet.pk,
             func.unnest(func.regexp_matches(
-                ValueSet.description, '\*\*(\d+)\*\*', 'g')).label('ref_id')]).alias()
+                ValueSet.description, r'\*\*(\d+)\*\*', 'g')).label('ref_id')]).alias()
         return session.query(ValueSet)\
             .filter(ValueSet.pk.in_(
                 session.query(vs_rid.c.pk)
