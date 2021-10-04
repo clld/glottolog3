@@ -152,7 +152,10 @@ class Newick(Representation):
     def render(self, languoid, request):
         if languoid.family:
             languoid = languoid.family
-        return languoid.newick
+        res = languoid.newick
+        if not res.endswith(';'):
+            res += ';'
+        return res
 
 
 class PhyloXML(Representation):
