@@ -80,7 +80,7 @@
         </p>
         <p>
             Glottolog is an initiative of the Max Planck Institute for
-            the Science of Human History, Jena. It should be cited as follows:
+            Evolutionary Anthropology, Leipzig. It should be cited as follows:
         </p>
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}<br>

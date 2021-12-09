@@ -16,7 +16,7 @@ for rel, spec in load(DOWNLOAD_DIR.parent / 'downloads.json').items():
     if not d.exists():
         d.mkdir()
     for bs in spec['bitstreams']:
-        url = 'https://cdstar.shh.mpg.de//bitstreams/{0}/{1}'.format(
+        url = 'https://cdstar.eva.mpg.de//bitstreams/{0}/{1}'.format(
             spec['oid'], bs['bitstreamid'])
         target = d.joinpath(bs['bitstreamid'].replace('_', '-'))
         if (not target.exists()) or bs['checksum'] != md5(target):
