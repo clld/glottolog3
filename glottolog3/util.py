@@ -289,30 +289,26 @@ def format_languages(req, ref):
     ldict = {l.hid: l for l in ref.languages}
     ldict.update({l.id: l for l in ref.languages})
     in_note = set()
-    lnotes = map(normalize_language_explanation, (ref.jsondata.get('lgcode', '')).split('],'))
+    lnotes = map(normalize_language_explanation, (ref.jsondata.get('lgcode', '')).split(','))
     for lnote in lnotes:
-        note = []
+        note, links = [], []
         start = 0
         m = None
         for m in LANG_PATTERN.finditer(lnote):
             note.append(lnote[start:m.start()])
-            note.append('[')
             if m.group('id') in ldict:
                 in_note.add(m.group('id'))
                 lang = ldict[m.group('id')]
-                note.append(link(req, lang, label=lang.id, title=lang.name))
+                links.append(link(req, lang, label=lang.name, title=lang.id))
             else:
-                note.append(m.group('id'))
-            note.append(']')
+                note.extend(['[', m.group('id'), ']'])
             start = m.end()
-        if m:
-            note.append(lnote[m.end():])
-        yield HTML.li(*note)
+        note.append(lnote[m.end():] if m else lnote)
+        yield ''.join(note), HTML.ul(*[HTML.li(li) for li in links], **dict(class_="inline"))
 
     for lang in set(ldict.values()):
         if (lang.hid not in in_note) and (lang.id not in in_note):
-            yield HTML.li(
-                lang.name + ' [', link(req, lang, label=lang.id, title=lang.name), ']')
+            yield '', link(req, lang, label=lang.name, title=lang.id)
 
 
 def format_label_link(href, label, title=None):

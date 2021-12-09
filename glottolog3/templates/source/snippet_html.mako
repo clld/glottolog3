@@ -20,9 +20,21 @@ $(document).ready(function() {
 </script>
 % if ctx.languages:
     ${u.format_language_header(request, ctx, level=4)}
-    <ul class="inline">
-    % for li in u.format_languages(request, ctx):
-    ${li}
-    % endfor
-    </ul>
+    <table class="table table-condensed">
+        <thead>
+        <tr>
+            <th>Name in source</th>
+            <th>Glottolog languoid</th>
+        </tr>
+        </thead>
+        <tbody>
+            % for names, links in u.format_languages(request, ctx):
+                <tr>
+                    <td>${names}</td>
+                    <td>${links}</td>
+                </tr>
+            % endfor
+
+        </tbody>
+    </table>
 % endif
