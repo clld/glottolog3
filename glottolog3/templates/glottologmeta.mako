@@ -510,7 +510,7 @@
 
         <%util:section title="Agglomerated Endangerment Status (AES)" prefix="">
             <p>
-                The Agglomerated Endangerment Status (AES) is derived from the databases of
+                The Agglomerated Endangerment Status (AES) is an endangerment scale, derived from the databases of
                 ${h.external_link("http://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
                 ,
                 ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}
