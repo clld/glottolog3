@@ -1,4 +1,4 @@
-<%inherit file="about_comp.mako"/>
+<%inherit file="home_comp.mako"/>
 <%namespace name="util" file="util.mako"/>
 <%! multirow = True %>
 

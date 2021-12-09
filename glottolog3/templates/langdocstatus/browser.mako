@@ -1,5 +1,6 @@
 <%inherit file="../glottolog3.mako"/>
 <%namespace name="util" file="../util.mako"/>
+<%! active_menu_item = "glottoscope" %>
 
 <%block name="head">
     <link href="${request.static_url('clld:web/static/css/select2.css')}" rel="stylesheet">

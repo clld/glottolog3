@@ -162,6 +162,7 @@ class DescStatsMap(Map):
 
     def get_options(self):
         return {
+            'resize_direction': 's',
             'icon_size': 20,
             'hash': True,
             'max_zoom': 12,

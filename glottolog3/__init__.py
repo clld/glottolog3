@@ -111,6 +111,7 @@ Disallow: /files/
         ('search', partial(menu_item, 'glottolog.languages', label='Language Search')),
         ('sources', partial(menu_item, 'sources', label='References')),
         ('query', partial(menu_item, 'langdoc.complexquery', label='Reference Search')),
+        ('glottoscope', partial(menu_item, 'langdocstatus', label='GlottoScope')),
         ('about', partial(menu_item, 'about', label='About')),
     )
     config.register_resource('provider', models.Provider, IProvider, with_index=True)

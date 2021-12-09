@@ -1,4 +1,4 @@
-<%inherit file="../about_comp.mako"/>
+<%inherit file="../home_comp.mako"/>
 <%namespace name="util" file="../util.mako"/>
 
 <h3>References Information</h3>
