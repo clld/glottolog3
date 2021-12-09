@@ -6,6 +6,5 @@
     ${util.contextnavitem('glottolog.meta', label='Languoids')}
     ${util.contextnavitem('providers', label='References')}
     ${util.contextnavitem('home.glossary', label='Glossary')}
-    ${util.contextnavitem('news', label='News')}
 </%def>
 ${next.body()}

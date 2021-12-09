@@ -6,7 +6,6 @@
     ${util.contextnavitem('langdocstatus', label='GlottoScope')}
     ${util.contextnavitem('legal')}
     ${util.contextnavitem('home.downloads', label='Download')}
-    ${util.contextnavitem('home.cite', label='Cite')}
     ${util.contextnavitem('home.contact', label='Contact')}
 </%def>
 ${next.body()}

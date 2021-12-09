@@ -122,7 +122,8 @@ Disallow: /files/
     config.add_route('macroareas_geojson', '/macroareas.geojson')
     config.add_view(views.macroareas_geojson, route_name='macroareas_geojson', renderer='json')
 
-    config.add_route_and_view('news', '/news', views.news, renderer='news.mako')
+    config.add_301(
+        '/news', lambda _: 'https://github.com/glottolog/glottolog/blob/master/CHANGES.md')
     config.add_route_and_view(
         'glottolog.meta',
         '/glottolog/glottologinformation',
@@ -153,13 +154,16 @@ Disallow: /files/
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
 
-    for name in 'credits glossary cite downloads contact'.split():
+    for name in 'credits glossary downloads contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
             'home.' + name,
             pp + name,
             getattr(views, name),
             renderer=name + '.mako')
+    config.add_301(
+        '/meta/cite',
+        lambda req: req.route_url('about', _anchor='publications'))
 
     assert config.registry.unregisterUtility(provided=IDownload, name='dataset.cldf')
     config.register_download(adapters.LanguoidCsvDump(

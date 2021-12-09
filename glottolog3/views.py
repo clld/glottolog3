@@ -1,6 +1,8 @@
+import collections
 from datetime import date
 import re
 import json
+import itertools
 from collections import OrderedDict
 
 from pyramid.httpexceptions import (
@@ -20,7 +22,7 @@ from clld.web.util.multiselect import MultiSelect
 from clld.lib import bibtex
 from clld.interfaces import IRepresentation
 
-from glottolog3.models import Languoid, LanguoidLevel, Doctype, TreeClosureTable, get_parameter, get_source
+from glottolog3.models import Languoid, LanguoidLevel, Doctype, TreeClosureTable, get_parameter, get_source, Ref, Refprovider
 from glottolog3.config import PUBLICATIONS
 from glottolog3.util import getRefs, get_params
 from glottolog3.datatables import Refs
@@ -138,15 +140,7 @@ def glossary(ctx, request):
     return res
 
 
-def cite(request):
-    return {'date': date.today(), 'refs': PUBLICATIONS}
-
-
 def downloads(request):
-    return {}
-
-
-def news(request):
     return {}
 
 
@@ -155,7 +149,17 @@ def contact(request):
 
 
 def about(request):
-    return {}
+    refs = []
+    for r in PUBLICATIONS:
+        if isinstance(r, str):
+            refs.append(DBSession.query(Ref).join(Ref.bibkeys).filter(Refprovider.id == r).one())
+        else:
+            refs.append(r)
+    refs = collections.OrderedDict([
+        (year, list(recs)) for year, recs in itertools.groupby(
+            sorted(refs, key=lambda r: -int(getattr(r, 'year', None) or r['year'])),
+            lambda r: int(getattr(r, 'year', None) or r['year']))])
+    return {'date': date.today(), 'refs': refs}
 
 
 def families(request):

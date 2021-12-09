@@ -2,6 +2,7 @@ import os
 import time
 
 import pytest
+from selenium.webdriver.common.by import By
 
 from clld.lib.bibtex import Database
 
@@ -13,7 +14,7 @@ def test_site_search(selenium):
     button = selenium.get_page('site-search-button')
     button.e.click()
     time.sleep(0.5)
-    assert selenium.browser.find_element_by_link_text('stan1295') is not None
+    assert selenium.browser.find_element(By.LINK_TEXT, 'stan1295') is not None
 
 
 @pytest.mark.selenium

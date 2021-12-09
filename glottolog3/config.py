@@ -2,43 +2,14 @@ from clld.lib.bibtex import Record
 
 PUBLICATIONS = [
     Record(
-        'ARTICLE', 'HammarstroemEtAl2011Oslo',
-        ('author', u'Harald Hammarström and Sebastian Nordhoff'),
-        ('year', '2011'),
-        ('title', 'LangDoc: Bibliographic Infrastructure for Linguistic Typology'),
-        ('journal', 'Oslo Studies in Language'),
-        ('volume', '3'),
-        ('number', '2'),
-        ('pages', '31-43'),
-        ('url', 'https://www.journals.uio.no/index.php/osla/article/view/75/199'),
+        'ARTICLE', 'swj-glottocodes',
+        ('author', 'Harald Hammarström and Robert Forkel'),
+        ('title', 'Glottocodes: Identifiers Linking Families, Languages and Dialects to Comprehensive Reference Information'),
+        ('year', '2021'),
+        ('journal', 'Semantic Web Journal'),
+        ('url', 'http://www.semantic-web-journal.net/system/files/swj2843.pdf'),
     ),
-    Record(
-        'UNPUBLISHED', 'HammarstroemEtAl2011Howmany',
-        ('author', u"Hammarström, Harald and Nordhoff, Sebastian"),
-        ('year', u"2011"),
-        ('title', u"How many languages have so far been described?"),
-        ('howpublished', u"Paper presented at NWO Endangered Languages Programme Conference, Leiden, April 2011"),
-    ),
-    Record(
-        'UNPUBLISHED', 'NordhoffEtAl2011ALT',
-        ('author', u"Sebastian Nordhoff and Harald Hammarström"),
-        ('year', u"2011"),
-        ('title',
-         u"Countering bibliographical bias with LangDoc, a bibliographical database for lesser-known languages"),
-        ('howpublished',
-         u"Paper presented at the Association for Linguistic Typology 9th Biennial Conference, July, Hong Kong"),
-    ),
-    Record(
-        'INPROCEEDINGS', 'NordhoffEtAl2011iswc',
-        ('author', u"Sebastian Nordhoff and Harald Hammarström"),
-        ('year', u"2011"),
-        (
-        'title', u"Glottolog/Langdoc: Defining dialects, languages, and language families as collections of resources"),
-        ('volume', u"783"),
-        ('series', u"CEUR Workshop Proceedings"),
-        ('booktitle', u"Proceedings of the First International Workshop on Linked Science 2011"),
-        ('url', u"http://iswc2011.semanticweb.org/fileadmin/iswc/Papers/Workshops/LISC/nordhoff.pdf"),
-    ),
+    'hh:hel:Hammarstrom:Visualization',
     Record(
         'INCOLLECTION', 'ldl-glottolog',
         ('author', u"Sebastian Nordhoff"),
@@ -89,6 +60,18 @@ PUBLICATIONS = [
         ('title', u"Cataloguing linguistic diversity: Glottolog/Langdoc"),
         ('note', u"Proceedings of Digital Humanities 2012, July, Hamburg"),
     ),
+    'sn:HammarstroemEtAl2011Oslo',
+    'sn:HammarstroemEtAl2011Howmany',
+    Record(
+        'UNPUBLISHED', 'NordhoffEtAl2011ALT',
+        ('author', u"Sebastian Nordhoff and Harald Hammarström"),
+        ('year', u"2011"),
+        ('title',
+         u"Countering bibliographical bias with LangDoc, a bibliographical database for lesser-known languages"),
+        ('howpublished',
+         u"Paper presented at the Association for Linguistic Typology 9th Biennial Conference, July, Hong Kong"),
+    ),
+    'sn:NordhoffEtAl2011iswc',
 ]
 
 
