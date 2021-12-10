@@ -88,7 +88,7 @@
     and
     ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}.
     Over time, assessments from other sources were included as well. For a full list of sources, see
-    ${h.external_link("https://github.com/glottolog/glottolog/blob/master/config/aes_sources.ini", label="AES sources in the Glottolog repository")].
+    ${h.external_link("https://github.com/glottolog/glottolog/blob/master/config/aes_sources.ini", label="AES sources in the Glottolog repository")}.
 </p>
 <table class="table table-nonfluid">
     <thead>

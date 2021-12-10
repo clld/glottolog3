@@ -24,6 +24,7 @@ def register(parser):  # pragma: no cover
     parser.add_argument('--user', default=os.environ.get('CDSTAR_USER'))
     parser.add_argument('--pwd', default=os.environ.get('CDSTAR_PWD'))
     parser.add_argument('--catalog_class', help=argparse.SUPPRESS, default=Catalog)
+    parser.add_argument('--oid', default=None)
 
 
 def run(args):  # pragma: no cover
@@ -44,7 +45,7 @@ def run(args):  # pragma: no cover
             # This is a bugfix release, we don't have to create a new object on CDSTAR!
             obj = cat.api.get_object(uid=downloads[release]['oid'])
         else:
-            obj = cat.api.get_object()
+            obj = cat.api.get_object(uid=args.oid)
             obj.metadata = {
                 "creator": "pycdstar",
                 "title": "glottolog %s - downloads" % release,

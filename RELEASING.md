@@ -33,8 +33,11 @@
   - gzipped db dump
 
 - upload downloads to cdstar running `glottolog-app cdstar <release>`
-  (if no bitstreams are added to the catalog, the object may need to be re-added via
-  cdstarcat, and the above command re-run.)
+  if no bitstreams are added to the catalog, the object may need to be re-added via
+  cdstarcat, and the above command re-run. To do so,
+  - look for "glottolog <release>" in https://cdstar.eva.mpg.de and note the OID
+  - run `cdstarcat add EAEA0-...`
+  - run `glottolog-app cdstar <release> --oid <OID>`
 - register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
 - update `glottolog3.util.DOI` with the new ZENODO DOI
