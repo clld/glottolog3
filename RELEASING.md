@@ -59,5 +59,9 @@
   fab deploy:production
   fab fetch_downloads
   ```
-
+  and check archive:
+  ```
+  curl -I https://glottolog.org/resource/languoid/id/aban1244
+HTTP/1.1 301 Moved Permanently
+  ```
 - tweet
