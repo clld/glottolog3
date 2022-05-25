@@ -1453,12 +1453,12 @@
             },
             {
                 "bitstreamid": "glottolog_language.ttl.gz",
-                "checksum": "878a95e83408cf4d1281cb820868402f",
+                "checksum": "934b9d1e46b67facc1b199eb24cdbf0f",
                 "checksum-algorithm": "MD5",
                 "content-type": "text/turtle",
-                "created": 1653456166301,
-                "filesize": 3220049,
-                "last-modified": 1653456168518
+                "created": 1653458655124,
+                "filesize": 3220264,
+                "last-modified": 1653458657362
             },
             {
                 "bitstreamid": "glottolog_languoid.csv.zip",
