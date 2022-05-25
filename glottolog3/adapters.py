@@ -16,6 +16,7 @@ from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
 from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter
 from clld.web.icon import ORDERED_ICONS
 from clld.lib import bibtex
+from clld.lib import rdf
 from clldutils.misc import to_binary
 
 from glottolog3.models import Languoid, LanguoidLevel
@@ -93,7 +94,11 @@ class TurtleDump(Download):
     def dump_rendered(self, req, fp, item, index, rendered):
         header, body = rendered.split(to_binary('\n\n'), 1)
         if index == 0:
-            fp.write(header)
+            fp.write(
+                '\n'.join(
+                    '@prefix {}: <{}> .'.format(prefix, str(ns))
+                    for prefix, ns in sorted(rdf.NAMESPACES.items(), key=lambda i: i[0])
+                ).encode('utf8'))
             fp.write(to_binary('\n\n'))
         fp.write(body)
 
