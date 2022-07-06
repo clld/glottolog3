@@ -5,9 +5,6 @@
 <h3>Search languages, families, and dialects</h3>
 <div class="span4 well well-small">
     <form>
-        % if request.admin:
-        <input type="hidden" name="__admin__" value="1"/>
-        % endif
         <fieldset>
             <legend>Name (primary or alternative)</legend>
             <input tabindex="3" type="text" name="name" id="inputName" placeholder="Name" value="${'' if message else params['name']}">

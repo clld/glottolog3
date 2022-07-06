@@ -52,7 +52,8 @@ def test_languoid_map_and_table(selenium):
     dt.sort('Title')
     recs = dt.get_info().filtered
     assert not os.listdir(str(selenium.downloads))
-    dt.download('bib')
+    dl = selenium.browser.find_element(By.ID, 'Refs-bib-download')
+    dl.click()
     time.sleep(1.5)
     bib = Database.from_file(os.path.join(str(selenium.downloads), 'glottolog-refs.bib'))
     assert recs == len(bib)
