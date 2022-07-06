@@ -84,7 +84,6 @@
         </p>
 <blockquote>
     ${h.newline2br(TxtCitation.render(ctx, request))|n}<br>
-    <a href="https://doi.org/${u.DOI}"><img src="https://zenodo.org/badge/DOI/${u.DOI}.svg" alt="DOI"></a>
 </blockquote>
         <p>
             Particularly important contributors to the Langdoc database are Alain Fabre,
