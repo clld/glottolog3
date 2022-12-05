@@ -19,7 +19,8 @@
         <p>
             Glottolog aims to provide a comprehensive list of languoids (families, languages,
             dialects) that linguists need to be able to identify. Each
-            languoid has a unique and persistent identifier called <strong>Glottocode</strong>,
+            languoid has a unique and persistent identifier called <strong>Glottocode</strong>
+            (<a href="https://content.iospress.com/articles/semantic-web/sw212843">Hammarström and Forkel (2022)</a>),
             consisting of four alphanumeric characters (i.e. lowercase letters or decimal digits) and four decimal
             digits (<span style="font-family: monospace">abcd1234</span> follows this patters, but so does
             <a href="/resource/languoid/id/b10b1234"><span style="font-family: monospace">b10b1234</span></a>).
