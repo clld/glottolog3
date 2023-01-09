@@ -2,7 +2,7 @@
 <%namespace name="util" file="../util.mako"/>
 <%! active_menu_item = "sources" %>
 
-<h3>Provider ${ctx.name} ${u.github_link(ctx)}</h3>
+<h3>Provider ${ctx.name} ${u.github_link(ctx, icon_=None, label='BibTeX')}</h3>
 
 <div class="alert alert-success">
     ${u.md(req, ctx.description)}

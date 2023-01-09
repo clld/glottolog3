@@ -34,9 +34,9 @@ def set_focus(url, focus):
     return URL(url).query_param('focus', focus).as_string()
 
 
-def github_link(ctx):
+def github_link(ctx, icon_='pencil', label=None):
     return button(
-        icon('pencil'), title="see on GitHub", href=ctx.github_url, class_='btn-mini')
+        icon(icon_) if icon_ else label, title="see on GitHub", href=ctx.github_url, class_='btn-mini')
 
 
 def languoid_link(req, languoid, active=True, classification=False):
@@ -68,8 +68,7 @@ def old_downloads():
     from clldmpg import cdstar
 
     def bitstream_link(oid, spec):
-        url = cdstar.SERVICE_URL.path(
-            '/bitstreams/{0}/{1}'.format(oid, spec['bitstreamid'])).as_string()
+        url = cdstar.SERVICE_URL + '/bitstreams/{0}/{1}'.format(oid, spec['bitstreamid'])
         return HTML.a(
             '{0} [{1}]'.format(spec['bitstreamid'], format_size(spec['filesize'])),
             href=url)

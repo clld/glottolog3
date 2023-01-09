@@ -275,6 +275,10 @@ class Refs(Sources):
             self.provider = Provider.get(req.params['provider'], default=None)
         else:
             self.provider = None
+
+        if self.provider and 'dl_formats' in self.__toolbar_kw__:
+            del self.__toolbar_kw__['dl_formats']
+
         super(Refs, self).__init__(req, *args, **kw)
         if self.language:
             self.language_sources = [s.pk for s in self.language.sources]
