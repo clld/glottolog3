@@ -21,7 +21,7 @@ setup(
     install_requires=[
         'clld>=9.2.2',
         'cldfcatalog',
-        'clldutils>=3.3.0',
+        'clldutils>=3.19',
         'clldmpg>=4.2',
         'markdown',
         'newick>=0.4',
