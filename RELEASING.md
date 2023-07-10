@@ -19,8 +19,14 @@
   glottolog-app mark_new_languages
   pytest
   ```
-- remove old downloads:`rm glottolog3/static/download/glottolog*`
-- run `clld create_downloads development.ini glottolog.org` - about 45 mins
+- remove old downloads:
+  ```shell
+  rm glottolog3/static/download/glottolog*
+  ```
+- run (about 45 mins)
+  ```shell
+  clld create_downloads development.ini glottolog.org 
+  ```
 - run
   ```shell
   glottolog-app newick

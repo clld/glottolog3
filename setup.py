@@ -11,7 +11,7 @@ setup(
     license='Apache 2',
     packages=find_packages(),
     platforms='any',
-    python_requires='>=3.5',
+    python_requires='>=3.8',
     include_package_data=True,
     zip_safe=False,
     entry_points={
