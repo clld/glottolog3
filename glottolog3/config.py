@@ -116,11 +116,11 @@ class OLAC(ISOSite):
         return "http://www.language-archives.org/language/" + iso
 
 
-class Odin(ISOSite):
-    img = 'odin.png'
+class IMTVault(ISOSite):
+    img = 'imtvault.png'
 
     def url(self, iso):
-        return "http://odin.linguistlist.org/igt_urls.php?lang=" + iso
+        return "https://imtvault.org/?languageiso6393%5B0%5D=" + iso
 
 
 class PartnerSite(object):

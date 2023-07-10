@@ -166,7 +166,6 @@ Disallow: /files/
         '/meta/cite',
         lambda req: req.route_url('about', _anchor='publications'))
 
-    assert config.registry.unregisterUtility(provided=IDownload, name='dataset.cldf')
     config.register_download(adapters.LanguoidCsvDump(
         models.Languoid, 'glottolog3', description="Languoids as CSV"))
     config.register_download(adapters.LanguoidTurtleDump(
