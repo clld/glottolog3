@@ -99,7 +99,7 @@
                     </dd>
                     % if aes.description:
                         <dt>Comment:</dt>
-                        <dd>${aes.description}</dd>
+                        <dd>${u.aes_comment(aes.description)|n}</dd>
                     % endif
                 </dl>
             </%self:accordion>

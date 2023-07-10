@@ -16,6 +16,7 @@ from clld.interfaces import IIcon
 from clldutils.misc import format_size
 from clldutils.path import Path
 from clldutils.jsonlib import load
+from clldutils.markup import MarkdownLink
 from pyglottolog.languoids import Reference
 
 from glottolog3.models import (
@@ -28,6 +29,17 @@ DOI = "10.5281/zenodo.8131084"
 
 LANG_PATTERN = re.compile(r'\[(?P<id>[^]]+)]')
 ISO_PATTERN = re.compile(r'\[(?P<iso>[a-z]{3})]')
+
+
+def aes_comment(s):
+    def elcat_links(mdl):
+        if mdl.url.startswith('elcat:'):
+            return HTML.p(
+                '(see ',
+                HTML.a(mdl.label, href='/resource/reference/id/{}'.format(mdl.url)),
+                ')')
+        return mdl
+    return MarkdownLink.replace(s, elcat_links)
 
 
 def set_focus(url, focus):
