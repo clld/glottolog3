@@ -444,17 +444,16 @@
                 (2019:5-7)</a> are cited as
                 the references justifying the position of Macaguaje and Tama. For Miriti and Arapaso, <a
                     href="${request.route_url('source', id=9035)}">Brüzzi Alves da Silva, Alcionilio (1972)</a>
-                collected
-                short wordlists of them, and concluded that they were Tucanoan, but he gives no further information that
-                would
-                allow us to infer their relation to each other or to other Tucanoan languages. The wordlists themselves
-                were
-                never published, and are possibly now lost (but this is not certain). However, another wordlist of Arapaso
-                collected a century earlier by Natterer has surfaced more recently, and this allowed
+                was able to obtain minuscule wordlists of them which appeared in <a
+                    href="${request.route_url('source', id=24652)}">Brüzzi Alves da Silva, Alcionilio (1962:96-97, 101-102)</a>,
+                and concluded that they were Tucanoan but did not insist on a more specific placement himself. More recently,
+                another wordlist of Arapaso collected a century earlier by Natterer has surfaced, and this allowed
                 <a href="${request.route_url('source', id=576304)}">Ramirez, Henri.
-                (2019:5-7)</a> to place this language more specifically in Tucanoan. Miriti, however, is
-                labeled
-                <a href="${request.route_url('language', id='uncl1448')}">Unclassified Tucanoan</a> since no data has surfaced to allow its more precise placement within Tucanoan.
+                (2019:5-7)</a> to place this language more specifically to place this language more specifically in a subgroup
+                with Kotiria and Wa'ikhana. Regarding Miriti, the remaining community members asserted <a
+                    href="${request.route_url('source', id=24652)}">Brüzzi Alves da Silva, Alcionilio (1962:101-102)</a> that
+                the language was similar to Arapaso and this is consistent with the minuscule wordlist. The language is thus classified accordingly
+                with this (admittedly meagre) motivation.
             </p>
         </%util:section>
         <%util:section title="Dialects" prefix="">
