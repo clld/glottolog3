@@ -46,12 +46,12 @@
             <a class="label label-info" href="#tally">
                 <i class="icon-th icon-white"> </i>
                 tally
-            </a>.
+            </a>. 
             A short description of GlottoScope is provided in the
             <a class="label label-info" href="${request.route_url('langdocstatus')}">
                 <i class="icon-book icon-white"> </i>
                 intro
-            </a>.
+            </a>. There is historical information on descriptive status, but not endangerment status. Therefore only descriptive status varies over time.
         </div>
     </div>
     <div class="span6">
