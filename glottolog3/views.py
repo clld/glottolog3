@@ -31,7 +31,7 @@ from glottolog3.adapters import get_selected_languages_map
 
 YEAR_PATTERN = re.compile('[0-9]{4}$')
 
-GLOTTOCODE_PATTERN = re.compile(r'[a-z][a-z0-9]{3}[1-9]\d{3}$')
+GLOTTOCODE_PATTERN = re.compile(r'[a-z0-9]{4}[1-9]\d{3}$')
 
 
 class LanguoidsMultiSelect(MultiSelect):
