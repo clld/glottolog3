@@ -207,24 +207,19 @@
             <p>
                 If a putative language is not the main means of communication for a society,
                 it is classified as a pidgin or as a speech register.
-                (Whistled and drummed languages as well as jargons are not currently included in Glottolog.)
+                (Neither whistled or drummed languages nor jargons are currently included in Glottolog.)
             </p>
             <h5><a id="x1-6000"></a>4. Is the modality speech?</h5>
             <p>
-                The present classification of languages is restricted to spoken languages for the sole reason that there
-                exists a methodology for establishing genealogical relationships for spoken languages (<a
+                The present classification of spoken languages follows the existing well-established methodology for
+                inferring genealogical relationships (<a
                     href="${request.route_url('source', id=94097)}">Campbell, Lyle and Poser, William J. 2008</a>).
-                This is not necessarily the case for signed languages.
+                The relevant principles and their application are explained below in the Classification section.
             </p>
             <p>
-                Sign languages are grouped into a variety of subgroups that also thought to reflect genealogical
-                history.
-                But here the same theoretical foundation is lacking, and thus the sign language groupings are much less
-                secure.
-                The Sign Language groupings are not accountable like the spoken language groupings, i.e., accompanied by
-                a reference that justifies the outcome according to a well-understood theory.
-                Rather, the sign language groupings reflect the impression of origin by individual researchers and/or
-                simple lexicostatistical counts.
+                Since a similar methodology for the classification of sign languages remains to be formulated, 
+                sign languages are classified on a weaker theoretical basis. The relevant principles and their
+                application are explained below in the Classification section.
             </p>
             <h5><a id="x1-7000"></a>5. Are the form-meaning pairs enough to distinguish between different classification
                 proposals?</h5>
@@ -356,6 +351,93 @@
                 subgrouping while the latter lists a subgrouping without pointing to any evidence at all. The
                 lexicostatistical
                 evidence is preferrable to no evidence at all, and is therefore followed.
+            </p>
+            <h5><a id="x1-13000"></a>On the classification of sign languages</h5>
+            <p>
+               The category of Sign Language languages in Glottolog is first divided
+into L1 Sign Languages, Auxiliary Sign Systems and Pidgin Sign
+Languages. L1 Sign Languages are full-fledged languages (in the sense
+of **hh:h:Hockett:Speech**'s Design Features) that are or were
+someone's mother tongue. Homesign systems, developed for basic
+communication by isolated deaf children and their immediate family,
+are not full-fledged languages (**hh:h:Hill:Homesign**). Homesign
+systems are not catalogued in Glottolog.  A ``critical mass'' of
+interacting deaf individuals can transform (a/some) homesign system
+into an L1 language but precisely when this happens is a matter of
+uncertainty. Perhaps a half a dozen to a dozen individuals are
+sufficient and Glottolog is relatively liberal in the judgment of
+particular cases. (This is visible not least in labels such as
+``emergent'', ``nascent'' or ``family sign'' used in the titles of
+publications about the same cases). The list of L1 sign languages in
+Glottolog aims to be complete but, as with spoken languages, there has
+to be a published convincing argument as to its existence and
+distinctness to other languages in order to merit inclusion. Pidgin
+Sign Languages, like spoken Pidgin languages, are by definition not
+full-fledged languages. Although some are included, Glottolog does not
+aim to be complete with respect to Pidgin Sign Languages. Auxiliary
+Sign Systems are similarly, by definition, not anyone's mother tongue
+(**hh:hs:Kendon:Sign-Aboriginal**):2-6, 404-441 and Glottolog does not
+aim to be complete with respect to auxiliary sign systems. Deaf
+individuals, like anyone else, may use an existing auxiliary sign
+system and if there is ``critical mass'' of such users that may turn
+the auxiliary sign system into an L1 Sign Language, e.g., Yolngu Sign
+Language (**hh:s:AdoneMaypilama:Yolngu-Sign**).
+
+The L1 Sign Languages are further classified into families, resembling
+genealogical families for spoken languages. For spoken languages, a
+relatively well-developed methodology, i.e., the Comparative Method
+(see, e.g., **hh:hv:Weiss:Comparative-Method**), exists for
+establishing relationships and subclassification. For signed
+languages, such a methodology remains to be articulated (see
+**hh:v:Power:Historical-Sign**:4, 9-13,
+**hh:hv:Abner:Sign-Families**,
+**hh:v:Wilson:French-Sign-Family**,
+**hh:v:Parks:Sign-Language-Comparisons**,
+**hh:hv:Reagan:Sign-Families** etc.).  In lieu of a well-developed
+methodology, Glottolog sign languages are (sub-)grouped on lexical
+and/or historical evidence on transmission. A lexical comparison, even
+given caveats for cognacy establishment and transmission type, is
+usually stronger evidence than historical evidence since a historical
+connection may or may not be closely tied to the transmission of an
+entire signed language. We follow earlier work that estimates that
+30\% lexicostatistical similarity and above to be indicative of family
+relationship (**hh:g:Hendriks:Sign-Jordanian**:37,
+**hh:v:Guerra:Lexicons-Four-Signed**:228-229,
+**hh:hv:McKeeKennedy:Comparison-Sign**:57-58 etc.). If lexical
+evidence is not available, historical evidence, e.g., the signed
+language of relevant foundational deaf institutions and/or influential
+individuals therein is taken as as an indicator of the origin of a
+signed language. Also evidence or arguments as to the absense of any
+historical connection to other known signed language is taken as an
+indicator of independent origin, i.e., a separate family/isolate.
+This means that, unlike with spoken languages in Glottolog, signed
+languages can be classified into families/isolates without there being
+any recorded language data, i.e., form-meaning pairs. For example,
+nothing has been published on lexicon or structure of the (presumed)
+signed language of Dadhkai village in Jammu and Kashmir state (India).
+Its existence is arguable on the incidence of deafness
+(**hh:h:Razdan:Dadhkai**) and its classification as an isolate is
+inferred from the lack of historical connections of this village to
+any other known signed language. Also unlike spoken languages in
+Glottolog, there exist signed languages for which lexical data (but
+little historical information) is available, yet no systematic
+comparison to neighbouring signed languages has been carried out. Such
+language are listed as Unclassified L1 Sign Language is Glottolog.
+For example, there is a dictionary of Rwandan Sign Language
+(**hh:d:Woolley:Rwandan-Sign**) which has not been used for lexical
+comparisons and the little historical information available is
+insufficient to confirm or deny any relationship with deaf
+schools/languages in neighbouring or far countries.
+
+It is expected that the quality of the classification of signed
+languages in Glottolog is far inferior to that of the spoken
+languages. Nevertheless, unlike earlier work such as that of Anderson
+(reproduced in **hh:h:Woll:Global-Sign**:27),
+**hh:hv:Wittmann:Classification-Signees** or
+**hh:h:Cantin:Noetomalalien**, sources are given for each
+classificatory choice to enable scrutiny and facilitate future
+improvement.
+ 
             </p>
         </%util:section>
         <%util:section title="Accountability" prefix="" level="4">
