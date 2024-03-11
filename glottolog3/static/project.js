@@ -214,11 +214,12 @@ GLOTTOLOG3.Tree = (function(){
             var el, node, top,
                 $tree = $('#'+eid);
 
-            if (!nodes) {
+            if (!nodes) {  // "expand all"
                 $tree.tree('getTree').iterate(
                     function (node, level) {
-                        if (node.level == 'dialect') {
-                            return true;
+                        if (node.hasChildren() && node.children[0].level == 'dialect') {
+                            $tree.tree('selectNode', node);
+                            return false;
                         }
                         if (!node.hasChildren()) {
                             $tree.tree('selectNode', node);

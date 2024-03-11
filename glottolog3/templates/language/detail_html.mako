@@ -47,7 +47,7 @@
                 </ul>
                 <ul class="inline pull-right">
                     <li>${h.button(h.icon('screenshot', inverted=True), 'open ' + ctx.name, title="open current node", onclick="GLOTTOLOG3.Tree.open('tree', '"+ctx.id+"', true)", class_='btn-info btn-mini')}</li>
-                    <li>${h.button(h.icon('resize-full', inverted=True), 'expand all', title="expand all nodes", onclick="GLOTTOLOG3.Tree.open('tree')", class_='btn-info btn-mini')}</li>
+                    <li>${h.button(h.icon('resize-full', inverted=True), 'expand all', title="expand all nodes (up to language level)", onclick="GLOTTOLOG3.Tree.open('tree')", class_='btn-info btn-mini')}</li>
                     <li>${h.button(h.icon('resize-small', inverted=True), 'collapse all', title="collapse all nodes", onclick="GLOTTOLOG3.Tree.close('tree')", class_='btn-info btn-mini')}</li>
                 </ul>
                 <div id="tree">
