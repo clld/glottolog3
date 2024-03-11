@@ -177,10 +177,11 @@ def prime_cache(args, repos=None):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+    glottolog = get_glottolog_api(repos)
+    version = assert_release(glottolog.repos)
     #
     # Now that we loaded all languoids and refs, we can compute the MED values.
     #
-    glottolog = get_glottolog_api(repos)
     meds = defaultdict(list)
     for lpk, spk, sid, sname, med_type, year, pages in DBSession.execute("""\
 select
@@ -287,7 +288,6 @@ group by l.id, l.pk, vs.contribution_pk, vs.parameter_pk"""):
     )):
         raise ValueError(row)
 
-    version = assert_release(glottolog.repos)
     with jsonlib.update(gc2version(), indent=4) as legacy:
         for lang in DBSession.query(common.Language):
             if lang.id not in legacy:

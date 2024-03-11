@@ -176,3 +176,13 @@ class Wikidata(PartnerSite):
 class AIATSIS(PartnerSite):
     domain = 'collection.aiatsis.gov.au'
     img = 'aiatsis.png'
+
+
+class Lexibank(PartnerSite):
+    domain = 'lexibank.clld.org'
+    img = 'lexibank.png'
+
+
+class Grambank(PartnerSite):
+    domain = 'grambank.clld.org'
+    img = 'grambank.png'

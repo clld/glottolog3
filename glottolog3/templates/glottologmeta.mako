@@ -354,7 +354,7 @@
             </p>
             <h5><a id="x1-13000"></a>On the classification of sign languages</h5>
             <p>
-               The category of Sign Language languages in Glottolog is first divided
+               ${u.format_comment(req, '''The category of Sign Language languages in Glottolog is first divided
 into L1 Sign Languages, Auxiliary Sign Systems and Pidgin Sign
 Languages. L1 Sign Languages are full-fledged languages (in the sense
 of **hh:h:Hockett:Speech**'s Design Features) that are or were
@@ -381,9 +381,10 @@ aim to be complete with respect to auxiliary sign systems. Deaf
 individuals, like anyone else, may use an existing auxiliary sign
 system and if there is ``critical mass'' of such users that may turn
 the auxiliary sign system into an L1 Sign Language, e.g., Yolngu Sign
-Language (**hh:s:AdoneMaypilama:Yolngu-Sign**).
-
-The L1 Sign Languages are further classified into families, resembling
+Language (**hh:s:AdoneMaypilama:Yolngu-Sign**).''')|n}
+            </p>
+    <p>
+${u.format_comment(req, '''The L1 Sign Languages are further classified into families, resembling
 genealogical families for spoken languages. For spoken languages, a
 relatively well-developed methodology, i.e., the Comparative Method
 (see, e.g., **hh:hv:Weiss:Comparative-Method**), exists for
@@ -427,16 +428,17 @@ For example, there is a dictionary of Rwandan Sign Language
 (**hh:d:Woolley:Rwandan-Sign**) which has not been used for lexical
 comparisons and the little historical information available is
 insufficient to confirm or deny any relationship with deaf
-schools/languages in neighbouring or far countries.
-
-It is expected that the quality of the classification of signed
+schools/languages in neighbouring or far countries.''')|n}
+    </p>
+    <p>
+${u.format_comment(req, '''It is expected that the quality of the classification of signed
 languages in Glottolog is far inferior to that of the spoken
 languages. Nevertheless, unlike earlier work such as that of Anderson
 (reproduced in **hh:h:Woll:Global-Sign**:27),
 **hh:hv:Wittmann:Classification-Signees** or
 **hh:h:Cantin:Noetomalalien**, sources are given for each
 classificatory choice to enable scrutiny and facilitate future
-improvement.
+improvement.''')|n}
  
             </p>
         </%util:section>
@@ -593,11 +595,11 @@ improvement.
         <%util:section title="Agglomerated Endangerment Status (AES)" prefix="">
             <p>
                 The Agglomerated Endangerment Status (AES) is an endangerment scale, derived from the databases of
-                ${h.external_link("http://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
+                ${h.external_link("https://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
                 ,
-                ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}
+                ${h.external_link("https://unesdoc.unesco.org/ark:/48223/pf0000187026", label="UNESCO Atlas of the World's Languages in Danger")}
                 and
-                ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}. For more information see
+                ${h.external_link("https://www.ethnologue.com/", label="Ethnologue")}. For more information see
                 <a href="${req.route_url('langdocstatus')}">GlottoScope</a>, which also contains information on descriptive status.
             </p>
         </%util:section>

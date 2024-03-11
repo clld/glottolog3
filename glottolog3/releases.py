@@ -26,8 +26,11 @@ class Release:
 
     def download_sql_dump(self, log):
         target = self.dump_fname(zipped=True)
-        log.info('retrieving {0}'.format(self.sql_dump_url))
-        urlretrieve(self.sql_dump_url, str(target))
+        if target.exists():
+            log.info('skipping')
+        else:
+            log.info('retrieving {0}'.format(self.sql_dump_url))
+            urlretrieve(self.sql_dump_url, str(target))
         assert md5(target) == self.sql_dump_md5
         unpacked = target.with_suffix('')
         with gzip.open(str(target)) as f, unpacked.open('wb') as u:
