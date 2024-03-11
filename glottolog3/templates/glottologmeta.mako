@@ -401,7 +401,7 @@ given caveats for cognacy establishment and transmission type, is
 usually stronger evidence than historical evidence since a historical
 connection may or may not be closely tied to the transmission of an
 entire signed language. We follow earlier work that estimates that
-30\% lexicostatistical similarity and above to be indicative of family
+30% lexicostatistical similarity and above to be indicative of family
 relationship (**hh:g:Hendriks:Sign-Jordanian**:37,
 **hh:v:Guerra:Lexicons-Four-Signed**:228-229,
 **hh:hv:McKeeKennedy:Comparison-Sign**:57-58 etc.). If lexical

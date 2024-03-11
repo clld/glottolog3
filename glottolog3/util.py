@@ -235,7 +235,8 @@ def format_comment(req, comment):
     for match in Reference.pattern.finditer(comment):
         preceding = comment[pos:match.start()]
         parts.append(preceding)
-        parts.append(match.group('key'))
+        key = match.group('key')
+        parts.append((key, match.group('endtag') == '(**)'))
         sources[match.group('key')] = None
         if match.group('pages'):
             parts.append(': {0}'.format(match.group('pages')))
@@ -245,8 +246,21 @@ def format_comment(req, comment):
     for rp in DBSession.query(Refprovider).filter(Refprovider.id.in_(sources.keys())):
         sources[rp.id] = rp.ref
 
-    return ' '.join(
-        link(req, sources[p]) if sources.get(p) else p for p in parts).replace(' : ', ': ')
+    res = []
+    for part in parts:
+        if isinstance(part, tuple):
+            key, year_in_parens = part
+            src = sources[key]
+            if year_in_parens and re.search(r'\s+[0-9]{4}$', src.name):
+                srcparts = src.name.split()
+                res.append(link(
+                    req, src, label='{} ({})'.format(' '.join(srcparts[:-1]), srcparts[-1])))
+            else:
+                res.append(link(req, src))
+        else:
+            res.append(part)
+
+    return ' '.join(res).replace(' : ', ': ')
 
 
 def format_justifications(req, refs):
