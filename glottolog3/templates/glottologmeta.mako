@@ -352,7 +352,7 @@
                 lexicostatistical
                 evidence is preferrable to no evidence at all, and is therefore followed.
             </p>
-            <h5><a id="x1-13000"></a>On the classification of sign languages</h5>
+            <h5><a id="signlanguages"></a>On the classification of sign languages</h5>
             <p>
                ${u.format_comment(req, '''The category of Sign Language languages in Glottolog is first divided
 into L1 Sign Languages, Auxiliary Sign Systems and Pidgin Sign

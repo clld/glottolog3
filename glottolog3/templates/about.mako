@@ -48,11 +48,11 @@
         </p>
         <p>
             The Agglomerated Endangerment Status (AES) is derived from the databases of
-            ${h.external_link("http://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
+            ${h.external_link("https://www.endangeredlanguages.com", label="The Catalogue of Endangered Languages (ELCat)")}
             ,
-            ${h.external_link("http://www.unesco.org/languages-atlas/", label="UNESCO Atlas of the World's Languages in Danger")}
+            ${h.external_link("https://unesdoc.unesco.org/ark:/48223/pf0000187026", label="UNESCO Atlas of the World's Languages in Danger")}
             and
-            ${h.external_link("http://www.ethnologue.com", label="Ethnologue")}. For more information see
+            ${h.external_link("https://www.ethnologue.com", label="Ethnologue")}. For more information see
             <a href="${req.route_url('langdocstatus')}">GlottoScope</a>.
         </p>
 </%util:section>
