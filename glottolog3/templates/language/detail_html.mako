@@ -153,9 +153,9 @@
                     <ul class="nav nav-tabs nav-stacked">
                         % for country in ctx.valueset_dict['country'].values:
                             <li>
-                                ##<a href="${request.route_url('glottolog.languages', _query=dict(country=country.id))}">
+                                <a href="${request.route_url('glottolog.languages', _query=dict(country=country.domainelement.name))}">
                                     ${country.name} [${country.domainelement.name}]
-                                ##</a>
+                                </a>
                             </li>
                         % endfor
                     </ul>
