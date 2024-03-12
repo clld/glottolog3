@@ -19,7 +19,7 @@ setup(
         'console_scripts': ['glottolog-app=glottolog3.__main__:main'],
     },
     install_requires=[
-        'clldutils>=3.22',
+        'clldutils>=3.22.2',
         'clld>=9.2.2',
         'cldfcatalog',
         'clldmpg>=4.2',
