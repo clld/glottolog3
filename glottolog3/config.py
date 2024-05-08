@@ -178,9 +178,9 @@ class AIATSIS(PartnerSite):
     img = 'aiatsis.png'
 
 
-class Lexibank(PartnerSite):
-    domain = 'lexibank.clld.org'
-    img = 'lexibank.png'
+#class Lexibank(PartnerSite):
+#    domain = 'lexibank.clld.org'
+#    img = 'lexibank.png'
 
 
 class Grambank(PartnerSite):
