@@ -26,26 +26,9 @@ setup(
         'markdown',
         'newick>=0.4',
         'pyglottolog>=3.0',
+        'purl',
+        'colander',
     ],
-    extras_require={
-        'dev': [
-            'flake8',
-            'wheel',
-            'twine'
-        ],
-        'test': [
-            'cdstarcat',
-            'psycopg2-binary',
-            'pytest',
-            'pytest-clld>=0.4',
-            'pytest-cov',
-            'pytest-mock',
-            'coverage>=4.2'
-            'selenium',
-            'webtest',
-            'zope.component>=3.11.0',
-        ],
-    },
     long_description='',
     classifiers=[
         'Programming Language :: Python',

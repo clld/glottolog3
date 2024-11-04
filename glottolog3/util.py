@@ -25,7 +25,7 @@ from glottolog3.models import (
 from glottolog3.maps import LanguoidMap
 from glottolog3.config import PartnerSite, ISOSite
 
-DOI = "10.5281/zenodo.10804357"
+DOI = "10.5281/zenodo.14006617"
 
 LANG_PATTERN = re.compile(r'\[(?P<id>[^]]+)]')
 ISO_PATTERN = re.compile(r'\[(?P<iso>[a-z]{3})]')
