@@ -189,7 +189,7 @@
 </div>
 
 <div class="row-fluid">
-    <div class="span12" id="languages">
+    <div class="span12" tabindex="1" id="languages">
     </div>
 </div>
 

@@ -73,7 +73,7 @@ GLOTTOLOG3.LangdocStatus = (function(){
                     'family': $("#msfamily").select2("val").join(),
                     'country': $("#countries").val()
                 });
-            $("#languages").focus().load(url);
+            $("#languages").load(url).focus();
         },
         reload: function(){
             document.location.href = CLLD.route_url(
