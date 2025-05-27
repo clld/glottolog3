@@ -38,7 +38,7 @@
   - languages_and_dialects_geo.csv
   - gzipped db dump
 
-- upload downloads to cdstar running `glottolog-app cdstar <release>`
+- upload downloads to cdstar running `glottolog-app cdstar <release>` (without v- prefix)
   if no bitstreams are added to the catalog, the object may need to be re-added via
   cdstarcat, and the above command re-run. To do so,
   - look for "glottolog <release>" in https://cdstar.eva.mpg.de and note the OID

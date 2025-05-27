@@ -70,9 +70,10 @@ GLOTTOLOG3.LangdocStatus = (function(){
                 {
                     'macroarea': $("#macroarea").val(),
                     'year': $('#year').val(),
-                    'family': $("#msfamily").select2("val").join(),
+                    'family': $("#msfamily").select2("val"),
                     'country': $("#countries").val()
                 });
+		alert(url);
             $("#languages").load(url).focus();
         },
         reload: function(){

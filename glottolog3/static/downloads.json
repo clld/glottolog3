@@ -1840,5 +1840,87 @@
             "title": "glottolog 5.1 - downloads"
         },
         "oid": "EAEA0-167B-00FC-4D7D-0"
+    },
+    "5.2": {
+        "bitstreams": [
+            {
+                "bitstreamid": "glottolog.sql.gz",
+                "checksum": "e5be1a7759549ef9db70ed961ed818e7",
+                "checksum-algorithm": "MD5",
+                "content-type": "application/sql",
+                "created": 1748352441728,
+                "filesize": 180413374,
+                "last-modified": 1748353314810
+            },
+            {
+                "bitstreamid": "glottolog_language.n3.gz",
+                "checksum": "7afb6f7ed94046db2925aa64668ff4d8",
+                "checksum-algorithm": "MD5",
+                "content-type": "text/n3",
+                "created": 1748352403679,
+                "filesize": 3413524,
+                "last-modified": 1748352419867
+            },
+            {
+                "bitstreamid": "glottolog_language.ttl.gz",
+                "checksum": "f1ec9a2ab15bedfee1326567a538449a",
+                "checksum-algorithm": "MD5",
+                "content-type": "text/turtle",
+                "created": 1748352420069,
+                "filesize": 3414546,
+                "last-modified": 1748352436375
+            },
+            {
+                "bitstreamid": "glottolog_languoid.csv.zip",
+                "checksum": "8b30b72d806936037d5abb3062c9e291",
+                "checksum-algorithm": "MD5",
+                "content-type": "application/zip",
+                "created": 1748353316389,
+                "filesize": 586815,
+                "last-modified": 1748353319107
+            },
+            {
+                "bitstreamid": "glottolog_source.bib.zip",
+                "checksum": "2cf076d7e4d011953b6f6b7fdd61f116",
+                "checksum-algorithm": "MD5",
+                "content-type": "application/zip",
+                "created": 1748351722658,
+                "filesize": 70826924,
+                "last-modified": 1748352064368
+            },
+            {
+                "bitstreamid": "glottolog_source.n3.gz",
+                "checksum": "43f239618fddbbf097a76941f01438b5",
+                "checksum-algorithm": "MD5",
+                "content-type": "text/n3",
+                "created": 1748352067087,
+                "filesize": 69437453,
+                "last-modified": 1748352402332
+            },
+            {
+                "bitstreamid": "languages_and_dialects_geo.csv",
+                "checksum": "725eb172061d740a7af5a505bff44bed",
+                "checksum-algorithm": "MD5",
+                "content-type": "text/csv",
+                "created": 1748352436579,
+                "filesize": 1067517,
+                "last-modified": 1748352441579
+            },
+            {
+                "bitstreamid": "tree_glottolog_newick.txt",
+                "checksum": "975dfa2917921d3c22f354fa60540707",
+                "checksum-algorithm": "MD5",
+                "content-type": "text/plain",
+                "created": 1748351718518,
+                "filesize": 768502,
+                "last-modified": 1748351722259
+            }
+        ],
+        "metadata": {
+            "creator": "pycdstar",
+            "description": "Custom downloads for release 5.2 of [Glottolog](http://glottolog.org)",
+            "title": "glottolog 5.2 - downloads"
+        },
+        "oid": "EAEA0-2198-D710-AA36-0"
     }
 }
