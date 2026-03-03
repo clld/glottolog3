@@ -28,10 +28,6 @@ def register(parser):  # pragma: no cover
 
 
 def run(args):  # pragma: no cover
-    #
-    # FIXME: look up oid for release in downloads.json! if it exists, replace the bitstreams
-    # rather than creating a new object!
-    #
     dlfname = args.pkg_dir.joinpath('static', 'downloads.json')
     downloads = load(dlfname)
     release = args.version

@@ -40,7 +40,7 @@ def test_datatable_family(selenium):
 def test_datatable_language(selenium):
     dt = selenium.get_datatable('/glottolog/language')
     dt.filter('name', u'\u00fc')
-    assert dt.get_info().filtered == 16
+    assert dt.get_info().filtered == 17
 
 
 @pytest.mark.selenium
