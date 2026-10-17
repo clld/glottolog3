@@ -77,17 +77,15 @@ def linkify_iso_codes(request, text, class_=None, route_name='glottolog.iso'):
 
 
 def old_downloads():
-    from clldmpg import cdstar
-
-    def bitstream_link(oid, spec):
-        url = cdstar.SERVICE_URL + '/bitstreams/{0}/{1}'.format(oid, spec['bitstreamid'])
+    def bitstream_link(doi, spec):
+        url = f"https://zenodo.org/records/{doi.split('.')[-1]}/files/{spec['bitstreamid']}?download=1"
         return HTML.a(
-            '{0} [{1}]'.format(spec['bitstreamid'], format_size(spec['filesize'])),
+            f"{spec['bitstreamid']} [{format_size(spec['filesize'])}]",
             href=url)
 
     for number, spec in sorted(
             load(Path(__file__).parent.joinpath('static', 'downloads.json')).items()):
-        yield number, [bitstream_link(spec['oid'], bs) for bs in spec['bitstreams']]
+        yield number, [bitstream_link(spec['doi'], bs) for bs in spec['bitstreams']]
 
 
 class ModelInstance(object):

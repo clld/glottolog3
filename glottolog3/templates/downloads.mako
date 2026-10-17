@@ -30,6 +30,12 @@
     <p>
         <strong>${h.external_link("https://doi.org/10.5281/zenodo.3260727", label="DOI: 10.5281/zenodo.3260727")}</strong>
     </p>
+    <p>
+        The custom downloads linked below are archived with and retrievable from ZENODO at
+    </p>
+    <p>
+        <strong>${h.external_link("https://doi.org/10.5281/zenodo.21676495", label="DOI: 10.5281/zenodo.21676495")}</strong>
+    </p>
 </div>
 
 <div class="accordion" id="downloads" style="margin-top: 1em; clear: right;">
@@ -55,10 +61,10 @@
 </div>
 
 <%def name="sidebar()">
-    <%util:well title="Download Files">
+    <%util:well title="Custom downloads">
         <dl>
             <dt>glottolog.sql.gz</dt>
-            <dd>gzipped PostgreSQL 9.x database dump</dd>
+            <dd>gzipped PostgreSQL database dump</dd>
             <dt>glottolog_languoid.csv.zip</dt>
             <dd>tabular description of Glottolog languoids, one row per languoid, in (zipped) CSV</dd>
             <dt>glottolog_source.bib.zip</dt>
@@ -68,15 +74,5 @@
             <dt>tree_glottolog_newick.txt</dt>
             <dd>Trees for all Glottolog top-level families encoded in Newick format</dd>
         </dl>
-    </%util:well>
-    <%util:well title="Glottolog Data">
-        <p>
-            The data published by Glottolog is curated in the public GitHub repository
-            ${h.external_link("https://github.com/glottolog/glottolog", label='glottolog/glottolog')}.
-        </p>
-        <p>
-            You may report errors you found in Glottolog using this repositories
-            ${h.external_link("https://github.com/glottolog/glottolog/issues", label='issue tracker')}.
-        </p>
     </%util:well>
 </%def>

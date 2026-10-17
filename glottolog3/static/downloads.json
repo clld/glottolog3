@@ -1,6 +1,6 @@
 {
     "2.0": {
-	"doi": "https://doi.org/10.5281/zenodo.21676496",
+	    "doi": "https://doi.org/10.5281/zenodo.21676496",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -56,7 +56,7 @@
         "oid": "EAEA0-01F8-2FF8-F347-0"
     },
     "2.1": {
-	"doi": "https://doi.org/10.5281/zenodo.21677993",
+	    "doi": "https://doi.org/10.5281/zenodo.21677993",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -112,7 +112,7 @@
         "oid": "EAEA0-80E0-FBF5-DEB9-0"
     },
     "2.2": {
-	"doi": "https://doi.org/10.5281/zenodo.21678060",
+	    "doi": "https://doi.org/10.5281/zenodo.21678060",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -168,7 +168,7 @@
         "oid": "EAEA0-E34D-97A9-7380-0"
     },
     "2.3": {
-	"doi": "https://doi.org/10.5281/zenodo.21678175",
+    	"doi": "https://doi.org/10.5281/zenodo.21678175",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -233,7 +233,7 @@
         "oid": "EAEA0-8440-02D2-FF10-0"
     },
     "2.4": {
-	"doi": "https://doi.org/10.5281/zenodo.21678333",
+	    "doi": "https://doi.org/10.5281/zenodo.21678333",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -316,7 +316,7 @@
         "oid": "EAEA0-BE26-8FF3-C4C2-0"
     },
     "2.5": {
-	"doi": "https://doi.org/10.5281/zenodo.21678714",
+	    "doi": "https://doi.org/10.5281/zenodo.21678714",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -399,7 +399,7 @@
         "oid": "EAEA0-3C80-221D-9CD7-0"
     },
     "2.6": {
-	"doi": "https://doi.org/10.5281/zenodo.21679476",
+	    "doi": "https://doi.org/10.5281/zenodo.21679476",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
