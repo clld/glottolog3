@@ -22,7 +22,7 @@ setup(
         'clldutils>=3.22.2',
         'clld>=9.2.2',
         'cldfcatalog',
-        'clldmpg>=4.2',
+        'clldmpg>=4.5',
         'markdown',
         'newick>=0.4',
         'pyglottolog>=3.0',
