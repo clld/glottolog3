@@ -28,6 +28,7 @@ setup(
         'pyglottolog>=3.0',
         'purl',
         'colander',
+        'psycopg2',
     ],
     long_description='',
     classifiers=[

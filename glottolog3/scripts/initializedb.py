@@ -1,4 +1,5 @@
 import pathlib
+import datetime
 from collections import defaultdict, OrderedDict
 from time import time
 import functools
@@ -182,6 +183,11 @@ def prime_cache(args, repos=None):
     This procedure should be separate from the db initialization, because
     it will have to be run periodically whenever data has been updated.
     """
+    gcs = {l.id for l in DBSession.query(common.Language)}
+    known = {lc.id for lc in DBSession.query(models.LegacyCode)}
+    for lg in DBSession.query(common.Language).filter(common.Language.id.in_(list(gcs - known))):
+        lg.updated = datetime.datetime.now()
+
     glottolog = get_glottolog_api(repos)
     version = assert_release(glottolog.repos)
     #

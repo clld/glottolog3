@@ -22,6 +22,10 @@ def run(args):  # pragma: no cover
         last = sorted(set(rel.tag for rel in rels) - {version}, key=lambda s: float(s[1:]))[-1][1:]
     print('previous version: {0}'.format(last))
 
+    #
+    # could be done by comparing with LegacyCode table!
+    #
+
     cdb = create_engine('postgresql://postgres@/glottolog3')
     ldb = create_engine('postgresql://postgres@/glottolog-{0}'.format(last))
     sql = "select id from language as l, languoid as ll where l.pk = ll.pk and ll.level = 'language'"

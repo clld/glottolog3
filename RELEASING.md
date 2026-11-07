@@ -13,7 +13,7 @@
   clld initdb development.ini
   ```
   and check language associations, see e.g. https://github.com/glottolog/glottolog/issues/485
-- mark new languages running
+- mark new languages running  - FIXME: shouldn't be necessary anymore!
   ```shell
   glottolog-app mark_new_languages
   pytest
