@@ -28,6 +28,9 @@ from glottolog3.scripts.util import (
 
 
 def gc2version():
+    #
+    # FIXME: prompt!
+    #
     return pathlib.Path(glottolog3.__file__).parent.parent / '../archive' / 'archive' / 'glottocode2version.json'
 
 
@@ -109,8 +112,8 @@ def main(args, repos=None):
     )
 
     legacy = jsonlib.load(gc2version())
-    for gc, version in legacy.items():
-        data.add(models.LegacyCode, gc, id=gc, version=version)
+    for gc, versions in legacy.items():
+        data.add(models.LegacyCode, gc, id=gc, version=versions[-1])
 
     #
     # Now load languoid data, keeping track of relations that can only be inserted later.
