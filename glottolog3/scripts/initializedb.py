@@ -2,9 +2,10 @@ import pathlib
 from collections import defaultdict, OrderedDict
 from time import time
 import functools
+import dataclasses
+import urllib.request
 
 from tqdm import tqdm
-import attr
 import purl
 from clld.cliutil import Data, add_language_codes
 from clld.db.meta import DBSession
@@ -28,10 +29,11 @@ from glottolog3.scripts.util import (
 
 
 def gc2version():
-    #
-    # FIXME: prompt!
-    #
-    return pathlib.Path(glottolog3.__file__).parent.parent / '../archive' / 'archive' / 'glottocode2version.json'
+    gc2vp = pathlib.Path('glottocode2version.json')
+    if not gc2vp.exists():
+        with urllib.request.urlopen('https://doi.org/10.5281/zenodo.23421523') as req:
+            urllib.request.urlretrieve(req.url + '/files/glottocode2version.json', gc2vp)
+    return gc2vp
 
 
 def get_glottolog_api(repos):
@@ -79,8 +81,8 @@ def main(args, repos=None):
         pkw=dict(
             jsondata=dict(
                 reference_id=glottolog.aes_status.__defaults__['reference_id'],
-                sources=[attr.asdict(v) for v in glottolog.aes_sources.values()],
-                scale=[attr.asdict(v) for v in glottolog.aes_status.values()])),
+                sources=[dataclasses.asdict(v) for v in glottolog.aes_sources.values()],
+                scale=[dataclasses.asdict(v) for v in glottolog.aes_status.values()])),
         dekw=lambda de: dict(name=de.name, number=de.ordinal, jsondata=dict(icon=de.icon)),
     )
     add('med',
@@ -376,7 +378,7 @@ def load_languoid(glottolog, data, lang, nodemap):
         add('aes',
             [(lang.endangerment.status.id, lang.endangerment.status.name)],
             source=lang.endangerment.source.name,
-            jsondata=attr.asdict(lang.endangerment.source),
+            jsondata=dataclasses.asdict(lang.endangerment.source),
             description=lang.endangerment.comment,
         )
     if lang.level == glottolog.languoid_levels.language:
