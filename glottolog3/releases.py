@@ -1,6 +1,7 @@
 import gzip
 import shutil
 import pathlib
+import functools
 import subprocess
 import dataclasses
 from urllib.request import urlretrieve
@@ -9,12 +10,23 @@ from clldutils.db import DB
 from clldutils.path import md5
 
 
+@functools.total_ordering
 @dataclasses.dataclass(frozen=True)
 class Release:
     tag: str
     version: str
     sql_dump_md5: str
     downloads_doi: str
+
+    @property
+    def version_tuple(self):
+        return tuple(map(int, self.version.split('.')))
+
+    def __lt__(self, other):
+        return self.version_tuple < other.version_tuple
+
+    def __eq__(self, other):
+        return self.version_tuple == other.version_tuple
 
     @property
     def deposit_id(self):
@@ -38,30 +50,34 @@ class Release:
     def dump_fname(self, zipped=False):
         return pathlib.Path(f"glottolog-{self.version}.sql{'.gz' if zipped else ''}")
 
-    def download_sql_dump(self, log):
-        target = self.dump_fname(zipped=True)
-        if target.exists():
+    def download_sql_dump(self, log, out=None):
+        target = (out or pathlib.Path('.')) / self.dump_fname(zipped=True)
+        unpacked = target.with_suffix('')
+        if target.exists() or unpacked.exists():
             log.info('skipping')
+            if unpacked.exists():
+                return unpacked
         else:
             log.info('retrieving %s', self.sql_dump_url)
             urlretrieve(self.sql_dump_url, str(target))
+
         assert md5(target) == self.sql_dump_md5
-        unpacked = target.with_suffix('')
         with gzip.open(str(target)) as f, unpacked.open('wb') as u:
             shutil.copyfileobj(f, u)
         target.unlink()
         log.info('SQL dump for Glottolog release %s written to %s', self.version, unpacked)
+        return unpacked
 
-    def load_sql_dump(self, log):
+    def load_sql_dump(self, log, out=None):
         dump = self.dump_fname()
         dbname = dump.stem
         db = DB('postgresql://postgres@/{0.stem}'.format(dump))
 
         if db.exists():
-            log.warn('db {0} exists! Drop first to recreate.'.format(dump.stem))
+            log.warn('db %s exists! Drop first to recreate.', dump.stem)
         else:
             if not dump.exists():
-                self.download_sql_dump(log)
+                unpacked = self.download_sql_dump(log, out=out)
             db.create()
-            subprocess.check_call(['psql', '-d', dbname, '-f', str(dump)])
-            log.info('db {0} created'.format(dbname))
+            subprocess.check_call(['psql', '-d', dbname, '-f', str(unpacked)])
+            log.info('db %s created', dbname)

@@ -4,10 +4,9 @@
 - Checkout the corresponding release of glottolog/glottolog.
 - For major or minor releases: create the static archive including the last release:
   ```shell
-  cd ../archive
-  glottolog-app create_archive
-  tar -czf archive.tgz archive/
+  glottolog-app create_archive 5.3 path/to/download/of/glottocode2version.json --out ../archive/
   ```
+  Then create a new version of https://doi.org/10.5281/zenodo.23421523 and add the files.
 - initialize the DB running (about 60 mins)
   ```shell
   cd ../glottolog3

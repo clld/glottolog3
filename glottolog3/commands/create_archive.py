@@ -1,5 +1,8 @@
 """
 Create the static HTML archive to lookup old Glottolog releases
+
+https://doi.org/10.5281/zenodo.23421523
+
 """
 import pathlib
 
@@ -8,6 +11,8 @@ from glottolog3 import static_archive
 
 
 def register(parser):  # pragma: no cover
+    parser.add_argument('version')
+    parser.add_argument('glottocode2version', type=pathlib.Path)
     parser.add_argument(
         '--output',
         type=pathlib.Path,
@@ -16,9 +21,15 @@ def register(parser):  # pragma: no cover
 
 
 def run(args):  # pragma: no cover
-    rels = get_releases(args)
-    for rel in rels:
-        rel.load_sql_dump(args.log)
+    rel, older = None, []
+    for rel in get_releases(args):
+        if rel.version == args.version:
+            break
+        older.append(rel)
+    else:
+        raise ValueError(args.version)
+    assert rel
+    rel.load_sql_dump(args.log, out=args.output)
 
-    static_archive.create([rel.version for rel in rels], args.output)
-    args.log.info('static archive created in {0}'.format(args.output))
+    static_archive.create(rel.version, list(reversed(older)), args.glottocode2version, args.output)
+    args.log.info('static archive created in %s', args.output)
