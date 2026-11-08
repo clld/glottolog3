@@ -4,7 +4,6 @@ from collections import defaultdict, OrderedDict
 from time import time
 import functools
 import dataclasses
-import urllib.request
 
 from tqdm import tqdm
 import purl
@@ -23,18 +22,11 @@ from pyglottolog.references import BibFile
 
 import glottolog3
 from glottolog3 import models
+from glottolog3.cli_util import gc2version
 from glottolog3.scripts.util import (
     recreate_treeclosure, idjoin, add_parameter, split_items, add_identifiers, add_values,
     read_macroarea_geojson,
 )
-
-
-def gc2version():
-    gc2vp = pathlib.Path('glottocode2version.json')
-    if not gc2vp.exists():
-        with urllib.request.urlopen('https://doi.org/10.5281/zenodo.23421523') as req:
-            urllib.request.urlretrieve(req.url + '/files/glottocode2version.json', gc2vp)
-    return gc2vp
 
 
 def get_glottolog_api(repos):
@@ -48,7 +40,7 @@ def main(args, repos=None):
     version = assert_release(glottolog.repos)
     dataset = common.Dataset(
         id='glottolog',
-        name="{0} {1}".format(glottolog.publication.web.name, version),
+        name=f"{glottolog.publication.web.name} {version}",
         publisher_name=glottolog.publication.publisher.name,
         publisher_place=glottolog.publication.publisher.place,
         publisher_url=glottolog.publication.publisher.url,
@@ -70,9 +62,7 @@ def main(args, repos=None):
     DBSession.add(common.ContributionContributor(
         contribution=contrib, contributor=data['Contributor']['hammarstroem']))
 
-    #
     # Add Parameters:
-    #
     add = functools.partial(add_parameter, data)
     add('fc', name='Family classification')
     add('sc', name='Subclassification')
@@ -114,8 +104,8 @@ def main(args, repos=None):
         dekw=lambda de: dict(name=de.id, description=de.name),
     )
 
-    legacy = jsonlib.load(gc2version())
-    for gc, versions in legacy.items():
+    legacy = gc2version()
+    for gc, versions in gc2version().items():
         data.add(models.LegacyCode, gc, id=gc, version=versions[-1])
 
     #
@@ -128,7 +118,7 @@ def main(args, repos=None):
     lgcodes = {k: v.id for k, v in glottolog.languoids_by_code(nodemap).items()}
     for lang in tqdm(list(nodemap.values())):
         for ref in lang.sources:
-            lgsources['{0.provider}#{0.bibkey}'.format(ref)].append(lang.id)
+            lgsources[f'{ref.provider}#{ref.bibkey}'].append(lang.id)
         load_languoid(glottolog, data, lang, nodemap)
 
     for gc in glottolog.glottocodes:
@@ -137,8 +127,8 @@ def main(args, repos=None):
 
     for obj in jsonlib.load(glottolog.references_path('replacements.json')):
         common.Config.add_replacement(
-            '{0}'.format(obj['id']),
-            '{0}'.format(obj['replacement']) if obj['replacement'] else None,
+            f"{obj['id']}",
+            f"{obj['replacement']}" if obj['replacement'] else None,
             model=common.Source)
 
     DBSession.flush()

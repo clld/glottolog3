@@ -7,42 +7,33 @@
   glottolog-app create_archive 5.3 path/to/download/of/glottocode2version.json --out ../archive/
   ```
   Then create a new version of https://doi.org/10.5281/zenodo.23421523 and add the files.
+
+On `dlceutil` as user `glottolog` (where `monster.bib` should have been created before):
+
 - initialize the DB running (about 60 mins)
   ```shell
-  cd ../glottolog3
-  clld initdb development.ini
-  ```
-  and check language associations, see e.g. https://github.com/glottolog/glottolog/issues/485
-- mark new languages running  - FIXME: shouldn't be necessary anymore!
-  ```shell
-  glottolog-app mark_new_languages
-  pytest
+  cd glottolog3
+  clld_initdb
   ```
 - remove old downloads:
   ```shell
-  rm glottolog3/static/download/glottolog*
+  rm glottolog3/static/download/*
   ```
 - run (about 45 mins)
   ```shell
-  clld create_downloads development.ini glottolog.org 
-  ```
-- run
-  ```shell
+  clld create_downloads development.ini glottolog.org
   glottolog-app newick
   glottolog-app geo development.ini
   glottolog-app sqldump development.ini
-  ``` 
-  to create
-  - global newick tree
-  - languages_and_dialects_geo.csv
-  - gzipped db dump
+  cp -r glottolog3/static/download/ /tmp/<version>
+  ```
+  create a new version of the Zenodo deposit https://doi.org/10.5281/zenodo.21676495
+  with appropriate version setting and note the new deposit ID.
+  ```shell
+  /usr/venvs/mediautils/bin/mediautils upload_to_zenodo <did> /tmp
+  ```
+  Release the new version.
 
-- upload downloads to cdstar running `glottolog-app cdstar <release>` (without v- prefix)
-  if no bitstreams are added to the catalog, the object may need to be re-added via
-  cdstarcat, and the above command re-run. To do so,
-  - look for "glottolog <release>" in https://cdstar.eva.mpg.de and note the OID
-  - run `cdstarcat add EAEA0-...` (or `cdstarcat add EA... --update` later)
-  - run `glottolog-app cdstar <release> --oid <OID>`
 - register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
 - update `glottolog3.util.DOI` with the new ZENODO DOI

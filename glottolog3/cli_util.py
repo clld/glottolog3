@@ -1,4 +1,6 @@
+import json
 import configparser
+import urllib.request
 
 from glottolog3.releases import Release
 
@@ -16,3 +18,9 @@ def get_release(args, version):
     for rel in get_releases(args):
         if rel.version == version:
             return rel
+
+
+def gc2version():
+    with urllib.request.urlopen('https://doi.org/10.5281/zenodo.23421523') as req:
+        with urllib.request.urlopen(req.url + '/files/glottocode2version.json') as r:
+            return json.loads(r.read().decode('utf-8'))

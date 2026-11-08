@@ -10,6 +10,8 @@ from mako.template import Template
 from sqlalchemy import create_engine
 from clldutils import jsonlib
 
+from glottolog3.cli_util import gc2version
+
 
 T = Template("""\
 <!DOCTYPE html>
@@ -93,9 +95,9 @@ class L:
     fpk: int
 
     def __str__(self):
-        res = '{0.name} [{0.id}]'.format(self)
+        res = f'{self.name} [{self.id}]'
         if self.level:
-            res += ' {0.level}'.format(self)
+            res += f' {self.level}'
         return res
 
     @property
@@ -104,7 +106,7 @@ class L:
 
     @property
     def link(self):
-        return '<a href="{0.id}.html">{0}</a>'.format(self)
+        return f'<a href="{self.id}.html">{str(self)}</a>'
 
     def cross_version_link(self, v):
         return f'<a href="../glottolog-{v}/{self.id}.html">[{self.id}] in Glottolog {v}</a>'
@@ -119,8 +121,8 @@ class I:
 
     def __str__(self):
         if self.type == 'name':
-            return '{0.description} name: {0.name}'.format(self)
-        return '{0.type}: {0.name}'.format(self)
+            return f'{self.description} name: {self.name}'
+        return f'{self.type}: {self.name}'
 
 
 def dump(out, version, older, langs, identifiers):
@@ -152,7 +154,7 @@ def dump(out, version, older, langs, identifiers):
         clf = [link_list(children.get(lang.pk, []))]
         clf.append(lang.text)
         clf.extend(a.link for a in ancestors)
-        out.joinpath('{0}.html'.format(lang.id)).write_text(
+        out.joinpath(f'{lang.id}.html').write_text(
             T.render_unicode(
                 version=version,
                 lang=lang,
@@ -193,14 +195,14 @@ where li.identifier_pk = i.pk order by li.language_pk, i.type, i.description, i.
     return langs, identifiers
 
 
-def create(version, older, glottocode2version, out=None):
+def create(version,out=None):
     out = out or pathlib.Path('.')
     out = out / version
     if not out.exists():
         out.mkdir(exist_ok=True, parents=True)
 
     langs, identifiers = aggregate(version, create_engine('postgresql://postgres@/glottolog-{0}'.format(version)))
-    gc2v = jsonlib.load(glottocode2version)
+    gc2v = gc2version()
 
     subdir = out / f'glottolog-{version}'
     dump(
