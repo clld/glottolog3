@@ -177,6 +177,7 @@ def prime_cache(args, repos=None):
     known = {lc.id for lc in DBSession.query(models.LegacyCode)}
     for lg in DBSession.query(common.Language).filter(common.Language.id.in_(list(gcs - known))):
         lg.updated = datetime.datetime.now()
+        lg.update_jsondata(new=True)
 
     glottolog = get_glottolog_api(repos)
     version = assert_release(glottolog.repos)
@@ -288,12 +289,6 @@ group by l.id, l.pk, vs.contribution_pk, vs.parameter_pk"""):
         "select pk, pages, pages_int, startpage_int from source where pages_int < 0"
     )):
         raise ValueError(row)
-
-    with jsonlib.update(gc2version(), indent=4) as legacy:
-        for lang in DBSession.query(common.Language):
-            if lang.id not in legacy:
-                lang.update_jsondata(new=True)
-                legacy[lang.id] = version
 
     valuesets = {
         r[0]: r[1] for r in DBSession.query(common.ValueSet.id, common.ValueSet.pk)}

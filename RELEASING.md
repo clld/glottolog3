@@ -21,10 +21,10 @@ On `dlceutil` as user `glottolog` (where `monster.bib` should have been created 
   ```
 - run (about 45 mins)
   ```shell
-  clld create_downloads development.ini glottolog.org
-  glottolog-app newick
-  glottolog-app geo development.ini
-  glottolog-app sqldump development.ini
+  clld_create_downloads
+  glapp_newick
+  glapp_geo
+  glapp_sqldump
   cp -r glottolog3/static/download/ /tmp/<version>
   ```
   create a new version of the Zenodo deposit https://doi.org/10.5281/zenodo.21676495
