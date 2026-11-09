@@ -13,7 +13,7 @@ from clld.web.adapters.download import CsvDump, N3Dump, Download
 from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter, GeoJsonParameterFlatProperties
 from clld.web.adapters.md import BibTex
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
-from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter
+from clld.db.models.common import Language, LanguageIdentifier, Identifier, DomainElement, ValueSet, Value, Parameter, Source
 from clld.web.icon import ORDERED_ICONS
 from clld.lib import bibtex
 from clld.lib import rdf
@@ -101,6 +101,14 @@ class TurtleDump(Download):
                 ).encode('utf8'))
             fp.write(to_binary('\n\n'))
         fp.write(body)
+
+
+class SourceN3Dump(N3Dump):
+
+    def query(self, req):
+        return req.db.query(Source).options(sa.orm.joinedload(
+            Source.languages))\
+            .order_by(Source.pk)
 
 
 class LanguoidTurtleDump(TurtleDump):
