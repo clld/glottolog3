@@ -20,7 +20,7 @@ setup(
     },
     install_requires=[
         'clldutils>=3.22.2',
-        'clld>=9.2.2',
+        'clld>=11.6',
         'cldfcatalog',
         'clldmpg>=4.5',
         'markdown',

@@ -4,11 +4,11 @@ from pyramid.httpexceptions import HTTPMovedPermanently
 from pyramid.config import Configurator
 from pyramid.response import Response
 from sqlalchemy.orm import joinedload
-from clld.interfaces import ICtxFactoryQuery, IDownload, IMapMarker, IDomainElement, IValueSet
+from clld.interfaces import ICtxFactoryQuery, IMapMarker, IDomainElement, IValueSet
 from clld.web.app import menu_item, CtxFactoryQuery
 from clld.web.icon import MapMarker
 from clld.web.adapters.base import adapter_factory, Index
-from clld.web.adapters.download import N3Dump, Download
+from clld.web.adapters.download import Download
 from clld.db.models.common import Language, Source, ValueSet, ValueSetReference
 from clldutils import svg
 
@@ -170,11 +170,11 @@ Disallow: /files/
         models.Languoid, 'glottolog3', description="Languoids as CSV"))
     config.register_download(adapters.LanguoidTurtleDump(
         Language, 'glottolog3', description="Languoids as RDF"))
-    config.register_download(adapters.LanguoidN3Dump(
+    config.register_download(adapters.LanguoidNTDump(
         Language, 'glottolog3', description="Languoids as RDF"))
     config.register_download(Download(
         Source, 'glottolog3', ext='bib', description="References as BibTeX"))
-    config.register_download(adapters.SourceN3Dump(
+    config.register_download(adapters.SourceNTDump(
         Source, 'glottolog3', description="References as RDF"))
 
     config.add_route('langdocstatus', '/langdoc/status')

@@ -9,7 +9,7 @@ from pyramid.httpexceptions import HTTPFound
 
 from clld.interfaces import IDataset, IMetadata, ILanguage, IIndex, IParameter, IRepresentation
 from clld.web.adapters.base import Representation, Index
-from clld.web.adapters.download import CsvDump, N3Dump, Download
+from clld.web.adapters.download import CsvDump, Download
 from clld.web.adapters.geojson import GeoJsonLanguages, GeoJsonParameter, GeoJsonParameterFlatProperties
 from clld.web.adapters.md import BibTex
 from clld.web.maps import GeoJsonSelectedLanguages, SelectedLanguagesMap
@@ -103,7 +103,8 @@ class TurtleDump(Download):
         fp.write(body)
 
 
-class SourceN3Dump(N3Dump):
+class SourceNTDump(Download):
+    ext = 'nt'
 
     def query(self, req):
         return req.db.query(Source).options(sa.orm.joinedload(
@@ -119,7 +120,8 @@ class LanguoidTurtleDump(TurtleDump):
             .order_by(Language.pk)
 
 
-class LanguoidN3Dump(N3Dump):
+class LanguoidNTDump(Download):
+    ext = 'nt'
 
     def query(self, req):
         return req.db.query(Language).options(sa.orm.joinedload(
