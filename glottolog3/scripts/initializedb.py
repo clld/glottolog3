@@ -180,7 +180,6 @@ def prime_cache(args, repos=None):
         lg.update_jsondata(new=True)
 
     glottolog = get_glottolog_api(repos)
-    version = assert_release(glottolog.repos)
     #
     # Now that we loaded all languoids and refs, we can compute the MED values.
     #
