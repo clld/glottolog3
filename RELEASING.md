@@ -31,6 +31,7 @@ On `dlceutil` as user `glottolog` (where `monster.bib` should have been created 
   ```
   Release the new version.
 
+- register the downloads by filling in the `doi` item for the version in `static/downloads.json`
 - register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
 - update `glottolog3.util.DOI` with the new ZENODO DOI

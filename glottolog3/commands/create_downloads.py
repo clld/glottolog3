@@ -15,6 +15,8 @@ from clld.db.meta import DBSession
 from clld.db.models import common
 from clld.cliutil import AppConfig, SessionContext
 from clldutils.db import DB
+from clldutils.jsonlib import update
+from clldutils.path import md5
 
 from glottolog3 import models
 
@@ -36,6 +38,27 @@ def run(args):  # pragma: no cover
         func(args, fname)
         assert fname.exists()
         args.log.info('%s written', fname)
+
+    #
+    # fixme: register these in downloads.json
+    #
+
+
+def register_downloads(args):
+    def bs(p):
+        return {
+            'bitstreamid': p.name,
+            'checksum': md5(p),
+            "checksum-algorithm": "MD5",
+            "filesize": p.stat().st_size,
+        }
+
+    dlfname = args.pkg_dir.joinpath('static', 'downloads.json')
+    with update(dlfname, default=collections.OrderedDict(), indent=4, sort_keys=True) as downloads:
+        version = args.out.name
+        assert version not in downloads
+        downloads[version] = dict(
+            doi=None, bitstreams=[bs(p) for p in args.out.iterdir()])
 
 
 def geo(args, fname):
