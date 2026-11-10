@@ -274,13 +274,12 @@ class MapView(Index):
     template = 'language/map_html.mako'
 
     def template_context(self, ctx, req):
+        country = None
         if 'country' in req.params:
             country = DomainElement.get('country-' + req.params['country'], default=None)
-        else:
-            country = None
 
         if country:
-            languages = [v.valueset.language for v in country.values]
+            languages = [v.valueset.language for v in country.values if v.valueset.language.level.name == 'language']
         else:
             languages = list(ctx.get_query(limit=8000))
         map_, icon_map, family_map = get_selected_languages_map(req, languages)

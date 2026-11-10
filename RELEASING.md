@@ -23,7 +23,8 @@ On `dlceutil` as user `glottolog` (where `monster.bib` should have been created 
   create a new version of the Zenodo deposit https://doi.org/10.5281/zenodo.21676495
   with appropriate version setting and note the new deposit ID.
   ```shell
-  /usr/venvs/mediautils/bin/mediautils upload_to_zenodo <did> /tmp
+  export USER="token"
+  /usr/venvs/mediautils/bin/mediautils upload_to_zenodo <did> <USER> --dir .
   ```
   Release the new version.
 
@@ -31,6 +32,7 @@ On `dlceutil` as user `glottolog` (where `monster.bib` should have been created 
 - register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
   updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
 - update `glottolog3.util.DOI` with the new ZENODO DOI
+- update `app_dbdump` in appconfig
 
 - draft release of clld/glottolog3
   - commit all changes to glottolog3
