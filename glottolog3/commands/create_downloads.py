@@ -29,7 +29,7 @@ def register(parser):
 def run(args):  # pragma: no cover
     assert args.out.exists()
 
-    for fname, func in [
+    for func, fname in [
         (geo, 'languages_and_dialects_geo.csv'),
         (sqldump, 'glottolog.sql.gz'),
         (newick, 'tree_glottolog_newick.txt'),
@@ -39,9 +39,7 @@ def run(args):  # pragma: no cover
         assert fname.exists()
         args.log.info('%s written', fname)
 
-    #
-    # fixme: register these in downloads.json
-    #
+    register_downloads(args)
 
 
 def register_downloads(args):

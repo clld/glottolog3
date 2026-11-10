@@ -15,10 +15,6 @@ On `dlceutil` as user `glottolog` (where `monster.bib` should have been created 
   cd glottolog3
   clld_initdb
   ```
-- remove old downloads:
-  ```shell
-  rm glottolog3/static/download/*
-  ```
 - run (about 45 mins)
   ```shell
   clld_create_downloads --out 5.4
