@@ -1,6 +1,5 @@
 {
     "2.0": {
-	    "doi": "https://doi.org/10.5281/zenodo.21676496",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -48,6 +47,7 @@
                 "last-modified": 1459533833353
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21676496",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.0 of [Glottolog](http://glottolog.org)",
@@ -56,7 +56,6 @@
         "oid": "EAEA0-01F8-2FF8-F347-0"
     },
     "2.1": {
-	    "doi": "https://doi.org/10.5281/zenodo.21677993",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -104,6 +103,7 @@
                 "last-modified": 1459530037635
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21677993",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.1 of [Glottolog](http://glottolog.org)",
@@ -112,7 +112,6 @@
         "oid": "EAEA0-80E0-FBF5-DEB9-0"
     },
     "2.2": {
-	    "doi": "https://doi.org/10.5281/zenodo.21678060",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -160,6 +159,7 @@
                 "last-modified": 1459526225673
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21678060",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.2 of [Glottolog](http://glottolog.org)",
@@ -168,7 +168,6 @@
         "oid": "EAEA0-E34D-97A9-7380-0"
     },
     "2.3": {
-    	"doi": "https://doi.org/10.5281/zenodo.21678175",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -225,6 +224,7 @@
                 "last-modified": 1459521442169
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21678175",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.3 of [Glottolog](http://glottolog.org)",
@@ -233,7 +233,6 @@
         "oid": "EAEA0-8440-02D2-FF10-0"
     },
     "2.4": {
-	    "doi": "https://doi.org/10.5281/zenodo.21678333",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -308,6 +307,7 @@
                 "last-modified": 1459560039460
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21678333",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.4 of [Glottolog](http://glottolog.org)",
@@ -316,7 +316,6 @@
         "oid": "EAEA0-BE26-8FF3-C4C2-0"
     },
     "2.5": {
-	    "doi": "https://doi.org/10.5281/zenodo.21678714",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -391,6 +390,7 @@
                 "last-modified": 1459554040483
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21678714",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.5 of [Glottolog](http://glottolog.org)",
@@ -399,7 +399,6 @@
         "oid": "EAEA0-3C80-221D-9CD7-0"
     },
     "2.6": {
-	    "doi": "https://doi.org/10.5281/zenodo.21679476",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -483,6 +482,7 @@
                 "last-modified": 1459546807429
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21679476",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.6 of [Glottolog](http://glottolog.org)",
@@ -491,7 +491,6 @@
         "oid": "EAEA0-A24F-FA23-56F3-0"
     },
     "2.7": {
-	"doi": "https://doi.org/10.5281/zenodo.21679583",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -575,6 +574,7 @@
                 "last-modified": 1459539511301
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21679583",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 2.7 of [Glottolog](http://glottolog.org)",
@@ -583,7 +583,6 @@
         "oid": "EAEA0-CDEE-65B6-7E78-0"
     },
     "3.0": {
-	"doi": "https://doi.org/10.5281/zenodo.21679655",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -658,6 +657,7 @@
                 "last-modified": 1490781393277
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21679655",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 3.0 of [Glottolog](http://glottolog.org)",
@@ -666,7 +666,6 @@
         "oid": "EAEA0-54DF-D3B3-7041-0"
     },
     "3.1": {
-	"doi": "https://doi.org/10.5281/zenodo.21680060",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -732,6 +731,7 @@
                 "last-modified": 1511358656269
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21680060",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 3.1 of [Glottolog](http://glottolog.org)",
@@ -740,7 +740,6 @@
         "oid": "EAEA0-983F-6966-3616-0"
     },
     "3.2": {
-	"doi": "https://doi.org/10.5281/zenodo.21680208",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -806,6 +805,7 @@
                 "last-modified": 1516870137348
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21680208",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 3.2 of [Glottolog](http://glottolog.org)",
@@ -814,7 +814,6 @@
         "oid": "EAEA0-F088-DE0E-0712-0"
     },
     "3.3": {
-	"doi": "https://doi.org/10.5281/zenodo.21680409",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -880,6 +879,7 @@
                 "last-modified": 1534930866259
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21680409",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 3.3 of [Glottolog](http://glottolog.org)",
@@ -888,7 +888,6 @@
         "oid": "EAEA0-E7DE-FA06-8817-0"
     },
     "3.4": {
-	"doi": "https://doi.org/10.5281/zenodo.21680543",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -954,6 +953,7 @@
                 "last-modified": 1554185922380
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21680543",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 3.4 of [Glottolog](http://glottolog.org)",
@@ -962,7 +962,6 @@
         "oid": "EAEA0-9478-C22F-4AAF-0"
     },
     "4.0": {
-	"doi": "https://doi.org/10.5281/zenodo.21680672",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1028,6 +1027,7 @@
                 "last-modified": 1554185922380
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21680672",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.0 of [Glottolog](http://glottolog.org)",
@@ -1036,7 +1036,6 @@
         "oid": "EAEA0-5787-1678-EBFE-0"
     },
     "4.1": {
-	"doi": "https://doi.org/10.5281/zenodo.21680961",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1102,6 +1101,7 @@
                 "last-modified": 1574866502294
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21680961",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.1 of [Glottolog](http://glottolog.org)",
@@ -1110,7 +1110,6 @@
         "oid": "EAEA0-3DAE-E27B-4692-0"
     },
     "4.2": {
-	"doi": "https://doi.org/10.5281/zenodo.21681046",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1185,6 +1184,7 @@
                 "last-modified": 1587038968399
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681046",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.2 of [Glottolog](http://glottolog.org)",
@@ -1193,7 +1193,6 @@
         "oid": "EAEA0-18EC-5079-0173-0"
     },
     "4.3": {
-	"doi": "https://doi.org/10.5281/zenodo.21681281",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1268,6 +1267,7 @@
                 "last-modified": 1601536988839
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681281",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.3 of [Glottolog](http://glottolog.org)",
@@ -1276,7 +1276,6 @@
         "oid": "EAEA0-D501-DBB8-65C4-0"
     },
     "4.4": {
-	"doi": "https://doi.org/10.5281/zenodo.21681446",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1360,6 +1359,7 @@
                 "last-modified": 1621003923338
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681446",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.4 of [Glottolog](http://glottolog.org)",
@@ -1368,7 +1368,6 @@
         "oid": "EAEA0-E62D-ED67-FD05-0"
     },
     "4.5": {
-	"doi": "https://doi.org/10.5281/zenodo.21681516",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1443,6 +1442,7 @@
                 "last-modified": 1639146442472
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681516",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.5 of [Glottolog](http://glottolog.org)",
@@ -1451,7 +1451,6 @@
         "oid": "EAEA0-F8BB-0AB6-96FA-0"
     },
     "4.6": {
-	"doi": "https://doi.org/10.5281/zenodo.21681550",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1526,6 +1525,7 @@
                 "last-modified": 1653455717459
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681550",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.6 of [Glottolog](http://glottolog.org)",
@@ -1534,7 +1534,6 @@
         "oid": "EAEA0-7EA2-D308-CD6E-0"
     },
     "4.7": {
-	"doi": "https://doi.org/10.5281/zenodo.21681585",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1609,6 +1608,7 @@
                 "last-modified": 1670251559525
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681585",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.7 of [Glottolog](http://glottolog.org)",
@@ -1617,7 +1617,6 @@
         "oid": "EAEA0-56EE-48A3-6B18-0"
     },
     "4.8": {
-	"doi": "https://doi.org/10.5281/zenodo.21681678",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1692,6 +1691,7 @@
                 "last-modified": 1688999048262
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681678",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 4.8 of [Glottolog](http://glottolog.org)",
@@ -1700,7 +1700,6 @@
         "oid": "EAEA0-B701-6328-C3E3-0"
     },
     "5.0": {
-	"doi": "https://doi.org/10.5281/zenodo.21681803",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1775,6 +1774,7 @@
                 "last-modified": 1710166499220
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681803",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 5.0 of [Glottolog](http://glottolog.org)",
@@ -1783,7 +1783,6 @@
         "oid": "EAEA0-CFBC-1A89-0C8C-0"
     },
     "5.1": {
-	"doi": "https://doi.org/10.5281/zenodo.21681873",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1858,6 +1857,7 @@
                 "last-modified": 1730728705212
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681873",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 5.1 of [Glottolog](http://glottolog.org)",
@@ -1866,7 +1866,6 @@
         "oid": "EAEA0-167B-00FC-4D7D-0"
     },
     "5.2": {
-	"doi": "https://doi.org/10.5281/zenodo.21681909",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -1941,6 +1940,7 @@
                 "last-modified": 1748351722259
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681909",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 5.2 of [Glottolog](http://glottolog.org)",
@@ -1949,7 +1949,6 @@
         "oid": "EAEA0-2198-D710-AA36-0"
     },
     "5.3": {
-	"doi": "https://doi.org/10.5281/zenodo.21681980",
         "bitstreams": [
             {
                 "bitstreamid": "glottolog.sql.gz",
@@ -2024,11 +2023,65 @@
                 "last-modified": 1772519531958
             }
         ],
+        "doi": "https://doi.org/10.5281/zenodo.21681980",
         "metadata": {
             "creator": "pycdstar",
             "description": "Custom downloads for release 5.3 of [Glottolog](http://glottolog.org)",
             "title": "glottolog 5.3 - downloads"
         },
         "oid": "EAEA0-608B-9919-A962-0"
+    },
+    "5.4": {
+        "bitstreams": [
+            {
+                "bitstreamid": "glottolog_source.nt.gz",
+                "checksum": "afb0fb70728e3cbc7a4fe064266b7895",
+                "checksum-algorithm": "MD5",
+                "filesize": 147431289
+            },
+            {
+                "bitstreamid": "glottolog_language.ttl.gz",
+                "checksum": "4e96b4820483a3305389dccb71b9a0af",
+                "checksum-algorithm": "MD5",
+                "filesize": 3463288
+            },
+            {
+                "bitstreamid": "glottolog_language.nt.gz",
+                "checksum": "63e40b1192fd71edbac61008cb023d48",
+                "checksum-algorithm": "MD5",
+                "filesize": 5461661
+            },
+            {
+                "bitstreamid": "glottolog_languoid.csv.zip",
+                "checksum": "135bdbbc126438a645371a2c0af1380a",
+                "checksum-algorithm": "MD5",
+                "filesize": 591763
+            },
+            {
+                "bitstreamid": "glottolog.sql.gz",
+                "checksum": "1c0b2f59d4d2847533aa8bd9758b518a",
+                "checksum-algorithm": "MD5",
+                "filesize": 190650871
+            },
+            {
+                "bitstreamid": "glottolog_source.bib.zip",
+                "checksum": "c3832b4df7d7fdd6837aac9fb0192d7b",
+                "checksum-algorithm": "MD5",
+                "filesize": 75622005
+            },
+            {
+                "bitstreamid": "tree_glottolog_newick.txt",
+                "checksum": "b967dc6be59e1557801d8dfe88562c24",
+                "checksum-algorithm": "MD5",
+                "filesize": 775478
+            },
+            {
+                "bitstreamid": "languages_and_dialects_geo.csv",
+                "checksum": "e1c9de935fa79d1481302bd365240327",
+                "checksum-algorithm": "MD5",
+                "filesize": 1076334
+            }
+        ],
+        "doi": "10.5281/zenodo.24104033"
     }
 }
