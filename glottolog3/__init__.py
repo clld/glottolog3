@@ -155,11 +155,11 @@ Disallow: /files/
         views.langdoccomplexquery,
         renderer='langdoccomplexquery.mako')
 
-    for name in 'credits glossary downloads contact'.split():
+    for name in 'credits glossary download contact'.split():
         pp = '/' if name == 'credits' else '/meta/'
         config.add_route_and_view(
             'home.' + name,
-            pp + name,
+            pp + name + ('s' if name == 'download' else ''),
             getattr(views, name),
             renderer=name + '.mako')
     config.add_301(

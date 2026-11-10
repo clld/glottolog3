@@ -7,7 +7,7 @@
     ${util.contextnavitem('providers', label='About References')}
     ${util.contextnavitem('home.glossary', label='Glossary')}
     ${util.contextnavitem('legal')}
-    ${util.contextnavitem('home.downloads', label='Download')}
+    ${util.contextnavitem('home.download', label='Download')}
     ${util.contextnavitem('home.contact', label='Contact')}
 </%def>
 ${next.body()}

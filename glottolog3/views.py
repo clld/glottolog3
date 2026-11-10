@@ -140,7 +140,7 @@ def glossary(ctx, request):
     return res
 
 
-def downloads(request):
+def download(request):
     return {}
 
 
