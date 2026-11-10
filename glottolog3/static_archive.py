@@ -147,7 +147,7 @@ def dump(out, version, older, langs, identifiers):
 
         versions = [
             '<strong><a href="https://glottolog.org/resource/languoid/id/{0}">[{0}] in latest version</a></strong>'.format(lang.id)]
-        for ov in reversed(older.get(lang.id)):
+        for ov in reversed(older.get(lang.id, [])):
             if ov != version:
                 versions.append(lang.cross_version_link(ov))
 

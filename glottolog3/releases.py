@@ -37,15 +37,17 @@ class Release:
         return f'https://zenodo.org/records/{self.deposit_id}/files/glottolog.sql.gz'
 
     @classmethod
-    def from_config(cls, cfg, section):
-        try:
-            return cls(
-            tag=section,
-            version=cfg[section]['version'],
-            sql_dump_md5=cfg[section]['sql_dump_md5'],
-            downloads_doi=cfg[section]['doi'])
-        except KeyError:
-            print(cfg[section])
+    def from_downloads(cls, version, spec):
+        for bs in spec['bitstreams']:
+            if bs['bitstreamid'] == 'glottolog.sql.gz':
+                break
+        else:
+            raise ValueError(version)
+        return cls(
+            tag='v' + version,
+            version=version,
+            sql_dump_md5=bs['checksum'],
+            downloads_doi=spec['doi'])
 
     def dump_fname(self, zipped=False):
         return pathlib.Path(f"glottolog-{self.version}.sql{'.gz' if zipped else ''}")

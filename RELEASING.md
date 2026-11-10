@@ -1,21 +1,29 @@
-
 # Releasing https://glottolog.org
-
-- Checkout the corresponding release of glottolog/glottolog.
-- For major or minor releases: create the static archive including the last release:
-  ```shell
-  glottolog-app create_archive 5.3 path/to/download/of/glottocode2version.json --out ../archive/
-  ```
-  Then create a new version of https://doi.org/10.5281/zenodo.23421523 and add the files.
 
 On `dlceutil` as user `glottolog` (where `monster.bib` should have been created before):
 
-- initialize the DB running (about 60 mins)
+- Checkout the corresponding release of glottolog/glottolog:
   ```shell
-  cd glottolog3
+  glgit checkout v5.5
+  ```
+
+- For major or minor releases: create the static archive of the current version:
+  ```shell
+  glapp_create_archive 5.4 --out archive
+  ```
+  Then create a new version of https://doi.org/10.5281/zenodo.23421523, copy the files from
+  the previous version, save as draft and upload the new files using the new deposit ID:
+  ```shell
+  export USER="token"
+  mediautils_upload_to_zenodo <deposit_id> <USER> --dir archive
+  ```
+
+- Initialize the app DB running (about 60 mins)
+  ```shell
   clld_initdb
   ```
-- run (about 45 mins)
+
+- Create downloads (about 45 mins)
   ```shell
   clld_create_downloads --out 5.4
   glapp_create_downloads 5.4
@@ -24,32 +32,29 @@ On `dlceutil` as user `glottolog` (where `monster.bib` should have been created 
   with appropriate version setting and note the new deposit ID.
   ```shell
   export USER="token"
-  /usr/venvs/mediautils/bin/mediautils upload_to_zenodo <did> <USER> --dir .
+  mediautils_upload_to_zenodo <did> <USER> --dir .
   ```
   Release the new version.
 
 - register the downloads by filling in the `doi` item for the version in `static/downloads.json`
-- register sql dump download in `glottolog3/releases.ini` by adding a new section for the release or
-  updating the md5 hash of the sql dump for a bugfix release with the data from downloads.json.
-- update `glottolog3.util.DOI` with the new ZENODO DOI
-- update `app_dbdump` in appconfig
 
 - draft release of clld/glottolog3
-  - commit all changes to glottolog3
+  - commit and push all changes to glottolog3
   - create release on GitHub
 
-- Now deploy to server:
+- Checkout master
   ```shell
-  workon appconfig
-  cd appconfig/apps
+  glgit checkout master
   ```
-  **Note**: For new major or minor releases, we must adapt the `dbdump` option in `apps.ini[glottolog3]` 
-  to the new version.
+
+
+On `localhost`:
+
+- Now deploy to server: 
+  update `app_dbdump` variable in appconfig
   ```shell
-  cd appconfig/apps/glottolog3
-  fab copy_archive:../../../../glottolog/archive/archive.tgz
-  fab deploy:production
-  fab fetch_downloads
+  appconfig appfetchwww glottolog
+  appconfig appdeploy glottolog --withdb
   ```
   and check archive:
   ```

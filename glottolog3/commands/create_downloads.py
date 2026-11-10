@@ -1,8 +1,6 @@
 """
-
-Create languages-and-dialects-geo.csv download
+Create custom downloads after creation of the registered downloads.
 """
-import shutil
 import pathlib
 import subprocess
 import collections

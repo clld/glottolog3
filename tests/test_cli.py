@@ -1,4 +1,3 @@
-import logging
 import pathlib
 import subprocess
 
@@ -8,7 +7,6 @@ from sqlalchemy.orm import close_all_sessions
 from clld.db.meta import DBSession, Base
 
 from glottolog3 import models
-from glottolog3.__main__ import main
 
 TEST_DB = 'glottolog3-test'
 
@@ -45,9 +43,3 @@ def test_dbinit(mocker, testdb, capsys, repos):
     check_db_consistency.main(mocker.Mock())
     out, _ = capsys.readouterr()
     assert out.count(': OK') == 15
-
-
-def test_newick(tmpdir, repos):
-    main(['--repos', str(repos), 'newick', '--output', str(tmpdir.join('test'))],
-         log=logging.getLogger(__name__))
-    assert pathlib.Path(str(tmpdir)).joinpath('test').exists()

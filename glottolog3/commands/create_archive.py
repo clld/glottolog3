@@ -19,6 +19,7 @@ def register(parser):  # pragma: no cover
 
 
 def run(args):  # pragma: no cover
+    args.output.mkdir(exist_ok=True, parents=True)
     rel = get_release(args, args.version)
     assert rel
     rel.load_sql_dump(args.log, out=args.output)

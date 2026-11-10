@@ -41,7 +41,7 @@ ${ctx.coins(request)|n}
                         % if ctx.url:
                             <li>${u.format_external_link_in_label(ctx.url)}</li>
                         % elif ctx.jsondata.get('doi'):
-                            <li>${u.format_external_link_in_label('http://dx.doi.org/%s' % ctx.jsondata['doi'], 'DOI')}</li>
+                            <li>${u.format_external_link_in_label('https://doi.org/%s' % ctx.jsondata['doi'], 'DOI')}</li>
                         % endif
                         % if ctx.gbid:
                             <li>${u.format_external_link_in_label('https://books.google.com/books?id=%s' % ctx.gbid.split('id=')[-1], label='Google Books')}</li>
